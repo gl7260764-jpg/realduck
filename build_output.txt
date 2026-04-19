@@ -1,0 +1,65 @@
+  ▲ Next.js 14.2.15
+  - Environments: .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/25) ...
+Error fetching analytics: n [Error]: Dynamic server usage: Route /api/admin/analytics couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at l (/home/chendi/Desktop/New Folder/nobupacks/.next/server/chunks/379.js:1:37154)
+    at f (/home/chendi/Desktop/New Folder/nobupacks/.next/server/chunks/936.js:1:1692)
+    at a (/home/chendi/Desktop/New Folder/nobupacks/.next/server/app/api/admin/products/route.js:1:2771)
+    at c (/home/chendi/Desktop/New Folder/nobupacks/.next/server/app/api/admin/products/route.js:1:3004)
+    at d (/home/chendi/Desktop/New Folder/nobupacks/.next/server/app/api/admin/analytics/route.js:1:899)
+    at /home/chendi/Desktop/New Folder/nobupacks/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:36963
+    at /home/chendi/Desktop/New Folder/nobupacks/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/home/chendi/Desktop/New Folder/nobupacks/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/home/chendi/Desktop/New Folder/nobupacks/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/home/chendi/Desktop/New Folder/nobupacks/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093) {
+  description: "Route /api/admin/analytics couldn't be rendered statically because it used `cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (6/25) 
+   Generating static pages (12/25) 
+   Generating static pages (18/25) 
+ ✓ Generating static pages (25/25)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                              Size     First Load JS
+┌ ƒ /                                    31.5 kB         155 kB
+├ ○ /_not-found                          139 B          87.5 kB
+├ ƒ /admin                               176 B          94.4 kB
+├ ƒ /admin/analytics                     115 kB          215 kB
+├ ƒ /admin/login                         1.37 kB        93.9 kB
+├ ƒ /admin/orders                        7.7 kB          107 kB
+├ ƒ /admin/products                      3.92 kB        98.1 kB
+├ ƒ /admin/products/[id]/edit            149 B           145 kB
+├ ƒ /admin/products/new                  149 B           145 kB
+├ ƒ /admin/settings                      4.31 kB        91.7 kB
+├ ƒ /api/admin/analytics                 0 B                0 B
+├ ƒ /api/admin/login                     0 B                0 B
+├ ƒ /api/admin/logout                    0 B                0 B
+├ ƒ /api/admin/orders                    0 B                0 B
+├ ƒ /api/admin/products                  0 B                0 B
+├ ƒ /api/admin/products/[id]             0 B                0 B
+├ ƒ /api/admin/settings                  0 B                0 B
+├ ƒ /api/orders/checkout                 0 B                0 B
+├ ƒ /api/orders/track                    0 B                0 B
+├ ƒ /api/products                        0 B                0 B
+├ ○ /api/settings                        0 B                0 B
+├ ƒ /api/track                           0 B                0 B
+├ ○ /checkout                            9.15 kB        96.5 kB
+├ ƒ /product/[id]                        22.3 kB         145 kB
+├ ○ /robots.txt                          0 B                0 B
+└ ○ /sitemap.xml                         0 B                0 B
++ First Load JS shared by all            87.4 kB
+  ├ chunks/117-7e435bfc802c9595.js       31.8 kB
+  ├ chunks/fd9d1056-10cc246279adb374.js  53.6 kB
+  └ other shared chunks (total)          1.96 kB
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

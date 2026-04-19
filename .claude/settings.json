@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(lighthouse http://localhost:3001 --output=json --output-path=/tmp/lighthouse-report2.json --chrome-flags=\"--headless --no-sandbox --disable-gpu\" --only-categories=performance,seo,accessibility,best-practices)",
+      "Bash(lighthouse http://localhost:3001 --output=json --output-path=/tmp/lh-report.json --chrome-flags=\"--headless --no-sandbox --disable-gpu\" --only-categories=performance,accessibility,best-practices,seo)",
+      "Bash(lighthouse http://localhost:3001 --output=json --output-path=/tmp/lh-report2.json --chrome-flags=\"--headless --no-sandbox --disable-gpu\" --only-categories=performance,accessibility,best-practices,seo)",
+      "Bash(npm install:*)",
+      "Bash(npx web-push:*)"
+    ],
+    "additionalDirectories": [
+      "/home/chendi/Desktop/New Folder/nobupacks/public/images/payments",
+      "/tmp"
+    ]
+  }
+}

@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum Category {
+  FLOWER
+  EDIBLES
+  CONCENTRATES
+  VAPES
+  PREROLLS
+  ROSIN
+  MUSHROOM
+  DISPOSABLES
+  GUMMIES
+  OTHERS
+}
+
+enum BlogCategory {
+  EDUCATION
+  HOW_TO
+  IMPORTANCE
+  HEALTH_MEDICINAL
+}
+
+model BlogPost {
+  id          String       @id @default(cuid())
+  slug        String       @unique
+  title       String
+  subtitle    String?
+  category    BlogCategory
+  content     String       // Rich text / markdown content
+  excerpt     String?      // Short preview text for cards
+  imageUrl    String       // Hero/cover image
+  images      String[]     @default([]) // Additional images
+  author      String       @default("Real Duck Distro")
+  published   Boolean      @default(false)
+  featured    Boolean      @default(false)
+  tags        String[]     @default([])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([category])
+  @@index([published])
+  @@index([createdAt])
+  @@index([slug])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  slug        String?  @unique
+  title       String
+  description String?
+  category    Category
+  indoor      Boolean  @default(true)
+  rating      String   @default("10/10")
+  priceLocal  String
+  priceShip   String
+  isSoldOut   Boolean  @default(false)
+  imageUrl    String
+  images      String[] @default([])
+  videoUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  views       ProductView[]
+
+  @@index([slug])
+}
+
+model PageView {
+  id          String   @id @default(cuid())
+  page        String
+  userAgent   String?
+  referer     String?
+  refererDomain String?
+  sessionId   String?
+  device      String?  // mobile, desktop, tablet
+  browser     String?  // Chrome, Firefox, Safari, etc.
+  os          String?  // Windows, macOS, iOS, Android, Linux
+  country     String?
+  city        String?
+  createdAt   DateTime @default(now())
+
+  @@index([page])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([device])
+  @@index([browser])
+}
+
+model ProductView {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userAgent   String?
+  referer     String?
+  refererDomain String?
+  sessionId   String?
+  device      String?
+  browser     String?
+  os          String?
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+  @@index([sessionId])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  sessionId   String
+  productId   String?
+  productTitle String
+  category    String
+  price       String
+  deliveryType String     // "local" or "ship"
+  quantity    Int         @default(1)
+  country     String?
+  state       String?
+  city        String?
+  zip         String?
+  ip          String?
+  device      String?
+  browser     String?
+  os          String?
+  createdAt   DateTime    @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([productId])
+}
+
+// ── Push Notifications & PWA ──
+
+model PushSubscription {
+  id          String   @id @default(cuid())
+  endpoint    String   @unique
+  p256dh      String   // encryption key
+  auth        String   // auth secret
+  sessionId   String?
+  device      String?
+  browser     String?
+  os          String?
+  country     String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+  @@index([createdAt])
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  message     String    // short preview for notification
+  content     String    // full content for the page
+  imageUrl    String?
+  link        String?   // custom link, defaults to /announcements
+  published   Boolean   @default(false)
+  scheduledAt DateTime? // when to auto-publish and push (null = immediate)
+  pushed      Boolean   @default(false)
+  pushSentAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([published])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
+model PwaInstall {
+  id           String   @id @default(cuid())
+  sessionId    String   @unique
+  fingerprint  String?  // browser fingerprint for abuse prevention
+  device       String?
+  browser      String?
+  os           String?
+  country      String?
+  discountUsed Boolean  @default(false) // has the 10% discount been used
+  createdAt    DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+}
+
+// ── Admin Sessions ──
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  username  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model CheckoutOrder {
+  id              String   @id @default(cuid())
+  orderNumber     String   @unique
+  sessionId       String?
+  // Customer info
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  // Delivery address
+  address         String
+  apartment       String?
+  city            String
+  state           String
+  zipCode         String
+  country         String   @default("United States")
+  // Order details
+  items           Json     // Array of cart items
+  totalItems      Int
+  paymentMethod   String   // "cash", "zelle", "cashapp", "crypto"
+  deliveryNotes   String?
+  // IP Geolocation
+  ipCountry       String?
+  ipState         String?
+  ipCity          String?
+  ipZip           String?
+  ipAddress       String?
+  // Source & Status
+  orderSource     String   @default("email") // "email" or "telegram"
+  status          String   @default("pending") // pending, confirmed, shipped, delivered
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([orderNumber])
+  @@index([createdAt])
+  @@index([status])
+}
