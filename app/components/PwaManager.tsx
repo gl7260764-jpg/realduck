@@ -614,16 +614,6 @@ export default function PwaManager() {
             )}
           </div>
 
-          <style jsx>{`
-            @keyframes rdd-notif-fade {
-              from { opacity: 0; }
-              to   { opacity: 1; }
-            }
-            @keyframes rdd-notif-pop {
-              from { opacity: 0; transform: translateY(14px) scale(0.96); }
-              to   { opacity: 1; transform: translateY(0)    scale(1);    }
-            }
-          `}</style>
         </div>
       )}
 
@@ -758,25 +748,6 @@ export default function PwaManager() {
         </div>
       )}
 
-      <style jsx global>{`
-        @keyframes slideUp {
-          from { transform: translateY(100%); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes slideDown {
-          from { transform: translateY(-100%); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        .safe-top {
-          padding-top: max(12px, env(safe-area-inset-top));
-        }
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
     </>
   );
 }

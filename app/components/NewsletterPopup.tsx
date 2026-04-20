@@ -167,17 +167,6 @@ export default function NewsletterPopup() {
       aria-labelledby="rdd-newsletter-title"
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-[rdd-fade_200ms_ease-out]"
     >
-      <style jsx>{`
-        @keyframes rdd-fade {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes rdd-pop {
-          from { opacity: 0; transform: translateY(12px) scale(0.97); }
-          to   { opacity: 1; transform: translateY(0)    scale(1);    }
-        }
-      `}</style>
-
       <div
         className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
         onClick={handleDismiss}
