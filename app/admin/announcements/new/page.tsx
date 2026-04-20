@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, Eye, CalendarClock, Bell } from "lucide-react";
 import FileUpload from "../../components/FileUpload";
+
+type LinkMode = "announcements" | "product" | "custom";
+interface LiteProduct { id: string; slug: string | null; title: string; category: string; }
 
 export default function NewAnnouncementPage() {
   const router = useRouter();
@@ -15,6 +18,35 @@ export default function NewAnnouncementPage() {
     title: "", message: "", content: "", imageUrl: "", link: "",
     published: true, scheduledAt: "",
   });
+  const [linkMode, setLinkMode] = useState<LinkMode>("announcements");
+  const [products, setProducts] = useState<LiteProduct[]>([]);
+  const [productQuery, setProductQuery] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState("");
+
+  useEffect(() => {
+    fetch("/api/admin/products")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((d) => Array.isArray(d) ? setProducts(d.map((p) => ({ id: p.id, slug: p.slug, title: p.title, category: p.category }))) : null)
+      .catch(() => {});
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const q = productQuery.trim().toLowerCase();
+    if (!q) return products.slice(0, 20);
+    return products.filter((p) => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)).slice(0, 20);
+  }, [products, productQuery]);
+
+  // Keep form.link in sync with the chosen mode
+  useEffect(() => {
+    if (linkMode === "announcements") {
+      setForm((f) => ({ ...f, link: "" })); // server defaults null link → /announcements
+    } else if (linkMode === "product") {
+      const p = products.find((p) => p.id === selectedProductId);
+      if (p) setForm((f) => ({ ...f, link: `/product/${p.slug || p.id}` }));
+      else setForm((f) => ({ ...f, link: "" }));
+    }
+    // "custom" leaves form.link untouched so the user can type
+  }, [linkMode, selectedProductId, products]);
 
   const cls = "w-full px-4 py-3 text-sm sm:text-base border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all";
 
@@ -80,8 +112,77 @@ export default function NewAnnouncementPage() {
             />
           </div>
           <div>
-            <label className="block text-sm sm:text-base font-semibold text-gray-900 mb-1.5">Link <span className="font-normal text-gray-400">(optional)</span></label>
-            <input type="text" value={form.link} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="/announcements" className={cls} />
+            <label className="block text-sm sm:text-base font-semibold text-gray-900 mb-1.5">When the notification is tapped, open…</label>
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {([
+                { id: "announcements", label: "Announcements" },
+                { id: "product", label: "A product" },
+                { id: "custom", label: "Custom URL" },
+              ] as { id: LinkMode; label: string }[]).map((opt) => (
+                <button
+                  type="button"
+                  key={opt.id}
+                  onClick={() => setLinkMode(opt.id)}
+                  className={`py-2.5 rounded-xl text-xs sm:text-sm font-semibold border transition-all ${
+                    linkMode === opt.id
+                      ? "bg-slate-900 text-white border-slate-900"
+                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-400"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {linkMode === "announcements" && (
+              <p className="text-xs text-gray-500">Tap opens <span className="font-mono text-gray-700">/announcements</span> — the full announcement feed.</p>
+            )}
+
+            {linkMode === "product" && (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={productQuery}
+                  onChange={(e) => setProductQuery(e.target.value)}
+                  placeholder="Search products by name or category…"
+                  className={cls}
+                />
+                <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-xl divide-y divide-gray-100">
+                  {filteredProducts.length === 0 && (
+                    <p className="px-4 py-6 text-center text-sm text-gray-400">{products.length === 0 ? "Loading products…" : "No matches"}</p>
+                  )}
+                  {filteredProducts.map((p) => (
+                    <button
+                      type="button"
+                      key={p.id}
+                      onClick={() => setSelectedProductId(p.id)}
+                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center justify-between gap-3 transition-colors ${
+                        selectedProductId === p.id ? "bg-slate-900 text-white" : "hover:bg-gray-50 text-gray-800"
+                      }`}
+                    >
+                      <span className="truncate">{p.title}</span>
+                      <span className={`text-[10px] uppercase tracking-wide flex-shrink-0 ${selectedProductId === p.id ? "text-white/60" : "text-gray-400"}`}>{p.category}</span>
+                    </button>
+                  ))}
+                </div>
+                {form.link && selectedProductId && (
+                  <p className="text-xs text-gray-500">Tap opens <span className="font-mono text-gray-700">{form.link}</span></p>
+                )}
+              </div>
+            )}
+
+            {linkMode === "custom" && (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={form.link}
+                  onChange={(e) => setForm({ ...form, link: e.target.value })}
+                  placeholder="/shop, /category/edibles, https://…"
+                  className={cls}
+                />
+                <p className="text-xs text-gray-500">Any internal path (starts with <span className="font-mono">/</span>) or a full URL.</p>
+              </div>
+            )}
           </div>
         </div>
 
