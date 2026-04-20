@@ -31,7 +31,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<SiteSettings>(DEFAULTS);
 
   useEffect(() => {
-    fetch("/api/settings")
+    fetch("/api/settings", { cache: "no-store" })
       .then((r) => r.json())
       .then((data) => setSettings({ ...DEFAULTS, ...data }))
       .catch(() => {});
