@@ -1,4 +1,4 @@
-var CACHE_NAME = "nobu-v5";
+var CACHE_NAME = "nobu-v6";
 
 self.addEventListener("install", function () {
   self.skipWaiting();
@@ -52,41 +52,45 @@ self.addEventListener("push", function (event) {
     badge: "/icons/icon-192.png",
     tag: data.tag || "nobu-" + Date.now(),
     renotify: true,
-    // requireInteraction: keep notification visible until user taps (Android/Desktop)
-    // iOS ignores this, which is fine — it shows briefly then goes to notification center
+    silent: false,
     requireInteraction: true,
+    timestamp: Date.now(),
     data: { url: data.url || "/announcements" },
-    // Vibration pattern: buzz-pause-buzz (Android only, iOS ignores safely)
     vibrate: [200, 100, 200, 100, 200],
   };
 
-  // Image support (Android/Desktop — iOS ignores)
   if (data.image) {
     options.image = data.image;
   }
 
-  // Action buttons (Android/Desktop only — iOS ignores safely)
   options.actions = [
     { action: "open", title: "View Now" },
     { action: "dismiss", title: "Dismiss" },
   ];
 
-  // Show the notification AND relay to any open windows for in-app toast
+  // Always show the notification first; broadcasting to clients is secondary.
+  // If matchAll fails for any reason, the OS notification still fires.
   event.waitUntil(
-    self.registration.showNotification(data.title, options).then(function () {
-      // Notify open tabs so they can show an in-app banner (foreground notification)
-      return self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (clients) {
-        clients.forEach(function (client) {
-          client.postMessage({
-            type: "PUSH_RECEIVED",
-            title: data.title,
-            body: data.body,
-            url: data.url,
-            image: data.image,
-          });
-        });
-      });
-    })
+    self.registration
+      .showNotification(data.title, options)
+      .then(function () {
+        return self.clients
+          .matchAll({ type: "window", includeUncontrolled: true })
+          .then(function (clients) {
+            clients.forEach(function (client) {
+              try {
+                client.postMessage({
+                  type: "PUSH_RECEIVED",
+                  title: data.title,
+                  body: data.body,
+                  url: data.url,
+                  image: data.image,
+                });
+              } catch (_err) {}
+            });
+          })
+          .catch(function () {});
+      })
   );
 });
 
@@ -106,16 +110,32 @@ self.addEventListener("notificationclick", function (event) {
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
-      .then(function (clients) {
-        // Try to focus an existing window and navigate it
-        for (var i = 0; i < clients.length; i++) {
-          var client = clients[i];
-          if (client.url.indexOf(self.location.origin) !== -1 && "focus" in client) {
-            client.navigate(fullUrl);
-            return client.focus();
-          }
+      .then(function (allClients) {
+        var sameOrigin = allClients.filter(function (c) {
+          return c.url.indexOf(self.location.origin) === 0;
+        });
+
+        // No open tab — open fresh
+        if (sameOrigin.length === 0) {
+          return self.clients.openWindow(fullUrl);
         }
-        // No existing window — open a new one
+
+        // Prefer a client already on the target URL — just focus it
+        var exact = sameOrigin.find(function (c) {
+          return c.url === fullUrl;
+        });
+        if (exact) return exact.focus();
+
+        // Otherwise navigate an existing window to the target URL.
+        // Installed PWAs sometimes reject client.navigate() on the initial page
+        // load window; fall back to openWindow so the user always lands on the right URL.
+        var first = sameOrigin[0];
+        if ("navigate" in first) {
+          return first
+            .navigate(fullUrl)
+            .then(function (navClient) { return navClient ? navClient.focus() : first.focus(); })
+            .catch(function () { return self.clients.openWindow(fullUrl); });
+        }
         return self.clients.openWindow(fullUrl);
       })
   );

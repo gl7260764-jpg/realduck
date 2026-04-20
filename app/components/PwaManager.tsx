@@ -468,13 +468,29 @@ export default function PwaManager() {
         >
           <div className="bg-slate-900/95 backdrop-blur-lg border-b border-white/10 px-4 py-3 mx-auto max-w-lg safe-top">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                <Megaphone className="w-5 h-5 text-blue-400" />
+              <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 mt-0.5 ring-2 ring-white/15 bg-white">
+                <Image
+                  src="/icons/icon-192.png"
+                  alt="Real Duck Distro"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-white text-sm font-bold truncate">{foregroundNotif.title}</p>
-                <p className="text-white/60 text-xs mt-0.5 line-clamp-2">{foregroundNotif.body}</p>
+                <p className="text-white/70 text-xs mt-0.5 line-clamp-2">{foregroundNotif.body}</p>
               </div>
+              {foregroundNotif.image && (
+                <div className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 mt-0.5 bg-white/10">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={foregroundNotif.image}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
