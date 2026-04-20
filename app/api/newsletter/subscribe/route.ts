@@ -93,6 +93,55 @@ function buildWelcomeEmailHtml(email: string): string {
   return html;
 }
 
+interface AdminNotificationData {
+  email: string;
+  source: string;
+  ip: string | null;
+  country: string | null;
+  device: string;
+  browser: string;
+  os: string;
+  alreadySubscribed: boolean;
+  subscribedAt: Date;
+}
+
+function buildAdminNotificationHtml(data: AdminNotificationData): string {
+  const rows: Array<[string, string]> = [
+    ["Email", data.email],
+    ["Source", data.source],
+    ["Status", data.alreadySubscribed ? "Reactivated subscription" : "New subscriber"],
+    ["Country", data.country || "Unknown"],
+    ["IP address", data.ip || "Unknown"],
+    ["Device", data.device],
+    ["Browser", data.browser],
+    ["OS", data.os],
+    ["Subscribed at", data.subscribedAt.toUTCString()],
+  ];
+  let html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/></head>';
+  html += '<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;">';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:24px 0;"><tr><td align="center">';
+  html += '<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">';
+  html += '<tr><td style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);padding:28px 36px;">';
+  html += '<h1 style="margin:0;font-size:20px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;">📬 New newsletter subscriber</h1>';
+  html += '<p style="margin:6px 0 0;font-size:13px;color:rgba(255,255,255,0.7);">Real Duck Distro · admin notification</p>';
+  html += '</td></tr>';
+  html += '<tr><td style="padding:24px 36px;">';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">';
+  for (const [label, value] of rows) {
+    html += '<tr>';
+    html += '<td style="padding:10px 0;border-bottom:1px solid #eef2f7;font-size:13px;color:#64748b;width:40%;">' + esc(label) + '</td>';
+    html += '<td style="padding:10px 0;border-bottom:1px solid #eef2f7;font-size:14px;color:#0f172a;font-weight:600;">' + esc(value) + '</td>';
+    html += '</tr>';
+  }
+  html += '</table>';
+  html += '</td></tr>';
+  html += '<tr><td style="background:#f8fafc;padding:16px 36px;border-top:1px solid #eef2f7;">';
+  html += '<p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">Manage subscribers in the admin dashboard.</p>';
+  html += '</td></tr>';
+  html += '</table></td></tr></table></body></html>';
+  return html;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -156,20 +205,46 @@ export async function POST(request: NextRequest) {
           auth: { user: config.smtpUser, pass: config.smtpPassword },
         });
         const fromAddress = process.env.SMTP_FROM || `Real Duck Distro <${config.smtpUser}>`;
-        const result = await Promise.allSettled([
+        const adminRecipient = config.adminEmail || config.companyEmail;
+        const sends: Array<Promise<unknown>> = [
           transporter.sendMail({
             from: fromAddress,
             to: rawEmail,
             subject: "Welcome to Real Duck Distro — you're in 🎉",
             html: buildWelcomeEmailHtml(rawEmail),
           }),
-        ]);
-        if (result[0].status === "fulfilled") {
+        ];
+        if (adminRecipient) {
+          sends.push(
+            transporter.sendMail({
+              from: fromAddress,
+              to: adminRecipient,
+              subject: `📬 New newsletter subscriber: ${rawEmail}`,
+              replyTo: rawEmail,
+              html: buildAdminNotificationHtml({
+                email: rawEmail,
+                source,
+                ip,
+                country: geo?.country || null,
+                device,
+                browser,
+                os,
+                alreadySubscribed: Boolean(existing),
+                subscribedAt: new Date(),
+              }),
+            })
+          );
+        }
+        const results = await Promise.allSettled(sends);
+        if (results[0].status === "fulfilled") {
           await prisma.newsletterSubscriber
             .update({ where: { id: subscriber.id }, data: { confirmedAt: new Date() } })
             .catch(() => {});
         } else {
-          console.error("Newsletter welcome email failed:", result[0].reason?.message || result[0].reason);
+          console.error("Newsletter welcome email failed:", results[0].reason?.message || results[0].reason);
+        }
+        if (results[1] && results[1].status === "rejected") {
+          console.error("Newsletter admin notification failed:", results[1].reason?.message || results[1].reason);
         }
       }
     } catch (err) {

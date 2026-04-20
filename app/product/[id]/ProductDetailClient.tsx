@@ -78,7 +78,7 @@ export default function ProductDetailClient({
   const [alreadyInCart, setAlreadyInCart] = useState(false);
   const [fastLoading, setFastLoading] = useState(false);
   const [fastError, setFastError] = useState("");
-  const [telegramUsername, setTelegramUsername] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const router = useRouter();
   const { addItem, isInCart, setIsOpen, items } = useCart();
@@ -128,8 +128,8 @@ export default function ProductDetailClient({
   const decrementQuantity = () => setQuantity((prev) => Math.max(prev - 1, 1));
 
   const handleFastOrder = async () => {
-    if (!telegramUsername.trim() && !customerEmail.trim()) {
-      setFastError("Please enter your Telegram username or email");
+    if (!customerPhone.trim() && !customerEmail.trim()) {
+      setFastError("Please enter your email or phone number");
       return;
     }
 
@@ -154,7 +154,7 @@ export default function ProductDetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          telegramUsername: telegramUsername.trim() || undefined,
+          customerPhone: customerPhone.trim() || undefined,
           customerEmail: customerEmail.trim() || undefined,
           items: [{
             id: product.id,
@@ -219,7 +219,7 @@ export default function ProductDetailClient({
   const closeBuyModal = useCallback(() => {
     setShowBuyModal(false);
     setBuyStep("choose");
-    setTelegramUsername("");
+    setCustomerPhone("");
     setCustomerEmail("");
     setFastError("");
   }, []);
@@ -302,25 +302,22 @@ export default function ProductDetailClient({
                   <p className="text-xs text-gray-500 mb-3 text-center">Enter at least one way to reach you</p>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[11px] font-medium text-gray-500 mb-1 block">Telegram Username</label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
-                        <input
-                          type="text"
-                          value={telegramUsername}
-                          onChange={(e) => setTelegramUsername(e.target.value)}
-                          placeholder="username"
-                          className="w-full pl-8 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
-                        />
-                      </div>
-                    </div>
-                    <div>
                       <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
                       <input
                         type="email"
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder="you@example.com"
+                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-medium text-gray-500 mb-1 block">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="+1 555 123 4567"
                         className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
                       />
                     </div>
@@ -353,7 +350,7 @@ export default function ProductDetailClient({
                   </div>
                   <p className="font-bold text-gray-900 text-base">Order Placed!</p>
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed px-2">
-                    Our team will process your order and contact you through the email or Telegram you provided. Please check it shortly.
+                    Our team will process your order and contact you through the email or phone number you provided. Please check it shortly.
                   </p>
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed px-2">
                     If it takes more than 5 minutes, reach out to us directly:

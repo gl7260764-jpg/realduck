@@ -25,7 +25,7 @@ export default function CartDrawer() {
   const [telegramSuccess, setTelegramSuccess] = useState(false);
   const [telegramError, setTelegramError] = useState("");
   const [showFastContact, setShowFastContact] = useState(false);
-  const [telegramUsername, setTelegramUsername] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
 
   // Prevent body scroll when cart is open
@@ -49,8 +49,8 @@ export default function CartDrawer() {
   const handleTelegramCheckout = async () => {
     if (items.length === 0) return;
 
-    if (!telegramUsername.trim() && !customerEmail.trim()) {
-      setTelegramError("Please enter your Telegram username or email");
+    if (!customerPhone.trim() && !customerEmail.trim()) {
+      setTelegramError("Please enter your email or phone number");
       return;
     }
 
@@ -83,7 +83,7 @@ export default function CartDrawer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          telegramUsername: telegramUsername.trim() || undefined,
+          customerPhone: customerPhone.trim() || undefined,
           customerEmail: customerEmail.trim() || undefined,
           items: items.map((item) => ({
             id: item.id,
@@ -137,7 +137,7 @@ export default function CartDrawer() {
                 onClick={() => {
                   setTelegramSuccess(false);
                   setShowFastContact(false);
-                  setTelegramUsername("");
+                  setCustomerPhone("");
                   setCustomerEmail("");
                   setIsOpen(false);
                 }}
@@ -152,7 +152,7 @@ export default function CartDrawer() {
               </div>
               <p className="font-bold text-gray-900 text-lg mb-3">Order Placed!</p>
               <p className="text-sm text-gray-500 leading-relaxed">
-                Our team will process your order and contact you through the email or Telegram you provided. Please check it shortly.
+                Our team will process your order and contact you through the email or phone number you provided. Please check it shortly.
               </p>
               <p className="text-sm text-gray-500 mt-3 leading-relaxed">
                 If it takes more than 5 minutes, reach out to us directly:
@@ -178,7 +178,7 @@ export default function CartDrawer() {
                   onClick={() => {
                     setTelegramSuccess(false);
                     setShowFastContact(false);
-                    setTelegramUsername("");
+                    setCustomerPhone("");
                     setCustomerEmail("");
                     setIsOpen(false);
                   }}
@@ -334,19 +334,6 @@ export default function CartDrawer() {
               <div className="space-y-2">
                 <p className="text-xs text-gray-500 text-center">Enter at least one way to reach you</p>
                 <div>
-                  <label className="text-[11px] font-medium text-gray-500 mb-1 block">Telegram Username</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">@</span>
-                    <input
-                      type="text"
-                      value={telegramUsername}
-                      onChange={(e) => setTelegramUsername(e.target.value)}
-                      placeholder="username"
-                      className="w-full pl-8 pr-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
-                    />
-                  </div>
-                </div>
-                <div>
                   <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
                   <input
                     type="email"
@@ -356,11 +343,21 @@ export default function CartDrawer() {
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
                   />
                 </div>
+                <div>
+                  <label className="text-[11px] font-medium text-gray-500 mb-1 block">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="+1 555 123 4567"
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
+                  />
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setShowFastContact(false);
-                      setTelegramUsername("");
+                      setCustomerPhone("");
                       setCustomerEmail("");
                       setTelegramError("");
                     }}

@@ -21,12 +21,14 @@ function FilterDropdown({
   onChange,
   placeholder,
   label,
+  align = "left",
 }: {
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
   placeholder: string;
   label: string;
+  align?: "left" | "right";
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -68,7 +70,7 @@ function FilterDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl shadow-black/8 overflow-hidden z-50 min-w-[190px]">
+        <div className={`absolute ${align === "right" ? "right-0 lg:right-auto lg:left-0" : "left-0"} top-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl shadow-black/8 overflow-hidden z-50 min-w-[190px]`}>
           <div className="py-1">
             {options.map((option) => (
               <button
@@ -187,43 +189,38 @@ export default function SidebarFilters({
           </div>
         </div>
 
-        {/* Filters row — scrollable on mobile, inline on desktop */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide lg:overflow-visible lg:flex-shrink-0">
-          <div className="flex-shrink-0">
-            <FilterDropdown
-              value={selectedCategory || "all"}
-              options={categoryOptions}
-              onChange={onCategoryChange}
-              placeholder="Category"
-              label="Select category"
-            />
-          </div>
+        {/* Filters row — wrap on mobile so dropdowns aren't clipped, inline on desktop */}
+        <div className="grid grid-cols-3 gap-2 lg:flex lg:items-center lg:flex-shrink-0">
+          <FilterDropdown
+            value={selectedCategory || "all"}
+            options={categoryOptions}
+            onChange={onCategoryChange}
+            placeholder="Category"
+            label="Select category"
+          />
 
-          <div className="flex-shrink-0">
-            <FilterDropdown
-              value={selectedPriceRange || "all"}
-              options={priceOptions}
-              onChange={onPriceRangeChange}
-              placeholder="Price"
-              label="Select price range"
-            />
-          </div>
+          <FilterDropdown
+            value={selectedPriceRange || "all"}
+            options={priceOptions}
+            onChange={onPriceRangeChange}
+            placeholder="Price"
+            label="Select price range"
+          />
 
-          <div className="flex-shrink-0">
-            <FilterDropdown
-              value={sortValue}
-              options={sortOptions}
-              onChange={onSortChange}
-              placeholder="Sort by"
-              label="Sort products"
-            />
-          </div>
+          <FilterDropdown
+            value={sortValue}
+            options={sortOptions}
+            onChange={onSortChange}
+            placeholder="Sort by"
+            label="Sort products"
+            align="right"
+          />
 
           {activeCount > 0 && (
             <button
               type="button"
               onClick={clearAll}
-              className="flex-shrink-0 flex items-center gap-1.5 h-11 px-3.5 rounded-xl text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors duration-200"
+              className="col-span-3 lg:col-auto lg:flex-shrink-0 flex items-center justify-center gap-1.5 h-11 px-3.5 rounded-xl text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 transition-colors duration-200"
             >
               <X className="w-3.5 h-3.5" />
               Clear

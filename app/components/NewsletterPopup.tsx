@@ -8,19 +8,22 @@ import { X, Mail, CheckCircle2, Loader2, Sparkles } from "lucide-react";
  * Newsletter subscription popup.
  *
  * Triggers (first to fire wins):
- *   - 18 seconds after first paint
+ *   - 15 seconds after first paint
  *   - exit-intent on desktop (cursor leaves top of viewport)
  *   - scroll past 55% of the page
  *
- * Re-shows only after a cooldown stored in localStorage:
- *   - 30 days after a successful subscribe
- *   -  7 days after an explicit dismiss
+ * After dismissal without subscribing, re-opens with escalating gaps
+ * (15s, 60s, 180s) for up to MAX_PROMPTS prompts per session, then
+ * snoozes for DISMISS_DAYS. On successful subscribe, snoozes for
+ * SUBSCRIBED_DAYS. State persists in localStorage.
  */
 
 const LS_KEY = "rdd_newsletter_popup_v1";
-const DISMISS_DAYS = 7;
 const SUBSCRIBED_DAYS = 30;
-const SHOW_DELAY_MS = 18_000;
+const DISMISS_DAYS = 1;
+const SHOW_DELAY_MS = 15_000;
+const REOPEN_GAPS_MS = [60_000, 180_000];
+const MAX_PROMPTS = 3;
 const SCROLL_THRESHOLD = 0.55;
 
 function getSessionId(): string {
@@ -54,11 +57,11 @@ export default function NewsletterPopup() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [alreadyIn, setAlreadyIn] = useState(false);
-  const triggered = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const reopenTimer = useRef<number | null>(null);
+  const promptCount = useRef(0);
 
   const shouldShow = useCallback(() => {
-    if (triggered.current) return false;
     if (typeof window === "undefined") return false;
     if (readSnooze() > Date.now()) return false;
     // Never show inside admin/checkout — they have their own flow
@@ -69,7 +72,7 @@ export default function NewsletterPopup() {
 
   const trigger = useCallback(() => {
     if (!shouldShow()) return;
-    triggered.current = true;
+    promptCount.current += 1;
     setOpen(true);
   }, [shouldShow]);
 
@@ -96,8 +99,19 @@ export default function NewsletterPopup() {
       window.clearTimeout(timer);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("mouseleave", onMouseLeave);
+      if (reopenTimer.current !== null) {
+        window.clearTimeout(reopenTimer.current);
+        reopenTimer.current = null;
+      }
     };
   }, [shouldShow, trigger]);
+
+  // Auto-close after a successful subscription
+  useEffect(() => {
+    if (!open || status !== "success") return;
+    const timer = window.setTimeout(() => setOpen(false), 2500);
+    return () => window.clearTimeout(timer);
+  }, [open, status]);
 
   // Escape closes, body scroll lock, autofocus
   useEffect(() => {
@@ -119,8 +133,18 @@ export default function NewsletterPopup() {
 
   function handleDismiss() {
     setOpen(false);
-    // Only snooze "dismiss" if they didn't succeed
-    if (status !== "success") writeSnooze(DISMISS_DAYS);
+    if (status === "success") return;
+    // Cap how many times we re-prompt per session so we don't bully the user.
+    if (promptCount.current >= MAX_PROMPTS) {
+      writeSnooze(DISMISS_DAYS);
+      return;
+    }
+    const gap = REOPEN_GAPS_MS[promptCount.current - 1] ?? REOPEN_GAPS_MS[REOPEN_GAPS_MS.length - 1];
+    if (reopenTimer.current !== null) window.clearTimeout(reopenTimer.current);
+    reopenTimer.current = window.setTimeout(() => {
+      reopenTimer.current = null;
+      trigger();
+    }, gap);
   }
 
   async function handleSubmit(e: React.FormEvent) {

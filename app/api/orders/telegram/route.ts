@@ -18,7 +18,7 @@ interface TelegramOrderItem {
 interface TelegramOrderBody {
   items: TelegramOrderItem[];
   sessionId?: string;
-  telegramUsername?: string;
+  customerPhone?: string;
   customerEmail?: string;
 }
 
@@ -51,15 +51,14 @@ function fmt(n: number): string {
 
 // ── Telegram message (MarkdownV2) ──
 
-function buildTelegramMessage(orderNumber: string, items: TelegramOrderItem[], telegramUsername?: string, customerEmail?: string): string {
+function buildTelegramMessage(orderNumber: string, items: TelegramOrderItem[], customerPhone?: string, customerEmail?: string): string {
   let message = `🛒 *NEW FAST ORDER*\n`;
   message += `📋 Order: \`${orderNumber}\`\n`;
-  if (telegramUsername) {
-    const clean = telegramUsername.replace(/^@/, "");
-    message += `👤 Telegram: @${escapeMarkdown(clean)}\n`;
-  }
   if (customerEmail) {
     message += `📧 Email: ${escapeMarkdown(customerEmail)}\n`;
+  }
+  if (customerPhone) {
+    message += `📞 Phone: ${escapeMarkdown(customerPhone)}\n`;
   }
   message += `\n📦 *Items:*\n`;
   message += `─────────────────\n`;
@@ -163,7 +162,7 @@ function buildCustomerFastOrderHtml(orderNumber: string, items: TelegramOrderIte
   return html;
 }
 
-function buildAdminFastOrderHtml(orderNumber: string, items: TelegramOrderItem[], telegramUsername?: string, customerEmail?: string): string {
+function buildAdminFastOrderHtml(orderNumber: string, items: TelegramOrderItem[], customerPhone?: string, customerEmail?: string): string {
   const total = calcTotal(items);
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
   const orderDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -187,8 +186,8 @@ function buildAdminFastOrderHtml(orderNumber: string, items: TelegramOrderItem[]
 
   html += '<tr><td style="padding:24px 40px 0;"><h3 style="margin:0 0 10px;font-size:15px;color:#1a1a1a;">Customer Contact</h3>';
   html += '<table width="100%" style="background:#f8fafc;border-radius:8px;"><tr><td style="padding:14px 16px;">';
-  if (telegramUsername) html += '<p style="margin:0;font-size:14px;color:#1a1a1a;">Telegram: <strong>@' + esc(telegramUsername.replace(/^@/, "")) + "</strong></p>";
-  if (customerEmail) html += '<p style="margin:' + (telegramUsername ? "4px" : "0") + ' 0 0;font-size:14px;color:#1a1a1a;">Email: <a href="mailto:' + esc(customerEmail) + '" style="color:#2563eb;">' + esc(customerEmail) + "</a></p>";
+  if (customerEmail) html += '<p style="margin:0;font-size:14px;color:#1a1a1a;">Email: <a href="mailto:' + esc(customerEmail) + '" style="color:#2563eb;">' + esc(customerEmail) + "</a></p>";
+  if (customerPhone) html += '<p style="margin:' + (customerEmail ? "4px" : "0") + ' 0 0;font-size:14px;color:#1a1a1a;">Phone: <a href="tel:' + esc(customerPhone) + '" style="color:#2563eb;">' + esc(customerPhone) + "</a></p>";
   html += "</td></tr></table></td></tr>";
 
   html += '<tr><td style="padding:20px 40px 0;"><h3 style="margin:0 0 10px;font-size:15px;color:#1a1a1a;">Items (' + totalItems + ")</h3>";
@@ -224,7 +223,7 @@ export async function POST(request: NextRequest) {
     // 1. Send to Telegram
     let telegramSent = false;
     if (config.telegramBotToken && config.telegramChatId) {
-      const message = buildTelegramMessage(orderNumber, body.items, body.telegramUsername, body.customerEmail);
+      const message = buildTelegramMessage(orderNumber, body.items, body.customerPhone, body.customerEmail);
       telegramSent = await sendTelegramMessage(message, config.telegramBotToken, config.telegramChatId);
     }
 
@@ -243,10 +242,10 @@ export async function POST(request: NextRequest) {
       data: {
         orderNumber,
         sessionId: body.sessionId || null,
-        firstName: body.telegramUsername ? `@${body.telegramUsername.replace(/^@/, "")}` : "Fast Order",
+        firstName: "Fast Order",
         lastName: "Customer",
-        email: body.customerEmail?.trim() || "telegram@order",
-        phone: "-",
+        email: body.customerEmail?.trim() || "fast@order",
+        phone: body.customerPhone?.trim() || "-",
         address: "-",
         city: "-",
         state: "-",
@@ -281,7 +280,7 @@ export async function POST(request: NextRequest) {
         });
 
         const fromAddress = process.env.SMTP_FROM || `Real Duck Distro <${smtpUser}>`;
-        const contactMethod = body.telegramUsername ? "Telegram" : "email";
+        const contactMethod = body.customerEmail?.trim() ? "email" : "phone";
 
         const emailPromises = [];
 
@@ -290,8 +289,8 @@ export async function POST(request: NextRequest) {
           transporter.sendMail({
             from: fromAddress,
             to: salesEmail || smtpUser,
-            subject: `New Fast Order #${orderNumber}` + (body.telegramUsername ? ` — @${body.telegramUsername.replace(/^@/, "")}` : ""),
-            html: buildAdminFastOrderHtml(orderNumber, body.items, body.telegramUsername, body.customerEmail),
+            subject: `New Fast Order #${orderNumber}` + (body.customerPhone ? ` — ${body.customerPhone}` : ""),
+            html: buildAdminFastOrderHtml(orderNumber, body.items, body.customerPhone, body.customerEmail),
           })
         );
 
