@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -124,7 +124,24 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [deliveryType, setDeliveryType] = useState<"local" | "ship">("ship");
+  const [isPwa, setIsPwa] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // Detect whether the user has installed the PWA — either they are currently
+  // browsing in standalone mode, or `PwaManager` flagged them previously.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const standalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+    const flagged = localStorage.getItem("nobu_pwa_discount") === "1";
+    if (standalone || flagged) {
+      setIsPwa(true);
+      // Backfill the flag for standalone users that arrived without it set,
+      // so the discount keeps applying if they later use a non-standalone tab.
+      if (standalone && !flagged) localStorage.setItem("nobu_pwa_discount", "1");
+    }
+  }, []);
   const [form, setForm] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -182,9 +199,12 @@ export default function CheckoutPage() {
 
   const subtotal = calcSubtotal();
   const isCrypto = form.paymentMethod === "crypto";
-  const discountAmount = isCrypto ? subtotal * (CRYPTO_DISCOUNT / 100) : 0;
+  // Either PWA-install or crypto grants a flat 10% — they don't stack.
+  const hasDiscount = isCrypto || isPwa;
+  const discountAmount = hasDiscount ? subtotal * (CRYPTO_DISCOUNT / 100) : 0;
   const finalTotal = subtotal - discountAmount;
   const hasNumericPrice = subtotal > 0;
+  const discountLabel = isPwa ? "PWA App Discount (10%)" : "Crypto Discount (10%)";
 
   const inputCls = (field: keyof FormData) =>
     `w-full px-3.5 py-3 bg-gray-50/80 border rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all duration-200 ${
@@ -251,6 +271,7 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           ...form,
           shippingMethod: deliveryType === "ship" ? form.shippingMethod : "",
+          isPwa,
           sessionId,
           items: items.map((item) => ({
             id: item.id,
@@ -778,33 +799,33 @@ export default function CheckoutPage() {
                 </span>
               </div>
 
-              {/* Crypto discount */}
-              {isCrypto && hasNumericPrice && (
+              {/* Discount row (PWA or crypto) */}
+              {hasDiscount && hasNumericPrice && (
                 <div className="flex items-center justify-between text-sm mt-2 animate-[fadeInUp_0.25s_ease-out]">
-                  <span className="text-orange-600 font-medium flex items-center gap-1">
-                    <span className="inline-block w-4 h-4 bg-gradient-to-br from-orange-400 to-amber-500 rounded text-[8px] text-white font-black flex items-center justify-center leading-none">%</span>
-                    Crypto Discount (10%)
+                  <span className={`font-medium flex items-center gap-1 ${isPwa ? "text-emerald-600" : "text-orange-600"}`}>
+                    <span className={`inline-block w-4 h-4 rounded text-[8px] text-white font-black flex items-center justify-center leading-none ${isPwa ? "bg-gradient-to-br from-emerald-400 to-emerald-600" : "bg-gradient-to-br from-orange-400 to-amber-500"}`}>%</span>
+                    {discountLabel}
                   </span>
-                  <span className="font-semibold text-orange-600">-{fmt(discountAmount)}</span>
+                  <span className={`font-semibold ${isPwa ? "text-emerald-600" : "text-orange-600"}`}>-{fmt(discountAmount)}</span>
                 </div>
               )}
 
               {/* Final Total */}
-              <div className={`flex items-center justify-between mt-3 pt-3 border-t ${isCrypto ? "border-orange-200" : "border-gray-200"}`}>
+              <div className={`flex items-center justify-between mt-3 pt-3 border-t ${hasDiscount ? (isPwa ? "border-emerald-200" : "border-orange-200") : "border-gray-200"}`}>
                 <span className="text-base font-bold text-gray-900">Total</span>
                 <div className="text-right">
-                  {isCrypto && hasNumericPrice && (
+                  {hasDiscount && hasNumericPrice && (
                     <span className="text-xs text-gray-400 line-through mr-2">{fmt(subtotal)}</span>
                   )}
-                  <span className={`text-xl font-black ${isCrypto ? "text-orange-600" : "text-slate-900"}`}>
+                  <span className={`text-xl font-black ${hasDiscount ? (isPwa ? "text-emerald-600" : "text-orange-600") : "text-slate-900"}`}>
                     {hasNumericPrice ? fmt(finalTotal) : "TBD"}
                   </span>
                 </div>
               </div>
 
-              {isCrypto && hasNumericPrice && (
+              {hasDiscount && hasNumericPrice && (
                 <div className="mt-2 flex items-center gap-1.5 justify-end animate-[fadeInUp_0.2s_ease-out]">
-                  <span className="px-2 py-0.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold rounded-full">
+                  <span className={`px-2 py-0.5 text-white text-[10px] font-bold rounded-full ${isPwa ? "bg-gradient-to-r from-emerald-500 to-emerald-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
                     You save {fmt(discountAmount)}!
                   </span>
                 </div>

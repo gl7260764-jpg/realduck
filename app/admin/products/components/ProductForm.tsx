@@ -18,7 +18,7 @@ const CATEGORIES = [
   { value: "DISPOSABLES", label: "Disposables" },
   { value: "GUMMIES", label: "Gummies" },
   { value: "PILLS", label: "Pills" },
-  { value: "CK", label: "CK" },
+  { value: "COKE", label: "Coke" },
   { value: "OTHERS", label: "Others" },
 ];
 

@@ -31,6 +31,7 @@ interface CheckoutBody {
   deliveryNotes?: string;
   items: CheckoutItem[];
   sessionId?: string;
+  isPwa?: boolean;
 }
 
 const SHIPPING_LABELS: Record<string, string> = {
@@ -90,8 +91,11 @@ function esc(s: string): string {
 function buildCustomerEmailHtml(orderNumber: string, data: CheckoutBody): string {
   const subtotal = calcTotal(data.items);
   const isCrypto = data.paymentMethod === "crypto";
-  const discount = isCrypto ? subtotal * 0.1 : 0;
+  const isPwa = Boolean(data.isPwa);
+  const hasDiscount = isCrypto || isPwa;
+  const discount = hasDiscount ? subtotal * 0.1 : 0;
   const total = subtotal - discount;
+  const discountLabel = isPwa ? "PWA App Discount (10%)" : "Crypto Discount (10%)";
   const orderDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   const itemsHtml = data.items.map(function(item) {
@@ -126,7 +130,12 @@ function buildCustomerEmailHtml(orderNumber: string, data: CheckoutBody): string
   html += '<p style="margin:0;font-size:14px;color:#166534;">We will email you our <strong>' + getPaymentLabel(data.paymentMethod) + '</strong> details once we review your order. Contact us if you did not get our wallet within 10 minutes at <a href="mailto:' + CONTACT_EMAIL + '" style="color:#166534;">' + CONTACT_EMAIL + "</a></p>";
   html += "</div></td></tr>";
 
-  if (isCrypto) {
+  if (isPwa) {
+    html += '<tr><td style="padding:12px 40px 0;"><div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:14px 16px;">';
+    html += '<p style="margin:0;font-size:14px;color:#047857;font-weight:700;">10% PWA App Discount Applied!</p>';
+    html += '<p style="margin:6px 0 0;font-size:13px;color:#047857;">Thanks for installing the Real Duck Distro app — your total has been reduced by 10%.</p>';
+    html += "</div></td></tr>";
+  } else if (isCrypto) {
     html += '<tr><td style="padding:12px 40px 0;"><div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:14px 16px;">';
     html += '<p style="margin:0;font-size:14px;color:#c2410c;font-weight:700;">10% Crypto Discount Applied!</p>';
     html += '<p style="margin:6px 0 0;font-size:13px;color:#c2410c;">Your total has been reduced by 10% for paying with cryptocurrency.</p>';
@@ -143,8 +152,9 @@ function buildCustomerEmailHtml(orderNumber: string, data: CheckoutBody): string
     ? "Local Pickup"
     : (getShippingLabel(data.shippingMethod) ? getShippingLabel(data.shippingMethod) + " — rate confirmed at checkout" : "Calculated at confirmation");
   html += '<tr><td style="padding:6px 0;font-size:14px;color:#555;">Shipping:</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;text-align:right;">' + esc(customerShippingLabel) + "</td></tr>";
-  if (isCrypto) {
-    html += '<tr><td style="padding:6px 0;font-size:14px;color:#c2410c;font-weight:600;">Crypto Discount (10%):</td><td style="padding:6px 0;font-size:14px;color:#c2410c;text-align:right;font-weight:600;">-' + fmt(discount) + "</td></tr>";
+  if (hasDiscount) {
+    const color = isPwa ? "#047857" : "#c2410c";
+    html += '<tr><td style="padding:6px 0;font-size:14px;color:' + color + ';font-weight:600;">' + discountLabel + ':</td><td style="padding:6px 0;font-size:14px;color:' + color + ';text-align:right;font-weight:600;">-' + fmt(discount) + "</td></tr>";
   }
   html += '<tr><td style="padding:10px 0 6px;font-size:16px;font-weight:700;color:#1a1a1a;border-top:2px solid #eee;">Total:</td><td style="padding:10px 0 6px;font-size:18px;font-weight:700;color:#1a1a1a;text-align:right;border-top:2px solid #eee;">' + fmt(total) + "</td></tr>";
   html += '<tr><td style="padding:2px 0;font-size:13px;color:#888;">Payment method:</td><td style="padding:2px 0;font-size:13px;color:#1a1a1a;text-align:right;font-weight:600;">' + getPaymentLabel(data.paymentMethod) + "</td></tr>";
@@ -179,8 +189,11 @@ function buildCustomerEmailHtml(orderNumber: string, data: CheckoutBody): string
 function buildAdminEmailHtml(orderNumber: string, data: CheckoutBody): string {
   const subtotal = calcTotal(data.items);
   const isCrypto = data.paymentMethod === "crypto";
-  const discount = isCrypto ? subtotal * 0.1 : 0;
+  const isPwa = Boolean(data.isPwa);
+  const hasDiscount = isCrypto || isPwa;
+  const discount = hasDiscount ? subtotal * 0.1 : 0;
   const total = subtotal - discount;
+  const discountLabel = isPwa ? "PWA App Discount (10%)" : "Crypto Discount (10%)";
   const totalItems = data.items.reduce(function(s, i) { return s + i.quantity; }, 0);
   const orderDate = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
@@ -223,7 +236,10 @@ function buildAdminEmailHtml(orderNumber: string, data: CheckoutBody): string {
   html += '<tr><td style="padding:16px 40px 0;"><h3 style="margin:0 0 10px;font-size:15px;color:#1a1a1a;">Payment Method</h3>';
   html += '<div style="background:#fef3c7;border-radius:8px;padding:14px 16px;">';
   html += '<p style="margin:0;font-weight:700;font-size:15px;color:#92400e;">' + getPaymentLabel(data.paymentMethod) + "</p>";
-  if (isCrypto) html += '<p style="margin:6px 0 0;color:#c2410c;font-weight:700;font-size:13px;">10% CRYPTO DISCOUNT - send total of ' + fmt(total) + " (not " + fmt(subtotal) + ")</p>";
+  if (hasDiscount) {
+    const dLabel = isPwa ? "10% PWA APP DISCOUNT" : "10% CRYPTO DISCOUNT";
+    html += '<p style="margin:6px 0 0;color:#c2410c;font-weight:700;font-size:13px;">' + dLabel + ' - send total of ' + fmt(total) + " (not " + fmt(subtotal) + ")</p>";
+  }
   html += '<p style="margin:6px 0 0;color:#92400e;font-size:12px;">Send the customer payment details for this method.</p></div></td></tr>';
 
   const adminShippingLabel = getShippingLabel(data.shippingMethod);
@@ -240,7 +256,10 @@ function buildAdminEmailHtml(orderNumber: string, data: CheckoutBody): string {
 
   html += '<tr><td style="padding:16px 40px 24px;"><table width="100%" cellpadding="0" cellspacing="0">';
   html += '<tr><td style="padding:4px 0;font-size:14px;color:#555;">Subtotal:</td><td style="padding:4px 0;font-size:14px;text-align:right;">' + fmt(subtotal) + "</td></tr>";
-  if (isCrypto) html += '<tr><td style="padding:4px 0;font-size:14px;color:#c2410c;">Crypto Discount (10%):</td><td style="padding:4px 0;font-size:14px;color:#c2410c;text-align:right;">-' + fmt(discount) + "</td></tr>";
+  if (hasDiscount) {
+    const color = isPwa ? "#047857" : "#c2410c";
+    html += '<tr><td style="padding:4px 0;font-size:14px;color:' + color + ';">' + discountLabel + ':</td><td style="padding:4px 0;font-size:14px;color:' + color + ';text-align:right;">-' + fmt(discount) + "</td></tr>";
+  }
   html += '<tr><td style="padding:8px 0;font-size:18px;font-weight:700;border-top:2px solid #eee;">Total:</td>';
   html += '<td style="padding:8px 0;font-size:18px;font-weight:700;text-align:right;border-top:2px solid #eee;">' + fmt(total) + "</td></tr>";
   html += "</table></td></tr>";
@@ -278,6 +297,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Verify the PWA-install discount server-side so a crafted request
+    // can't claim it. Only trust `isPwa` if we actually have a PwaInstall
+    // record for this session.
+    let pwaVerified = false;
+    if (body.isPwa && body.sessionId) {
+      try {
+        const install = await prisma.pwaInstall.findUnique({ where: { sessionId: body.sessionId } });
+        if (install) pwaVerified = true;
+      } catch (err) {
+        console.error("PWA verification lookup failed:", (err as Error).message);
+      }
+    }
+    body.isPwa = pwaVerified;
+
     var orderNumber = generateOrderNumber();
     var totalItems = body.items.reduce(function(sum: number, item: CheckoutItem) { return sum + item.quantity; }, 0);
 
@@ -303,6 +336,7 @@ export async function POST(request: NextRequest) {
         totalItems: totalItems,
         paymentMethod: body.paymentMethod,
         shippingMethod: isShipped && body.shippingMethod ? body.shippingMethod : null,
+        pwaDiscount: pwaVerified,
         deliveryNotes: body.deliveryNotes?.trim() || null,
         ipCountry: geo?.country || null,
         ipState: geo?.state || null,
@@ -325,7 +359,8 @@ export async function POST(request: NextRequest) {
       const sanitize = (t: string) => t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
       const tgTotal = calcTotal(body.items);
       const tgIsCrypto = body.paymentMethod === "crypto";
-      const tgDiscount = tgIsCrypto ? tgTotal * 0.1 : 0;
+      const tgHasDiscount = tgIsCrypto || pwaVerified;
+      const tgDiscount = tgHasDiscount ? tgTotal * 0.1 : 0;
       const tgFinal = tgTotal - tgDiscount;
 
       let tgMsg = "🛒 NEW EMAIL ORDER\n\n";
@@ -344,7 +379,8 @@ export async function POST(request: NextRequest) {
         tgMsg += (i + 1) + ". " + sanitize(item.title) + " x" + item.quantity + " — " + sanitize(item.price) + "\n";
       });
       tgMsg += "\n💰 Total: " + fmt(tgFinal);
-      if (tgIsCrypto) tgMsg += " (10% crypto discount applied)";
+      if (pwaVerified) tgMsg += " (10% PWA app discount applied)";
+      else if (tgIsCrypto) tgMsg += " (10% crypto discount applied)";
       if (body.deliveryNotes) tgMsg += "\n📝 Notes: " + sanitize(body.deliveryNotes);
 
       const tgData = JSON.stringify({ chat_id: config.telegramChatId, text: tgMsg });

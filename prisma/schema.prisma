@@ -19,7 +19,7 @@ enum Category {
   DISPOSABLES
   GUMMIES
   PILLS
-  CK
+  COKE
   OTHERS
 }
 
@@ -243,6 +243,7 @@ model CheckoutOrder {
   totalItems      Int
   paymentMethod   String   // "cash", "zelle", "cashapp", "crypto"
   shippingMethod  String?  // "ups", "usps", "fedex" — null for local pickup
+  pwaDiscount     Boolean  @default(false) // 10% PWA-install discount applied
   deliveryNotes   String?
   // IP Geolocation
   ipCountry       String?
