@@ -53,12 +53,12 @@ export async function GET(request: NextRequest) {
         for (let i = 0; i < subs.length; i += 50) {
           await Promise.allSettled(
             subs.slice(i, i + 50).map(async (sub) => {
-              const ok = await sendPushNotification(
+              const result = await sendPushNotification(
                 { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
                 payload
               );
-              if (ok) totalSent++;
-              else deactivateIds.push(sub.id);
+              if (result.ok) totalSent++;
+              else if (result.gone) deactivateIds.push(sub.id);
             })
           );
         }

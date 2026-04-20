@@ -67,15 +67,15 @@ export async function POST(request: NextRequest) {
         const batch = subs.slice(i, i + 50);
         await Promise.allSettled(
           batch.map(async (sub) => {
-            const ok = await sendPushNotification(
+            const result = await sendPushNotification(
               { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
               payload
             );
-            if (ok) {
+            if (result.ok) {
               sent++;
             } else {
               failed++;
-              deactivateIds.push(sub.id);
+              if (result.gone) deactivateIds.push(sub.id);
             }
           })
         );

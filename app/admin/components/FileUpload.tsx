@@ -10,6 +10,7 @@ interface FileUploadProps {
   type?: "image" | "video";
   label?: string;
   compact?: boolean;
+  hideUrlInput?: boolean;
 }
 
 export default function FileUpload({
@@ -18,6 +19,7 @@ export default function FileUpload({
   type = "image",
   label,
   compact = false,
+  hideUrlInput = false,
 }: FileUploadProps) {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,24 +136,26 @@ export default function FileUpload({
       )}
 
       {/* URL Input */}
-      <div>
-        <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1.5">
-          <div className="flex-1 h-px bg-gray-200" />
-          <span>or paste URL</span>
-          <div className="flex-1 h-px bg-gray-200" />
+      {!hideUrlInput && (
+        <div>
+          <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-1.5">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span>or paste URL</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+          <input
+            type="url"
+            value={value}
+            onChange={(e) => {
+              setImageError(false);
+              setIsLoading(true);
+              onChange(e.target.value);
+            }}
+            placeholder={`Enter ${type} URL...`}
+            className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-transparent"
+          />
         </div>
-        <input
-          type="url"
-          value={value}
-          onChange={(e) => {
-            setImageError(false);
-            setIsLoading(true);
-            onChange(e.target.value);
-          }}
-          placeholder={`Enter ${type} URL...`}
-          className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-transparent"
-        />
-      </div>
+      )}
     </div>
   );
 }

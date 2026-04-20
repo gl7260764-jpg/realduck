@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Loader2, Send, Eye } from "lucide-react";
+import FileUpload from "../../../components/FileUpload";
 
 export default function EditAnnouncementPage() {
   const router = useRouter();
@@ -64,8 +65,13 @@ export default function EditAnnouncementPage() {
             <textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={6} className={`${cls} resize-y`} />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Image URL</label>
-            <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} className={cls} />
+            <label className="block text-sm font-semibold text-gray-900 mb-1.5">Image <span className="font-normal text-gray-400">(optional)</span></label>
+            <FileUpload
+              value={form.imageUrl}
+              onChange={(url) => setForm({ ...form, imageUrl: url })}
+              type="image"
+              hideUrlInput
+            />
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-1.5">Link</label>

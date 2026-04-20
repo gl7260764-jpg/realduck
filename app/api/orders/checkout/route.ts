@@ -360,6 +360,50 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Also record each item in the analytics `Order` table, using
+    // IP-based geolocation (not the user-entered shipping address) so
+    // admin analytics "Orders by Country/City" reflects where the order
+    // actually originated.
+    try {
+      const ua = request.headers.get("user-agent") || "";
+      const isMobile = /Mobile|Android|iPhone|iPod/i.test(ua);
+      const isTablet = /iPad|tablet/i.test(ua);
+      const device = isTablet ? "tablet" : isMobile ? "mobile" : "desktop";
+      const browser = /Edg\//.test(ua) ? "Edge"
+        : /OPR\//.test(ua) || /Opera/i.test(ua) ? "Opera"
+        : /Chrome\//.test(ua) && !/Edg|OPR/.test(ua) ? "Chrome"
+        : /Firefox\//.test(ua) ? "Firefox"
+        : /Safari\//.test(ua) && !/Chrome/.test(ua) ? "Safari"
+        : "Other";
+      const os = /Windows/.test(ua) ? "Windows"
+        : /Mac OS X/.test(ua) ? "macOS"
+        : /iPhone|iPad|iPod/.test(ua) ? "iOS"
+        : /Android/.test(ua) ? "Android"
+        : /Linux/.test(ua) ? "Linux"
+        : "Other";
+      await prisma.order.createMany({
+        data: body.items.map((item) => ({
+          sessionId: body.sessionId || "",
+          productId: item.id || null,
+          productTitle: item.title,
+          category: item.category,
+          price: item.price,
+          deliveryType: item.deliveryType,
+          quantity: item.quantity,
+          country: geo?.country || null,
+          state: geo?.state || null,
+          city: geo?.city || null,
+          zip: geo?.zip || null,
+          ip: geo?.ip || ip || null,
+          device,
+          browser,
+          os,
+        })),
+      });
+    } catch (err) {
+      console.error("Order-analytics insert failed for " + orderNumber + ":", (err as Error).message);
+    }
+
     // ── Send notifications synchronously (awaited) — SAME pattern as
     // /api/orders/telegram. In Vercel serverless, fire-and-forget promises
     // are killed when the response is returned, so we must await everything

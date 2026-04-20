@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Send, Eye, CalendarClock } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Eye, CalendarClock, Bell } from "lucide-react";
+import FileUpload from "../../components/FileUpload";
 
 export default function NewAnnouncementPage() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function NewAnnouncementPage() {
   const [scheduleMode, setScheduleMode] = useState(false);
   const [form, setForm] = useState({
     title: "", message: "", content: "", imageUrl: "", link: "",
-    published: false, sendPush: false, scheduledAt: "",
+    published: true, scheduledAt: "",
   });
 
   const cls = "w-full px-4 py-3 text-sm sm:text-base border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all";
@@ -28,9 +29,10 @@ export default function NewAnnouncementPage() {
         ...form,
         content: form.content || form.message,
         scheduledAt: scheduleMode && form.scheduledAt ? new Date(form.scheduledAt).toISOString() : null,
-        // If scheduled, don't publish or push now
+        // If scheduled, don't publish or push now — the cron handles it on schedule
         published: scheduleMode ? false : form.published,
-        sendPush: scheduleMode ? false : form.sendPush,
+        // Posting = notifying. Push automatically when publishing now.
+        sendPush: scheduleMode ? false : form.published,
       };
 
       const res = await fetch("/api/admin/announcements", {
@@ -69,8 +71,13 @@ export default function NewAnnouncementPage() {
             <textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Full announcement content (shown on announcements page)" rows={6} className={`${cls} resize-y`} />
           </div>
           <div>
-            <label className="block text-sm sm:text-base font-semibold text-gray-900 mb-1.5">Image URL <span className="font-normal text-gray-400">(optional)</span></label>
-            <input type="text" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." className={cls} />
+            <label className="block text-sm sm:text-base font-semibold text-gray-900 mb-1.5">Image <span className="font-normal text-gray-400">(optional — shown in the notification on Android &amp; desktop)</span></label>
+            <FileUpload
+              value={form.imageUrl}
+              onChange={(url) => setForm({ ...form, imageUrl: url })}
+              type="image"
+              hideUrlInput
+            />
           </div>
           <div>
             <label className="block text-sm sm:text-base font-semibold text-gray-900 mb-1.5">Link <span className="font-normal text-gray-400">(optional)</span></label>
@@ -100,21 +107,14 @@ export default function NewAnnouncementPage() {
 
           {/* Publish Now Options */}
           {!scheduleMode && (
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={form.published} onChange={(e) => setForm({ ...form, published: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-slate-900" />
-                <div>
-                  <span className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><Eye className="w-4 h-4" /> Publish</span>
-                  <p className="text-xs text-gray-500">Make visible immediately</p>
-                </div>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={form.sendPush} onChange={(e) => setForm({ ...form, sendPush: e.target.checked })} className="w-4 h-4 rounded border-gray-300 text-blue-500" />
-                <div>
-                  <span className="text-sm font-semibold text-gray-900 flex items-center gap-1.5"><Send className="w-4 h-4" /> Send Push</span>
-                  <p className="text-xs text-gray-500">Notify all subscribers now</p>
-                </div>
-              </label>
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100">
+              <Bell className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Publish &amp; Notify Everyone</p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Publishing will immediately send a push notification to every subscriber — it appears on their lock screen like a WhatsApp message.
+                </p>
+              </div>
             </div>
           )}
 
@@ -144,7 +144,7 @@ export default function NewAnnouncementPage() {
         <div className="flex flex-col sm:flex-row gap-3 pb-8">
           <button onClick={handleSubmit} disabled={saving} className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-900 text-white text-sm sm:text-base font-medium rounded-xl hover:bg-slate-800 disabled:opacity-50 transition-all">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Saving..." : scheduleMode ? "Schedule Announcement" : "Create Announcement"}
+            {saving ? "Saving..." : scheduleMode ? "Schedule Announcement" : "Publish & Notify"}
           </button>
           <Link href="/admin/announcements" className="text-center px-6 py-3 text-gray-600 text-sm font-medium hover:text-gray-900">Cancel</Link>
         </div>

@@ -21,13 +21,25 @@ export interface PushPayload {
   tag?: string;
 }
 
+export interface PushResult {
+  ok: boolean;
+  gone: boolean; // subscription is permanently invalid — deactivate it
+  statusCode?: number;
+}
+
+// Shorten arbitrary tags to a valid Topic header (≤32 URL-safe base64 chars).
+function toSafeTopic(tag: string): string {
+  const cleaned = tag.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32);
+  return cleaned || "general";
+}
+
 export async function sendPushNotification(
   subscription: { endpoint: string; p256dh: string; auth: string },
   payload: PushPayload
-): Promise<boolean> {
+): Promise<PushResult> {
   if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
     console.error("VAPID keys not configured — cannot send push");
-    return false;
+    return { ok: false, gone: false };
   }
 
   try {
@@ -38,28 +50,22 @@ export async function sendPushNotification(
       },
       JSON.stringify(payload),
       {
-        TTL: 86400, // 24 hours — ensure delivery even if device is offline
-        urgency: "high", // Wake the device from doze/sleep
-        // Topic: if set, the push service will replace any pending notification
-        // with the same topic instead of stacking. Use the tag as topic so
-        // re-pushes of the same announcement replace instead of duplicate.
-        ...(payload.tag ? { topic: payload.tag } : {}),
+        TTL: 86400,
+        urgency: "high",
+        ...(payload.tag ? { topic: toSafeTopic(payload.tag) } : {}),
       }
     );
-    return true;
+    return { ok: true, gone: false };
   } catch (error: unknown) {
     const statusCode = (error as { statusCode?: number }).statusCode;
-    // 404/410 = subscription is gone (unsubscribed or expired)
+    const message = (error as Error).message;
+    // 404/410 → subscription is permanently gone, safe to deactivate
     if (statusCode === 404 || statusCode === 410) {
-      return false;
+      return { ok: false, gone: true, statusCode };
     }
-    // 429 = rate limited by push service — treat as temporary failure, don't deactivate
-    if (statusCode === 429) {
-      console.warn("Push rate limited for:", subscription.endpoint.slice(0, 60));
-      return true; // return true so we don't deactivate a valid subscription
-    }
-    console.error("Push send error:", statusCode, (error as Error).message);
-    return false;
+    // Anything else is a transient or configuration error — do NOT deactivate.
+    console.error(`Push send error ${statusCode ?? "?"}:`, message, "endpoint:", subscription.endpoint.slice(0, 60));
+    return { ok: false, gone: false, statusCode };
   }
 }
 
