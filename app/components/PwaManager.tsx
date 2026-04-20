@@ -44,6 +44,24 @@ function detectPlatform(): "ios" | "android" | "desktop" {
   return "desktop";
 }
 
+// Persistent snooze so we don't nag the user every 20 seconds after they
+// close the install banner. Stored as an epoch-ms expiry timestamp.
+const INSTALL_SNOOZE_KEY = "nobu_install_dismissed";
+const INSTALL_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
+
+function isInstallSnoozed(): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = localStorage.getItem(INSTALL_SNOOZE_KEY);
+  if (!raw) return false;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > Date.now();
+}
+
+function snoozeInstallBanner() {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(INSTALL_SNOOZE_KEY, String(Date.now() + INSTALL_SNOOZE_MS));
+}
+
 interface ForegroundNotification {
   title: string;
   body: string;
@@ -211,9 +229,10 @@ export default function PwaManager() {
           // Check if push manager exists (not available on iOS Safari outside PWA mode)
           if (!reg.pushManager) {
             // iOS not in PWA mode or old browser — show install prompt instead
-            if (platform === "ios" && !isStandalone) {
-              const dismissed = localStorage.getItem("nobu_install_dismissed");
-              if (!dismissed) setTimeout(() => setShowIOSInstall(true), 15000);
+            if (platform === "ios" && !isStandalone && !isInstallSnoozed()) {
+              setTimeout(() => {
+                if (!isInstallSnoozed()) setShowIOSInstall(true);
+              }, 15000);
             }
             return;
           }
@@ -276,8 +295,10 @@ export default function PwaManager() {
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e);
-      if (!isStandalone) {
-        setTimeout(() => setShowInstallBanner(true), 20000);
+      if (!isStandalone && !isInstallSnoozed()) {
+        setTimeout(() => {
+          if (!isInstallSnoozed()) setShowInstallBanner(true);
+        }, 20000);
       }
     };
 
@@ -302,19 +323,24 @@ export default function PwaManager() {
     window.addEventListener("appinstalled", handleAppInstalled);
 
     // ── iOS Install Banner ──
-    if (platform === "ios" && !isStandalone) {
-      setTimeout(() => setShowIOSInstall(true), 20000);
+    if (platform === "ios" && !isStandalone && !isInstallSnoozed()) {
+      setTimeout(() => {
+        if (!isInstallSnoozed()) setShowIOSInstall(true);
+      }, 20000);
     }
 
     // ── Recurring install prompt (notifications are no longer nagged by
     //    timer — notification acceptance is now checked once per app open
-    //    and surfaced via the full opt-in modal above when in PWA mode). ──
+    //    and surfaced via the full opt-in modal above when in PWA mode).
+    //    Also respects the install-banner snooze so we stop bugging users
+    //    who already dismissed it. ──
     const recurringInterval = setInterval(() => {
       const stillStandalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
       if (stillStandalone) return; // App installed, no need to nag
+      if (isInstallSnoozed()) return; // User dismissed recently
 
       if (installPrompt) setShowInstallBanner(true);
       if (platform === "ios") setShowIOSInstall(true);
@@ -400,7 +426,7 @@ export default function PwaManager() {
   const dismissInstallBanner = () => {
     setShowInstallBanner(false);
     setShowIOSInstall(false);
-    // Banner will reappear in 20 seconds if still not installed
+    snoozeInstallBanner();
   };
 
   const trackInstall = async () => {

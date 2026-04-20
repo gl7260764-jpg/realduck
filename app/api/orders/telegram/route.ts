@@ -217,6 +217,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
+    const emailTrimmed = body.customerEmail?.trim() || "";
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
+      return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 });
+    }
+
     const orderNumber = generateOrderNumber();
     const config = await getAdminConfig();
 

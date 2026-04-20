@@ -135,8 +135,9 @@ export default function ProductCard({
   };
 
   const handleFastOrder = async () => {
-    if (!customerPhone.trim() && !customerEmail.trim()) {
-      setFastError("Please enter your email or phone number");
+    const emailTrimmed = customerEmail.trim();
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
+      setFastError("Please enter a valid email");
       return;
     }
 
@@ -280,7 +281,7 @@ export default function ProductCard({
               {/* Step 2: Fast Order - Enter contact info */}
               {buyStep === "fast-contact" && (
                 <>
-                  <p className="text-xs text-gray-500 mb-3 text-center">Enter at least one way to reach you</p>
+                  <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
                   <div className="space-y-3">
                     <div>
                       <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>

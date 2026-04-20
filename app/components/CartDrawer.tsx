@@ -49,8 +49,9 @@ export default function CartDrawer() {
   const handleTelegramCheckout = async () => {
     if (items.length === 0) return;
 
-    if (!customerPhone.trim() && !customerEmail.trim()) {
-      setTelegramError("Please enter your email or phone number");
+    const emailTrimmed = customerEmail.trim();
+    if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
+      setTelegramError("Please enter a valid email");
       return;
     }
 
@@ -332,7 +333,7 @@ export default function CartDrawer() {
             )}
             {showFastContact ? (
               <div className="space-y-2">
-                <p className="text-xs text-gray-500 text-center">Enter at least one way to reach you</p>
+                <p className="text-xs text-gray-500 text-center">Email is required — phone number is optional</p>
                 <div>
                   <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
                   <input

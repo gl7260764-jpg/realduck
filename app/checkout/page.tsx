@@ -453,14 +453,12 @@ export default function CheckoutPage() {
             <div className="flex bg-gray-100/80 rounded-xl p-1 mt-4 mb-4">
               <button
                 type="button"
-                onClick={() => setDeliveryType("local")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all duration-300 ${
-                  deliveryType === "local"
-                    ? "bg-white text-green-700 shadow-md shadow-green-100"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
+                disabled
+                aria-disabled="true"
+                title="Local pickup is currently unavailable"
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold text-gray-400 cursor-not-allowed opacity-60"
               >
-                <MapPin className={`w-4 h-4 transition-transform duration-300 ${deliveryType === "local" ? "scale-110" : ""}`} />
+                <MapPin className="w-4 h-4" />
                 Local Pickup
               </button>
               <button
