@@ -9,6 +9,7 @@ datasource db {
 
 enum Category {
   FLOWER
+  TOP_SHELF
   EDIBLES
   CONCENTRATES
   VAPES
@@ -17,6 +18,8 @@ enum Category {
   MUSHROOM
   DISPOSABLES
   GUMMIES
+  PILLS
+  CK
   OTHERS
 }
 
@@ -239,6 +242,7 @@ model CheckoutOrder {
   items           Json     // Array of cart items
   totalItems      Int
   paymentMethod   String   // "cash", "zelle", "cashapp", "crypto"
+  shippingMethod  String?  // "ups", "usps", "fedex" — null for local pickup
   deliveryNotes   String?
   // IP Geolocation
   ipCountry       String?

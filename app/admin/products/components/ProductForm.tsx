@@ -8,6 +8,7 @@ import FileUpload from "../../components/FileUpload";
 
 const CATEGORIES = [
   { value: "FLOWER", label: "Flower" },
+  { value: "TOP_SHELF", label: "Top Shelf" },
   { value: "EDIBLES", label: "Edibles" },
   { value: "CONCENTRATES", label: "Concentrates" },
   { value: "VAPES", label: "Vapes" },
@@ -16,6 +17,8 @@ const CATEGORIES = [
   { value: "MUSHROOM", label: "Mushroom" },
   { value: "DISPOSABLES", label: "Disposables" },
   { value: "GUMMIES", label: "Gummies" },
+  { value: "PILLS", label: "Pills" },
+  { value: "CK", label: "CK" },
   { value: "OTHERS", label: "Others" },
 ];
 

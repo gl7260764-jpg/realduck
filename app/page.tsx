@@ -17,18 +17,34 @@ async function getProducts() {
     },
   });
 
-  // Daily shuffle — randomizes product order every 24 hours to keep content fresh
-  // Shuffle within each category so the structure stays consistent but the order varies
-  const flowerProducts = dailyShuffle(products.filter((p) => p.category === "FLOWER"));
-  const otherProducts = dailyShuffle(products.filter((p) => p.category !== "FLOWER"));
+  // Pinned top three — matched by title (case-insensitive substring), order preserved
+  const pinnedMatchers = [
+    (t: string) => t.includes("blue candy lemons"),
+    (t: string) => t.includes("raspberry airheadz"),
+    (t: string) => t.includes("gumbo 88g"),
+  ];
+  const pinned = pinnedMatchers
+    .map((match) => products.find((p) => match(p.title.toLowerCase())))
+    .filter((p): p is (typeof products)[number] => Boolean(p));
+  const pinnedIds = new Set(pinned.map((p) => p.id));
 
-  // Ensure first 6 products are always FLOWER (now in daily-shuffled order)
+  // Next slots: products with a video (hover-to-play) — shuffled daily, excluding pinned
+  const withVideo = dailyShuffle(
+    products.filter((p) => !pinnedIds.has(p.id) && p.videoUrl && p.videoUrl.trim() !== "")
+  );
+  const videoFeatured = withVideo.slice(0, 4);
+  const videoFeaturedIds = new Set(videoFeatured.map((p) => p.id));
+
+  // Remaining go through the original FLOWER-first logic, excluding pinned and video-featured
+  const rest = products.filter((p) => !pinnedIds.has(p.id) && !videoFeaturedIds.has(p.id));
+  const flowerProducts = dailyShuffle(rest.filter((p) => p.category === "FLOWER"));
+  const otherProducts = dailyShuffle(rest.filter((p) => p.category !== "FLOWER"));
+
   const featuredFlower = flowerProducts.slice(0, 6);
   const restFlower = flowerProducts.slice(6);
-  // Mix remaining flower with other categories, still shuffled daily
   const remaining = dailyShuffle([...restFlower, ...otherProducts]);
 
-  return [...featuredFlower, ...remaining];
+  return [...pinned, ...videoFeatured, ...featuredFlower, ...remaining];
 }
 
 export default async function Home() {

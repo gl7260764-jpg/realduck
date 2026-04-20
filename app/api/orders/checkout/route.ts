@@ -27,9 +27,21 @@ interface CheckoutBody {
   zipCode: string;
   country: string;
   paymentMethod: string;
+  shippingMethod?: string;
   deliveryNotes?: string;
   items: CheckoutItem[];
   sessionId?: string;
+}
+
+const SHIPPING_LABELS: Record<string, string> = {
+  ups: "UPS",
+  usps: "USPS",
+  fedex: "FedEx",
+};
+
+function getShippingLabel(method?: string | null): string {
+  if (!method) return "";
+  return SHIPPING_LABELS[method] || method;
 }
 
 function generateOrderNumber(): string {
@@ -127,7 +139,10 @@ function buildCustomerEmailHtml(orderNumber: string, data: CheckoutBody): string
 
   html += '<tr><td style="padding:20px 40px 0;"><table width="100%" cellpadding="0" cellspacing="0">';
   html += '<tr><td style="padding:6px 0;font-size:14px;color:#555;">Subtotal:</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;text-align:right;">' + fmt(subtotal) + "</td></tr>";
-  html += '<tr><td style="padding:6px 0;font-size:14px;color:#555;">Shipping:</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;text-align:right;">' + (data.items[0]?.deliveryType === "local" ? "Local Pickup" : "Calculated at confirmation") + "</td></tr>";
+  const customerShippingLabel = data.items[0]?.deliveryType === "local"
+    ? "Local Pickup"
+    : (getShippingLabel(data.shippingMethod) ? getShippingLabel(data.shippingMethod) + " — rate confirmed at checkout" : "Calculated at confirmation");
+  html += '<tr><td style="padding:6px 0;font-size:14px;color:#555;">Shipping:</td><td style="padding:6px 0;font-size:14px;color:#1a1a1a;text-align:right;">' + esc(customerShippingLabel) + "</td></tr>";
   if (isCrypto) {
     html += '<tr><td style="padding:6px 0;font-size:14px;color:#c2410c;font-weight:600;">Crypto Discount (10%):</td><td style="padding:6px 0;font-size:14px;color:#c2410c;text-align:right;font-weight:600;">-' + fmt(discount) + "</td></tr>";
   }
@@ -211,6 +226,15 @@ function buildAdminEmailHtml(orderNumber: string, data: CheckoutBody): string {
   if (isCrypto) html += '<p style="margin:6px 0 0;color:#c2410c;font-weight:700;font-size:13px;">10% CRYPTO DISCOUNT - send total of ' + fmt(total) + " (not " + fmt(subtotal) + ")</p>";
   html += '<p style="margin:6px 0 0;color:#92400e;font-size:12px;">Send the customer payment details for this method.</p></div></td></tr>';
 
+  const adminShippingLabel = getShippingLabel(data.shippingMethod);
+  if (adminShippingLabel) {
+    html += '<tr><td style="padding:16px 40px 0;"><h3 style="margin:0 0 10px;font-size:15px;color:#1a1a1a;">Shipping Method</h3>';
+    html += '<div style="background:#eff6ff;border-radius:8px;padding:14px 16px;">';
+    html += '<p style="margin:0;font-weight:700;font-size:15px;color:#1d4ed8;">' + esc(adminShippingLabel) + '</p>';
+    html += '<p style="margin:6px 0 0;color:#1e3a8a;font-size:12px;">Customer-selected carrier — confirm rate before sending payment details.</p>';
+    html += "</div></td></tr>";
+  }
+
   html += '<tr><td style="padding:20px 40px 0;"><h3 style="margin:0 0 10px;font-size:15px;color:#1a1a1a;">Items (' + totalItems + ")</h3>";
   html += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">' + itemsHtml + "</table></td></tr>";
 
@@ -247,6 +271,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
+    const isShipped = body.items.some((it) => it.deliveryType === "ship");
+    if (isShipped) {
+      if (!body.shippingMethod || !SHIPPING_LABELS[body.shippingMethod]) {
+        return NextResponse.json({ error: "Select a shipping carrier" }, { status: 400 });
+      }
+    }
+
     var orderNumber = generateOrderNumber();
     var totalItems = body.items.reduce(function(sum: number, item: CheckoutItem) { return sum + item.quantity; }, 0);
 
@@ -271,6 +302,7 @@ export async function POST(request: NextRequest) {
         items: JSON.parse(JSON.stringify(body.items)),
         totalItems: totalItems,
         paymentMethod: body.paymentMethod,
+        shippingMethod: isShipped && body.shippingMethod ? body.shippingMethod : null,
         deliveryNotes: body.deliveryNotes?.trim() || null,
         ipCountry: geo?.country || null,
         ipState: geo?.state || null,
@@ -302,7 +334,11 @@ export async function POST(request: NextRequest) {
       tgMsg += "📧 " + sanitize(body.email) + "\n";
       tgMsg += "📱 " + sanitize(body.phone) + "\n";
       tgMsg += "📍 " + sanitize(body.city) + ", " + sanitize(body.state) + " " + sanitize(body.zipCode) + ", " + sanitize(body.country) + "\n";
-      tgMsg += "💳 " + getPaymentLabel(body.paymentMethod) + "\n\n";
+      tgMsg += "💳 " + getPaymentLabel(body.paymentMethod) + "\n";
+      if (isShipped && body.shippingMethod) {
+        tgMsg += "🚚 " + getShippingLabel(body.shippingMethod) + "\n";
+      }
+      tgMsg += "\n";
       tgMsg += "📦 Items:\n";
       body.items.forEach((item, i) => {
         tgMsg += (i + 1) + ". " + sanitize(item.title) + " x" + item.quantity + " — " + sanitize(item.price) + "\n";
