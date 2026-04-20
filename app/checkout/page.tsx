@@ -199,12 +199,14 @@ export default function CheckoutPage() {
 
   const subtotal = calcSubtotal();
   const isCrypto = form.paymentMethod === "crypto";
-  // Either PWA-install or crypto grants a flat 10% — they don't stack.
-  const hasDiscount = isCrypto || isPwa;
-  const discountAmount = hasDiscount ? subtotal * (CRYPTO_DISCOUNT / 100) : 0;
+  // PWA-install and crypto each give 10%. They stack (additive), so a user
+  // who has installed the app AND pays in crypto gets 20% off.
+  const pwaDiscountAmount = isPwa ? subtotal * 0.1 : 0;
+  const cryptoDiscountAmount = isCrypto ? subtotal * (CRYPTO_DISCOUNT / 100) : 0;
+  const discountAmount = pwaDiscountAmount + cryptoDiscountAmount;
+  const hasDiscount = discountAmount > 0;
   const finalTotal = subtotal - discountAmount;
   const hasNumericPrice = subtotal > 0;
-  const discountLabel = isPwa ? "PWA App Discount (10%)" : "Crypto Discount (10%)";
 
   const inputCls = (field: keyof FormData) =>
     `w-full px-3.5 py-3 bg-gray-50/80 border rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all duration-200 ${
@@ -799,25 +801,36 @@ export default function CheckoutPage() {
                 </span>
               </div>
 
-              {/* Discount row (PWA or crypto) */}
-              {hasDiscount && hasNumericPrice && (
+              {/* PWA App Discount */}
+              {isPwa && hasNumericPrice && (
                 <div className="flex items-center justify-between text-sm mt-2 animate-[fadeInUp_0.25s_ease-out]">
-                  <span className={`font-medium flex items-center gap-1 ${isPwa ? "text-emerald-600" : "text-orange-600"}`}>
-                    <span className={`inline-block w-4 h-4 rounded text-[8px] text-white font-black flex items-center justify-center leading-none ${isPwa ? "bg-gradient-to-br from-emerald-400 to-emerald-600" : "bg-gradient-to-br from-orange-400 to-amber-500"}`}>%</span>
-                    {discountLabel}
+                  <span className="text-emerald-600 font-medium flex items-center gap-1">
+                    <span className="inline-block w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded text-[8px] text-white font-black flex items-center justify-center leading-none">%</span>
+                    PWA App Discount (10%)
                   </span>
-                  <span className={`font-semibold ${isPwa ? "text-emerald-600" : "text-orange-600"}`}>-{fmt(discountAmount)}</span>
+                  <span className="font-semibold text-emerald-600">-{fmt(pwaDiscountAmount)}</span>
+                </div>
+              )}
+
+              {/* Crypto Discount */}
+              {isCrypto && hasNumericPrice && (
+                <div className="flex items-center justify-between text-sm mt-2 animate-[fadeInUp_0.25s_ease-out]">
+                  <span className="text-orange-600 font-medium flex items-center gap-1">
+                    <span className="inline-block w-4 h-4 bg-gradient-to-br from-orange-400 to-amber-500 rounded text-[8px] text-white font-black flex items-center justify-center leading-none">%</span>
+                    Crypto Discount (10%)
+                  </span>
+                  <span className="font-semibold text-orange-600">-{fmt(cryptoDiscountAmount)}</span>
                 </div>
               )}
 
               {/* Final Total */}
-              <div className={`flex items-center justify-between mt-3 pt-3 border-t ${hasDiscount ? (isPwa ? "border-emerald-200" : "border-orange-200") : "border-gray-200"}`}>
+              <div className={`flex items-center justify-between mt-3 pt-3 border-t ${hasDiscount ? "border-emerald-200" : "border-gray-200"}`}>
                 <span className="text-base font-bold text-gray-900">Total</span>
                 <div className="text-right">
                   {hasDiscount && hasNumericPrice && (
                     <span className="text-xs text-gray-400 line-through mr-2">{fmt(subtotal)}</span>
                   )}
-                  <span className={`text-xl font-black ${hasDiscount ? (isPwa ? "text-emerald-600" : "text-orange-600") : "text-slate-900"}`}>
+                  <span className={`text-xl font-black ${hasDiscount ? "text-emerald-600" : "text-slate-900"}`}>
                     {hasNumericPrice ? fmt(finalTotal) : "TBD"}
                   </span>
                 </div>
@@ -825,8 +838,8 @@ export default function CheckoutPage() {
 
               {hasDiscount && hasNumericPrice && (
                 <div className="mt-2 flex items-center gap-1.5 justify-end animate-[fadeInUp_0.2s_ease-out]">
-                  <span className={`px-2 py-0.5 text-white text-[10px] font-bold rounded-full ${isPwa ? "bg-gradient-to-r from-emerald-500 to-emerald-600" : "bg-gradient-to-r from-orange-500 to-amber-500"}`}>
-                    You save {fmt(discountAmount)}!
+                  <span className="px-2 py-0.5 text-white text-[10px] font-bold rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600">
+                    You save {fmt(discountAmount)}{isPwa && isCrypto ? " (PWA + Crypto)" : ""}!
                   </span>
                 </div>
               )}

@@ -62,7 +62,7 @@ function buildWelcomeEmailHtml(email: string): string {
   html += '</td></tr>';
   // Perks list
   const perks = [
-    ["🎁", "First dibs on new drops", "Be the first to know when rare strains and limited-edition packs land."],
+    ["🎁", "First info on new drops", "Be the first to know when rare strains and limited-edition packs land."],
     ["💸", "Subscriber-only discounts", "Quiet codes and promos sent only to this list."],
     ["📦", "Shipping & restock alerts", "Know the second your favorites are back in stock."],
     ["🌱", "Cannabis culture & guides", "Curated reads from our blog — strains, terpenes, tips."],

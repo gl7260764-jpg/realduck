@@ -60,6 +60,7 @@ export default function ProductCard({
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLAnchorElement>(null);
   const { addItem, isInCart, setIsOpen, items } = useCart();
 
   const closeBuyModal = useCallback(() => {
@@ -74,6 +75,32 @@ export default function ProductCard({
   useEffect(() => {
     setAlreadyInCart(isInCart(id));
   }, [items, id, isInCart]);
+
+  // Touch devices have no hover — autoplay the preview video when the card is scrolled into view
+  useEffect(() => {
+    if (!videoUrl || !mediaRef.current) return;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(hover: none)").matches) return;
+
+    const el = mediaRef.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) return;
+        if (entry.isIntersecting) {
+          setIsHovering(true);
+          video.play().catch(() => {});
+        } else {
+          setIsHovering(false);
+          video.pause();
+          video.currentTime = 0;
+        }
+      },
+      { threshold: 0.6 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [videoUrl]);
 
   const priceLocalLines = formatPrice(priceLocal).split("\n");
   const priceShipLines = formatPrice(priceShip).split("\n");
@@ -343,6 +370,7 @@ export default function ProductCard({
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden group hover:border-gray-300 hover:shadow-lg transition-all duration-300">
         {/* Product Image/Video */}
         <Link
+          ref={mediaRef}
           href={`/product/${slug || id}`}
           className="block relative aspect-[5/4] sm:aspect-square overflow-hidden bg-gray-100"
           onMouseEnter={() => {

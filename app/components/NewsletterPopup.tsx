@@ -189,7 +189,13 @@ export default function NewsletterPopup() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="rdd-newsletter-title"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-[rdd-fade_200ms_ease-out]"
+      className="fixed inset-0 z-[100] flex items-center justify-center animate-[rdd-fade_200ms_ease-out]"
+      style={{
+        paddingTop: "max(1rem, env(safe-area-inset-top))",
+        paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+        paddingLeft: "max(1rem, env(safe-area-inset-left))",
+        paddingRight: "max(1rem, env(safe-area-inset-right))",
+      }}
     >
       <div
         className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
@@ -198,8 +204,8 @@ export default function NewsletterPopup() {
       />
 
       <div
-        className="relative w-full max-w-md sm:max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden"
-        style={{ animation: "rdd-pop 260ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+        className="relative w-full max-w-md sm:max-w-lg max-h-full bg-white rounded-3xl shadow-2xl overflow-y-auto overscroll-contain"
+        style={{ animation: "rdd-pop 260ms cubic-bezier(0.22, 1, 0.36, 1)", WebkitOverflowScrolling: "touch" }}
       >
         {/* Close */}
         <button
@@ -212,7 +218,7 @@ export default function NewsletterPopup() {
         </button>
 
         {/* Hero banner */}
-        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 pt-9 pb-7 sm:px-8 text-center overflow-hidden">
+        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-5 pt-7 pb-6 sm:px-8 sm:pt-9 sm:pb-7 text-center overflow-hidden">
           <div
             aria-hidden="true"
             className="absolute inset-0 opacity-40"
@@ -222,7 +228,7 @@ export default function NewsletterPopup() {
             }}
           />
           <div className="relative flex flex-col items-center">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden ring-4 ring-white/10 shadow-lg bg-white/5">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden ring-4 ring-white/10 shadow-lg bg-white/5">
               <Image
                 src="/images/logo.jpg"
                 alt="Real Duck Distro"
@@ -232,23 +238,23 @@ export default function NewsletterPopup() {
                 priority
               />
             </div>
-            <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
+            <div className="mt-3 sm:mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
               <Sparkles className="w-3 h-3" /> Exclusive access
             </div>
             <h2
               id="rdd-newsletter-title"
-              className="mt-3 text-2xl sm:text-[26px] font-extrabold text-white tracking-tight leading-tight"
+              className="mt-3 text-xl sm:text-[26px] font-extrabold text-white tracking-tight leading-tight"
             >
-              Get first dibs on every drop
+              Get first info on every drop
             </h2>
-            <p className="mt-2 text-sm sm:text-[15px] text-white/70 max-w-sm leading-relaxed">
+            <p className="mt-2 text-[13px] sm:text-[15px] text-white/70 max-w-sm leading-relaxed">
               Subscribe to our newsletter for subscriber-only discounts, new strain alerts, and the good stuff — straight to your inbox.
             </p>
           </div>
         </div>
 
         {/* Form area */}
-        <div className="px-6 sm:px-8 py-6 sm:py-7">
+        <div className="px-5 sm:px-8 py-5 sm:py-7">
           {status === "success" ? (
             <div className="text-center py-2">
               <div className="mx-auto w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center ring-4 ring-emerald-100">
@@ -282,6 +288,9 @@ export default function NewsletterPopup() {
                   type="email"
                   inputMode="email"
                   autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   placeholder="your@email.com"
                   value={email}
                   onChange={(e) => {
@@ -291,7 +300,7 @@ export default function NewsletterPopup() {
                   disabled={status === "loading"}
                   aria-invalid={status === "error"}
                   aria-describedby={status === "error" ? "rdd-newsletter-error" : undefined}
-                  className="w-full h-12 pl-11 pr-4 rounded-full border border-slate-200 bg-slate-50 text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-900/10 focus:border-slate-400 transition-all disabled:opacity-60"
+                  className="w-full h-12 pl-11 pr-4 rounded-full border border-slate-200 bg-slate-50 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-900/10 focus:border-slate-400 transition-all disabled:opacity-60"
                 />
               </div>
 
