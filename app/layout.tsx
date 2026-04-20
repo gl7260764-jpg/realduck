@@ -58,7 +58,7 @@ export const metadata: Metadata = {
       "Real Duck Distro — the world's leading premium cannabis lifestyle brand. HQ in LA, USA & Sydney, Australia. Delivering across the USA, Australia & worldwide.",
     images: [
       {
-        url: "/images/hero.webp",
+        url: "/images/hero.webp?v=2",
         width: 1200,
         height: 630,
         alt: "Real Duck Distro product catalog",
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     title: "Real Duck Distro | Premium Cannabis Lifestyle Brand | USA & AUS | Ships Worldwide",
     description:
       "Real Duck Distro — the world's leading premium cannabis lifestyle brand. HQ in LA, USA & Sydney, Australia. Delivering across the USA, Australia & worldwide.",
-    images: ["/images/hero.webp"],
+    images: ["/images/hero.webp?v=2"],
   },
   robots: {
     index: true,
@@ -158,7 +158,7 @@ export default async function RootLayout({
                 "The world's leading premium cannabis lifestyle brand. HQ in Los Angeles USA & Sydney Australia. Designer cannabis packs, exotic flower, edibles, concentrates, vapes, rosin, pre-rolls & disposables. Delivering across the USA, Australia & worldwide.",
               url: SITE_URL,
               logo: `${SITE_URL}/images/logo.jpg`,
-              image: `${SITE_URL}/images/hero.webp`,
+              image: `${SITE_URL}/images/hero.webp?v=2`,
               address: [
                 {
                   "@type": "PostalAddress",
