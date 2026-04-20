@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Bell, X, Download, Gift, Check, Share, Megaphone } from "lucide-react";
+import Image from "next/image";
+import { Bell, X, Download, Gift, Check, Share, Megaphone, BellRing, Settings, Sparkles } from "lucide-react";
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -60,6 +61,11 @@ export default function PwaManager() {
   const [discountEarned, setDiscountEarned] = useState(false);
   const [platform] = useState(detectPlatform);
   const [foregroundNotif, setForegroundNotif] = useState<ForegroundNotification | null>(null);
+  // Notification opt-in modal state — shown to installed PWA users that
+  // haven't yet accepted notifications. Re-shown on every app open.
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [notifModalMode, setNotifModalMode] = useState<"prompt" | "denied">("prompt");
+  const [enablingNotif, setEnablingNotif] = useState(false);
   const foregroundTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Subscribe to push notifications ──
@@ -129,9 +135,14 @@ export default function PwaManager() {
     if (isStandalone) {
       setInstalled(true);
       checkPwaDiscount();
+      // Ping the server so PwaInstall.lastOpenedAt is bumped every app open.
+      trackInstall();
 
-      // PWA user — auto-subscribe to push notifications
-      // They installed the app, so they should get notifications automatically
+      // PWA user — check if they've accepted push notifications.
+      // We do NOT auto-call Notification.requestPermission() silently any
+      // more: instead we show a branded modal, and the user triggers the
+      // native prompt by clicking Enable. The modal reappears on every app
+      // open until they accept (or hard-deny via browser settings).
       (async () => {
         if (!("serviceWorker" in navigator) || !("Notification" in window)) return;
         try {
@@ -139,21 +150,36 @@ export default function PwaManager() {
           if (!reg.pushManager) return;
 
           const existingSub = await reg.pushManager.getSubscription();
-          if (existingSub) {
-            // Already subscribed
+          const perm = Notification.permission;
+
+          if (existingSub && perm === "granted") {
+            // Already accepted — sync server record and flag.
             setSubscribed(true);
+            const json = existingSub.toJSON();
+            fetch("/api/push", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                subscription: { endpoint: json.endpoint, keys: json.keys },
+                sessionId: getSessionId(),
+              }),
+            })
+              .then((r) => { if (r.ok) localStorage.setItem("nobu_push_subscribed", "1"); })
+              .catch(() => {});
             return;
           }
 
-          // Request permission if not yet asked — PWA users expect notifications
-          if (Notification.permission === "default") {
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-              await subscribeToPush(reg);
-            }
-          } else if (Notification.permission === "granted") {
-            await subscribeToPush(reg);
+          if (perm === "denied") {
+            // User previously hard-denied in browser settings — show
+            // instructions modal so they know how to fix it.
+            setNotifModalMode("denied");
+            setShowNotifModal(true);
+            return;
           }
+
+          // Permission is "default" OR granted-but-missing-sub — show modal.
+          setNotifModalMode("prompt");
+          setShowNotifModal(true);
         } catch {}
       })();
     }
@@ -216,15 +242,9 @@ export default function PwaManager() {
             // Permission already granted but no subscription — re-subscribe
             await subscribeToPush(reg);
           } else if ("Notification" in window && Notification.permission === "default") {
-            if (isStandalone) {
-              // PWA mode — request permission immediately, no banner needed
-              const permission = await Notification.requestPermission();
-              if (permission === "granted") {
-                await subscribeToPush(reg);
-              }
-            } else {
-              // Regular browser — show banner after initial delay
-              // Recurring interval will keep showing it every 20s if dismissed
+            // Standalone/PWA mode is handled by the modal flow above; only
+            // show the bottom banner for regular-browser users, once.
+            if (!isStandalone) {
               setTimeout(() => setShowNotifBanner(true), 12000);
             }
           }
@@ -268,16 +288,14 @@ export default function PwaManager() {
       setShowIOSInstall(false);
       trackInstall();
 
-      // After install, prompt for notifications
-      setTimeout(async () => {
-        if ("Notification" in window && Notification.permission === "default") {
-          const permission = await Notification.requestPermission();
-          if (permission === "granted") {
-            const reg = await navigator.serviceWorker.ready;
-            await subscribeToPush(reg);
-          }
+      // After install, show the notifications opt-in modal so the user can
+      // explicitly accept. The modal handles the native prompt + DB record.
+      setTimeout(() => {
+        if ("Notification" in window) {
+          setNotifModalMode(Notification.permission === "denied" ? "denied" : "prompt");
+          setShowNotifModal(true);
         }
-      }, 2000);
+      }, 1500);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -288,33 +306,18 @@ export default function PwaManager() {
       setTimeout(() => setShowIOSInstall(true), 20000);
     }
 
-    // ── Recurring prompts every 20s for non-installed / non-subscribed users ──
+    // ── Recurring install prompt (notifications are no longer nagged by
+    //    timer — notification acceptance is now checked once per app open
+    //    and surfaced via the full opt-in modal above when in PWA mode). ──
     const recurringInterval = setInterval(() => {
-      // Re-check standalone in case user uninstalled
       const stillStandalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
       if (stillStandalone) return; // App installed, no need to nag
 
-      // Show install banner if not installed and prompt is available
-      if (!stillStandalone && installPrompt) {
-        setShowInstallBanner(true);
-      }
-
-      // Show iOS install if not installed
-      if (!stillStandalone && platform === "ios") {
-        setShowIOSInstall(true);
-      }
-
-      // Show notification banner if not subscribed and permission not denied
-      if (
-        "Notification" in window &&
-        Notification.permission === "default" &&
-        !localStorage.getItem("nobu_push_subscribed")
-      ) {
-        setShowNotifBanner(true);
-      }
+      if (installPrompt) setShowInstallBanner(true);
+      if (platform === "ios") setShowIOSInstall(true);
     }, 20000);
 
     return () => {
@@ -336,6 +339,35 @@ export default function PwaManager() {
       await subscribeToPush(reg);
     }
     setShowNotifBanner(false);
+  };
+
+  // Accept from the big PWA opt-in modal. Triggers the native prompt, then
+  // subscribes. If the user hard-denies, we flip the modal into the
+  // "show settings instructions" mode. Closing the modal (without accepting)
+  // will make it reappear the next time the app is opened.
+  const handleAcceptNotifModal = async () => {
+    if (!("Notification" in window)) return;
+    setEnablingNotif(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        if ("serviceWorker" in navigator) {
+          const reg = await navigator.serviceWorker.ready;
+          await subscribeToPush(reg);
+        }
+        setShowNotifModal(false);
+      } else if (permission === "denied") {
+        setNotifModalMode("denied");
+      }
+      // "default" means the browser suppressed the prompt (rare) — keep modal open.
+    } finally {
+      setEnablingNotif(false);
+    }
+  };
+
+  const dismissNotifModal = () => {
+    setShowNotifModal(false);
+    // No persistent snooze — the modal re-checks on next app open/refresh.
   };
 
   const dismissNotifBanner = () => {
@@ -431,7 +463,171 @@ export default function PwaManager() {
         </div>
       )}
 
-      {/* ── Notification Permission Banner ── */}
+      {/* ── Full-screen Notification Opt-In Modal ──
+           Shown to installed PWA users (and right after install) until they
+           accept. Re-appears on every app open. Dismiss is session-only. */}
+      {showNotifModal && !subscribed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rdd-notif-title"
+          className="fixed inset-0 z-[95] flex items-center justify-center p-4 sm:p-6 animate-[rdd-notif-fade_200ms_ease-out]"
+        >
+          <div
+            className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
+            onClick={dismissNotifModal}
+            aria-hidden="true"
+          />
+          <div
+            className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden"
+            style={{ animation: "rdd-notif-pop 260ms cubic-bezier(0.22, 1, 0.36, 1)" }}
+          >
+            <button
+              type="button"
+              onClick={dismissNotifModal}
+              aria-label="Close"
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-600 hover:text-slate-900 backdrop-blur flex items-center justify-center border border-slate-200"
+            >
+              <X className="w-4 h-4" strokeWidth={2.2} />
+            </button>
+
+            {/* Hero */}
+            <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-6 pt-9 pb-7 sm:px-8 text-center overflow-hidden">
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 opacity-40"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(600px 200px at 20% -10%, rgba(56,189,248,0.25), transparent 60%), radial-gradient(500px 200px at 90% 120%, rgba(168,85,247,0.25), transparent 60%)",
+                }}
+              />
+              <div className="relative flex flex-col items-center">
+                <div className="relative w-16 h-16">
+                  <div className="absolute inset-0 rounded-2xl bg-blue-500/30 blur-xl animate-pulse" />
+                  <div className="relative w-16 h-16 rounded-2xl overflow-hidden ring-4 ring-white/10 shadow-lg bg-white flex items-center justify-center">
+                    <Image
+                      src="/images/logo.jpg"
+                      alt="Real Duck Distro"
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                      priority
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-blue-500 ring-4 ring-slate-900 flex items-center justify-center">
+                      <BellRing className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/80">
+                  <Sparkles className="w-3 h-3" />
+                  {notifModalMode === "denied" ? "Notifications disabled" : "One last step"}
+                </div>
+                <h2
+                  id="rdd-notif-title"
+                  className="mt-3 text-2xl sm:text-[26px] font-extrabold text-white tracking-tight leading-tight"
+                >
+                  {notifModalMode === "denied"
+                    ? "Re-enable notifications"
+                    : "Never miss a drop"}
+                </h2>
+                <p className="mt-2 text-sm sm:text-[15px] text-white/70 max-w-sm leading-relaxed">
+                  {notifModalMode === "denied"
+                    ? "Notifications are currently blocked in your browser settings. Turn them on to start receiving drop alerts."
+                    : "Turn on push notifications to get instant alerts for new drops, restocks, and subscriber-only offers — right on your device."}
+                </p>
+              </div>
+            </div>
+
+            {/* Body */}
+            {notifModalMode === "prompt" ? (
+              <div className="px-6 sm:px-8 py-6 sm:py-7">
+                <ul className="space-y-3">
+                  {[
+                    { icon: "🔥", title: "Instant drop alerts", desc: "Rare strains, limited runs — be the first to know." },
+                    { icon: "💸", title: "Subscriber-only codes", desc: "Quiet discounts sent to notification subscribers first." },
+                    { icon: "📦", title: "Order & restock updates", desc: "Tracking and back-in-stock pings, no refresh needed." },
+                  ].map((p) => (
+                    <li key={p.title} className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-lg flex-shrink-0">
+                        {p.icon}
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-bold text-slate-900 leading-tight">{p.title}</div>
+                        <div className="text-[13px] text-slate-500 leading-snug mt-0.5">{p.desc}</div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  onClick={handleAcceptNotifModal}
+                  disabled={enablingNotif}
+                  className="mt-5 w-full h-12 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-[15px] shadow-[0_8px_24px_-8px_rgba(15,23,42,0.5)] disabled:opacity-70 flex items-center justify-center gap-2 transition-all"
+                >
+                  {enablingNotif ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+                      Enabling…
+                    </>
+                  ) : (
+                    <>
+                      <Bell className="w-4 h-4" /> Enable notifications
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={dismissNotifModal}
+                  className="mt-2 w-full h-10 text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Not now
+                </button>
+                <p className="mt-2 text-[11px] text-slate-400 text-center leading-relaxed">
+                  You can turn this off anytime in your device settings.
+                </p>
+              </div>
+            ) : (
+              <div className="px-6 sm:px-8 py-6 sm:py-7">
+                <div className="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3 text-[13px] text-amber-900 leading-relaxed flex gap-3">
+                  <Settings className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    Your browser is currently blocking notifications. Open your app/browser
+                    settings for this site and switch <strong>Notifications</strong> to{" "}
+                    <strong>Allow</strong>, then reload.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="mt-5 w-full h-12 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-[15px] flex items-center justify-center gap-2 transition-all"
+                >
+                  Reload the app
+                </button>
+                <button
+                  type="button"
+                  onClick={dismissNotifModal}
+                  className="mt-2 w-full h-10 text-[13px] font-medium text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  Not now
+                </button>
+              </div>
+            )}
+          </div>
+
+          <style jsx>{`
+            @keyframes rdd-notif-fade {
+              from { opacity: 0; }
+              to   { opacity: 1; }
+            }
+            @keyframes rdd-notif-pop {
+              from { opacity: 0; transform: translateY(14px) scale(0.96); }
+              to   { opacity: 1; transform: translateY(0)    scale(1);    }
+            }
+          `}</style>
+        </div>
+      )}
+
+      {/* ── Notification Permission Banner (non-PWA browsers only) ── */}
       {showNotifBanner && !subscribed && (
         <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-[380px] bg-slate-900 text-white rounded-2xl shadow-2xl shadow-black/30 z-[70] animate-[slideUp_0.4s_ease-out]">
           <div className="p-4 sm:p-5">

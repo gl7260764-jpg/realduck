@@ -188,17 +188,21 @@ model Announcement {
 }
 
 model PwaInstall {
-  id           String   @id @default(cuid())
-  sessionId    String   @unique
-  fingerprint  String?  // browser fingerprint for abuse prevention
-  device       String?
-  browser      String?
-  os           String?
-  country      String?
-  discountUsed Boolean  @default(false) // has the 10% discount been used
-  createdAt    DateTime @default(now())
+  id                     String    @id @default(cuid())
+  sessionId              String    @unique
+  fingerprint            String?   // browser fingerprint for abuse prevention
+  device                 String?
+  browser                String?
+  os                     String?
+  country                String?
+  discountUsed           Boolean   @default(false) // has the 10% discount been used
+  notificationsEnabled   Boolean   @default(false) // user has accepted push notifications
+  notificationsAcceptedAt DateTime?
+  lastOpenedAt           DateTime?
+  createdAt              DateTime  @default(now())
 
   @@index([sessionId])
+  @@index([notificationsEnabled])
   @@index([createdAt])
 }
 
@@ -252,4 +256,26 @@ model CheckoutOrder {
   @@index([orderNumber])
   @@index([createdAt])
   @@index([status])
+}
+
+// ── Newsletter Subscribers ──
+
+model NewsletterSubscriber {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  active       Boolean   @default(true)
+  source       String?   // e.g. "popup", "footer", "checkout"
+  sessionId    String?
+  ipAddress    String?
+  country      String?
+  device       String?
+  browser      String?
+  os           String?
+  confirmedAt  DateTime? // when welcome email was sent successfully
+  unsubscribedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([active])
+  @@index([createdAt])
 }

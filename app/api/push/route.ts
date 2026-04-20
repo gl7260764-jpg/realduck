@@ -64,6 +64,16 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Flip the PwaInstall acceptance flag so we never prompt this user again.
+    if (sessionId) {
+      await prisma.pwaInstall
+        .updateMany({
+          where: { sessionId, notificationsEnabled: false },
+          data: { notificationsEnabled: true, notificationsAcceptedAt: new Date() },
+        })
+        .catch(() => {});
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Push subscribe error:", error);
@@ -77,10 +87,20 @@ export async function DELETE(request: NextRequest) {
     const { endpoint } = await request.json();
     if (!endpoint) return NextResponse.json({ error: "Missing endpoint" }, { status: 400 });
 
+    const sub = await prisma.pushSubscription.findFirst({ where: { endpoint } });
     await prisma.pushSubscription.updateMany({
       where: { endpoint },
       data: { active: false },
     });
+
+    if (sub?.sessionId) {
+      await prisma.pwaInstall
+        .updateMany({
+          where: { sessionId: sub.sessionId },
+          data: { notificationsEnabled: false },
+        })
+        .catch(() => {});
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -281,112 +281,116 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // ── Return response IMMEDIATELY — send notifications in background ──
-    // The order is saved to DB, so the customer gets instant feedback.
-    // Email + Telegram are sent after the response, non-blocking.
+    // ── Send notifications synchronously (awaited) — SAME pattern as
+    // /api/orders/telegram. In Vercel serverless, fire-and-forget promises
+    // are killed when the response is returned, so we must await everything
+    // that needs to complete before responding.
 
-    const sendNotifications = async () => {
+    const config = await getAdminConfig();
+
+    // 1. Send Telegram first (matches fast-order ordering)
+    if (config.telegramBotToken && config.telegramChatId) {
+      const sanitize = (t: string) => t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
+      const tgTotal = calcTotal(body.items);
+      const tgIsCrypto = body.paymentMethod === "crypto";
+      const tgDiscount = tgIsCrypto ? tgTotal * 0.1 : 0;
+      const tgFinal = tgTotal - tgDiscount;
+
+      let tgMsg = "🛒 NEW EMAIL ORDER\n\n";
+      tgMsg += "📋 Order: " + orderNumber + "\n";
+      tgMsg += "👤 " + sanitize(body.firstName) + " " + sanitize(body.lastName) + "\n";
+      tgMsg += "📧 " + sanitize(body.email) + "\n";
+      tgMsg += "📱 " + sanitize(body.phone) + "\n";
+      tgMsg += "📍 " + sanitize(body.city) + ", " + sanitize(body.state) + " " + sanitize(body.zipCode) + ", " + sanitize(body.country) + "\n";
+      tgMsg += "💳 " + getPaymentLabel(body.paymentMethod) + "\n\n";
+      tgMsg += "📦 Items:\n";
+      body.items.forEach((item, i) => {
+        tgMsg += (i + 1) + ". " + sanitize(item.title) + " x" + item.quantity + " — " + sanitize(item.price) + "\n";
+      });
+      tgMsg += "\n💰 Total: " + fmt(tgFinal);
+      if (tgIsCrypto) tgMsg += " (10% crypto discount applied)";
+      if (body.deliveryNotes) tgMsg += "\n📝 Notes: " + sanitize(body.deliveryNotes);
+
+      const tgData = JSON.stringify({ chat_id: config.telegramChatId, text: tgMsg });
+
+      await new Promise<void>((resolve) => {
+        const tgReq = https.request(
+          {
+            hostname: "api.telegram.org",
+            path: "/bot" + config.telegramBotToken + "/sendMessage",
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(tgData) },
+            family: 4,
+            timeout: 10000,
+          },
+          (res) => {
+            let data = "";
+            res.on("data", (chunk) => (data += chunk));
+            res.on("end", () => {
+              if (res.statusCode !== 200) console.error("Telegram error for " + orderNumber + ":", data);
+              resolve();
+            });
+          }
+        );
+        tgReq.on("error", (err) => { console.error("Telegram error for " + orderNumber + ":", err.message); resolve(); });
+        tgReq.on("timeout", () => { tgReq.destroy(); resolve(); });
+        tgReq.write(tgData);
+        tgReq.end();
+      });
+    }
+
+    // 2. Send emails (customer + admin) — awaited via Promise.allSettled,
+    //    exactly like the fast-order route.
+    const smtpHost = config.smtpHost;
+    const smtpUser = config.smtpUser;
+    const smtpPass = config.smtpPassword;
+    const salesEmail = config.adminEmail;
+
+    if (smtpHost && smtpUser && smtpPass) {
       try {
-        const config = await getAdminConfig();
+        const port = Number(config.smtpPort) || 465;
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port,
+          secure: port === 465,
+          auth: { user: smtpUser, pass: smtpPass },
+        });
+        const fromAddress = process.env.SMTP_FROM || ("Real Duck Distro <" + smtpUser + ">");
 
-        // Sanitize text for Telegram
-        var s = function(t: string) { return t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ""); };
+        const emailPromises: Promise<unknown>[] = [];
 
-        // Send Email + Telegram in parallel
-        const promises: Promise<unknown>[] = [];
+        // Admin email — always send
+        emailPromises.push(
+          transporter.sendMail({
+            from: fromAddress,
+            to: salesEmail || smtpUser,
+            subject: "New Order #" + orderNumber + " - " + body.firstName + " " + body.lastName,
+            html: buildAdminEmailHtml(orderNumber, body),
+          })
+        );
 
-        // ── Emails ──
-        var smtpHost = config.smtpHost;
-        var smtpUser = config.smtpUser;
-        var smtpPass = config.smtpPassword;
-        var salesEmail = config.adminEmail;
+        // Customer email — always send (email is required for detail order)
+        emailPromises.push(
+          transporter.sendMail({
+            from: fromAddress,
+            to: body.email,
+            subject: "Thank you for your order #" + orderNumber + " - Real Duck Distro",
+            html: buildCustomerEmailHtml(orderNumber, body),
+          })
+        );
 
-        if (smtpHost && smtpUser && smtpPass) {
-          var port = Number(config.smtpPort) || 465;
-          var transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port: port,
-            secure: port === 465,
-            auth: { user: smtpUser, pass: smtpPass },
-          });
-          var fromAddress = process.env.SMTP_FROM || ("Real Duck Distro <" + smtpUser + ">");
-
-          promises.push(
-            transporter.sendMail({
-              from: fromAddress,
-              to: body.email,
-              subject: "Thank you for your order #" + orderNumber + " - Real Duck Distro",
-              html: buildCustomerEmailHtml(orderNumber, body),
-            }).catch((err) => console.error("Customer email failed for " + orderNumber + ":", err.message))
-          );
-
-          promises.push(
-            transporter.sendMail({
-              from: fromAddress,
-              to: salesEmail || smtpUser,
-              subject: "New Order #" + orderNumber + " - " + body.firstName + " " + body.lastName,
-              html: buildAdminEmailHtml(orderNumber, body),
-            }).catch((err) => console.error("Admin email failed for " + orderNumber + ":", err.message))
-          );
+        const results = await Promise.allSettled(emailPromises);
+        for (const result of results) {
+          if (result.status === "rejected") {
+            console.error("Checkout email failed for " + orderNumber + ":", result.reason?.message || "Unknown error");
+          }
         }
-
-        // ── Telegram ──
-        if (config.telegramBotToken && config.telegramChatId) {
-          var tgTotal = calcTotal(body.items);
-          var tgIsCrypto = body.paymentMethod === "crypto";
-          var tgDiscount = tgIsCrypto ? tgTotal * 0.1 : 0;
-          var tgFinal = tgTotal - tgDiscount;
-
-          var tgMsg = "🛒 NEW EMAIL ORDER\n\n";
-          tgMsg += "📋 Order: " + orderNumber + "\n";
-          tgMsg += "👤 " + s(body.firstName) + " " + s(body.lastName) + "\n";
-          tgMsg += "📧 " + s(body.email) + "\n";
-          tgMsg += "📱 " + s(body.phone) + "\n";
-          tgMsg += "📍 " + s(body.city) + ", " + s(body.state) + " " + s(body.zipCode) + ", " + s(body.country) + "\n";
-          tgMsg += "💳 " + getPaymentLabel(body.paymentMethod) + "\n\n";
-          tgMsg += "📦 Items:\n";
-          body.items.forEach(function(item, i) {
-            tgMsg += (i + 1) + ". " + s(item.title) + " x" + item.quantity + " — " + s(item.price) + "\n";
-          });
-          tgMsg += "\n💰 Total: " + fmt(tgFinal);
-          if (tgIsCrypto) tgMsg += " (10% crypto discount applied)";
-          if (body.deliveryNotes) tgMsg += "\n📝 Notes: " + s(body.deliveryNotes);
-
-          var tgData = JSON.stringify({ chat_id: config.telegramChatId, text: tgMsg });
-
-          promises.push(
-            new Promise<void>((resolve) => {
-              var tgReq = https.request({
-                hostname: "api.telegram.org",
-                path: "/bot" + config.telegramBotToken + "/sendMessage",
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(tgData) },
-                family: 4,
-                timeout: 10000,
-              }, function(res) {
-                var data = "";
-                res.on("data", function(chunk) { data += chunk; });
-                res.on("end", function() {
-                  if (res.statusCode !== 200) console.error("Telegram error for " + orderNumber + ":", data);
-                  resolve();
-                });
-              });
-              tgReq.on("error", function(err) { console.error("Telegram error for " + orderNumber + ":", err.message); resolve(); });
-              tgReq.on("timeout", function() { tgReq.destroy(); resolve(); });
-              tgReq.write(tgData);
-              tgReq.end();
-            })
-          );
-        }
-
-        await Promise.allSettled(promises);
-      } catch (err) {
-        console.error("Notification error for " + orderNumber + ":", err);
+      } catch (emailErr) {
+        console.error("Checkout email setup error for " + orderNumber + ":", emailErr);
       }
-    };
-
-    // Fire notifications in background — don't await
-    sendNotifications();
+    } else {
+      console.error("Checkout email not sent for " + orderNumber + ": SMTP config missing (host/user/password)");
+    }
 
     return NextResponse.json({ success: true, orderNumber: orderNumber });
   } catch (error) {

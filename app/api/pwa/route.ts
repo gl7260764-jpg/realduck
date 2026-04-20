@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     await prisma.pwaInstall.upsert({
       where: { sessionId },
-      update: { fingerprint: fingerprint || null },
+      update: { fingerprint: fingerprint || null, lastOpenedAt: new Date() },
       create: {
         sessionId,
         fingerprint: fingerprint || null,
@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
         browser,
         os,
         country: geo?.country || null,
+        lastOpenedAt: new Date(),
       },
     });
 
@@ -70,12 +71,19 @@ export async function GET(request: NextRequest) {
 
   try {
     const install = await prisma.pwaInstall.findUnique({ where: { sessionId } });
-    if (!install) return NextResponse.json({ installed: false, discountEligible: false });
+    if (!install) {
+      return NextResponse.json({
+        installed: false,
+        discountEligible: false,
+        notificationsEnabled: false,
+      });
+    }
 
     return NextResponse.json({
       installed: true,
       discountEligible: !install.discountUsed,
       discountUsed: install.discountUsed,
+      notificationsEnabled: install.notificationsEnabled,
     });
   } catch {
     return NextResponse.json({ installed: false, discountEligible: false });
