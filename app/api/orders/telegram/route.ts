@@ -274,6 +274,12 @@ export async function POST(request: NextRequest) {
     const smtpPass = config.smtpPassword;
     const salesEmail = config.adminEmail;
 
+    if (!smtpHost || !smtpUser || !smtpPass) {
+      console.error(
+        `Fast order email skipped for ${orderNumber}: SMTP config missing — ` +
+        `host=${smtpHost ? "set" : "MISSING"} user=${smtpUser ? "set" : "MISSING"} pass=${smtpPass ? "set" : "MISSING"}`
+      );
+    }
     if (smtpHost && smtpUser && smtpPass) {
       try {
         const port = Number(config.smtpPort) || 465;

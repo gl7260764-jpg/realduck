@@ -59,6 +59,7 @@ export default function ProductCard({
   const [fastError, setFastError] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRef = useRef<HTMLAnchorElement>(null);
   const { addItem, isInCart, setIsOpen, items } = useCart();
@@ -76,11 +77,14 @@ export default function ProductCard({
     setAlreadyInCart(isInCart(id));
   }, [items, id, isInCart]);
 
-  // Touch devices have no hover — autoplay the preview video when the card is scrolled into view
+  // Touch devices: autoplay the preview video when the card is scrolled into view,
+  // and skip the mouse hover handlers (which otherwise fire on press-and-hold).
   useEffect(() => {
-    if (!videoUrl || !mediaRef.current) return;
     if (typeof window === "undefined") return;
-    if (!window.matchMedia("(hover: none)").matches) return;
+    const touch = window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    setIsTouchDevice(touch);
+
+    if (!touch || !videoUrl || !mediaRef.current) return;
 
     const el = mediaRef.current;
     const observer = new IntersectionObserver(
@@ -96,7 +100,7 @@ export default function ProductCard({
           video.currentTime = 0;
         }
       },
-      { threshold: 0.6 }
+      { threshold: 0.5 }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -374,13 +378,13 @@ export default function ProductCard({
           ref={mediaRef}
           href={`/product/${slug || id}`}
           className="block relative aspect-[5/4] sm:aspect-square overflow-hidden bg-gray-100"
-          onMouseEnter={() => {
+          onMouseEnter={isTouchDevice ? undefined : () => {
             setIsHovering(true);
             if (videoRef.current && videoUrl) {
               videoRef.current.play().catch(() => {});
             }
           }}
-          onMouseLeave={() => {
+          onMouseLeave={isTouchDevice ? undefined : () => {
             setIsHovering(false);
             if (videoRef.current) {
               videoRef.current.pause();
