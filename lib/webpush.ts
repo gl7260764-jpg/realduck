@@ -33,6 +33,8 @@ function toSafeTopic(tag: string): string {
   return cleaned || "general";
 }
 
+const PUSH_TIMEOUT_MS = 15_000;
+
 export async function sendPushNotification(
   subscription: { endpoint: string; p256dh: string; auth: string },
   payload: PushPayload
@@ -43,7 +45,10 @@ export async function sendPushNotification(
   }
 
   try {
-    await webpush.sendNotification(
+    // Race the send against a hard timeout so one slow push service doesn't
+    // stall the entire fan-out. The underlying request may continue after
+    // timeout — we accept that — but we stop waiting for it.
+    const send = webpush.sendNotification(
       {
         endpoint: subscription.endpoint,
         keys: { p256dh: subscription.p256dh, auth: subscription.auth },
@@ -55,18 +60,68 @@ export async function sendPushNotification(
         ...(payload.tag ? { topic: toSafeTopic(payload.tag) } : {}),
       }
     );
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject({ statusCode: -1, message: "push timeout" }), PUSH_TIMEOUT_MS)
+    );
+    await Promise.race([send, timeout]);
     return { ok: true, gone: false };
   } catch (error: unknown) {
     const statusCode = (error as { statusCode?: number }).statusCode;
     const message = (error as Error).message;
-    // 404/410 → subscription is permanently gone, safe to deactivate
-    if (statusCode === 404 || statusCode === 410) {
+    // 404/410 → subscription is permanently gone
+    // 403 → VAPID signature rejected (key mismatch / key revoked) — from the
+    //       push service's perspective the subscription is unreachable for us,
+    //       so we mark it gone. A fresh subscribe will repair it.
+    if (statusCode === 404 || statusCode === 410 || statusCode === 403) {
       return { ok: false, gone: true, statusCode };
     }
-    // Anything else is a transient or configuration error — do NOT deactivate.
     console.error(`Push send error ${statusCode ?? "?"}:`, message, "endpoint:", subscription.endpoint.slice(0, 60));
     return { ok: false, gone: false, statusCode };
   }
+}
+
+// ── Parallel fan-out helper ──
+// Sends `payload` to every subscription in parallel (no sequential batching).
+// Returns counts + the subset of IDs that should be deactivated.
+export interface FanOutSub {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+export async function fanOutPush(
+  subs: FanOutSub[],
+  payload: PushPayload
+): Promise<{ sent: number; failed: number; goneIds: string[] }> {
+  if (subs.length === 0) return { sent: 0, failed: 0, goneIds: [] };
+
+  const results = await Promise.allSettled(
+    subs.map((sub) =>
+      sendPushNotification(
+        { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+        payload
+      )
+    )
+  );
+
+  let sent = 0;
+  let failed = 0;
+  const goneIds: string[] = [];
+
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    if (r.status === "fulfilled" && r.value.ok) {
+      sent++;
+    } else {
+      failed++;
+      if (r.status === "fulfilled" && r.value.gone) {
+        goneIds.push(subs[i].id);
+      }
+    }
+  }
+
+  return { sent, failed, goneIds };
 }
 
 export { webpush };

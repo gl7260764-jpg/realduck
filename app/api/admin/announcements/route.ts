@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
-import { sendPushNotification } from "@/lib/webpush";
+import { fanOutPush } from "@/lib/webpush";
 
 export async function GET() {
   const auth = await isAuthenticated();
@@ -58,33 +58,12 @@ export async function POST(request: NextRequest) {
         tag: `announcement-${announcement.id}`,
       };
 
-      let sent = 0;
-      let failed = 0;
-      const deactivateIds: string[] = [];
+      // Parallel fan-out — every subscriber is sent to simultaneously
+      const { sent, failed, goneIds } = await fanOutPush(subs, payload);
 
-      // Send in batches of 50
-      for (let i = 0; i < subs.length; i += 50) {
-        const batch = subs.slice(i, i + 50);
-        await Promise.allSettled(
-          batch.map(async (sub) => {
-            const result = await sendPushNotification(
-              { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-              payload
-            );
-            if (result.ok) {
-              sent++;
-            } else {
-              failed++;
-              if (result.gone) deactivateIds.push(sub.id);
-            }
-          })
-        );
-      }
-
-      // Deactivate all invalid subscriptions in one query
-      if (deactivateIds.length > 0) {
+      if (goneIds.length > 0) {
         await prisma.pushSubscription.updateMany({
-          where: { id: { in: deactivateIds } },
+          where: { id: { in: goneIds } },
           data: { active: false },
         });
       }

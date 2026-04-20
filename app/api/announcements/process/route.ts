@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { sendPushNotification } from "@/lib/webpush";
+import { fanOutPush } from "@/lib/webpush";
 
 // Process scheduled announcements — publish and push any that are due
 // Called by Vercel Cron every 5 minutes (see vercel.json)
@@ -48,24 +48,12 @@ export async function GET(request: NextRequest) {
           tag: `announcement-${announcement.id}`,
         };
 
-        const deactivateIds: string[] = [];
+        const { sent, goneIds } = await fanOutPush(subs, payload);
+        totalSent += sent;
 
-        for (let i = 0; i < subs.length; i += 50) {
-          await Promise.allSettled(
-            subs.slice(i, i + 50).map(async (sub) => {
-              const result = await sendPushNotification(
-                { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-                payload
-              );
-              if (result.ok) totalSent++;
-              else if (result.gone) deactivateIds.push(sub.id);
-            })
-          );
-        }
-
-        if (deactivateIds.length > 0) {
+        if (goneIds.length > 0) {
           await prisma.pushSubscription.updateMany({
-            where: { id: { in: deactivateIds } },
+            where: { id: { in: goneIds } },
             data: { active: false },
           });
         }

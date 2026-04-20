@@ -25,6 +25,22 @@ function getFingerprint(): string {
   return Math.abs(hash).toString(36);
 }
 
+function uint8ArrayToBase64Url(arr: Uint8Array): string {
+  let bin = "";
+  for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+// Compare an existing subscription's server key to the current VAPID public key.
+// If they don't match, the subscription was made against a rotated/different
+// VAPID key and pushes signed by our current private key will be rejected.
+function subscriptionKeyMatchesCurrent(sub: PushSubscription, currentVapid: string): boolean {
+  const existing = sub.options.applicationServerKey;
+  if (!existing) return false;
+  const bytes = new Uint8Array(existing as ArrayBuffer);
+  return uint8ArrayToBase64Url(bytes) === currentVapid;
+}
+
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -169,9 +185,19 @@ export default function PwaManager() {
 
           const existingSub = await reg.pushManager.getSubscription();
           const perm = Notification.permission;
+          const currentVapid = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
           if (existingSub && perm === "granted") {
-            // Already accepted — sync server record and flag.
+            // Guard against VAPID key rotation — if the existing subscription
+            // is bound to a stale server key, the push service will reject
+            // every send. Drop it and re-subscribe against the current key.
+            if (currentVapid && !subscriptionKeyMatchesCurrent(existingSub, currentVapid)) {
+              try { await existingSub.unsubscribe(); } catch {}
+              await subscribeToPush(reg);
+              return;
+            }
+
+            // Already accepted & key matches — sync server record.
             setSubscribed(true);
             const json = existingSub.toJSON();
             fetch("/api/push", {
@@ -238,25 +264,32 @@ export default function PwaManager() {
           }
 
           const existingSub = await reg.pushManager.getSubscription();
+          const currentVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
           if (existingSub) {
-            // Already subscribed — refresh server-side record
-            setSubscribed(true);
-            const json = existingSub.toJSON();
-            fetch("/api/push", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                subscription: { endpoint: json.endpoint, keys: json.keys },
-                sessionId: getSessionId(),
-              }),
-            })
-              .then((r) => {
-                if (r.ok) localStorage.setItem("nobu_push_subscribed", "1");
+            // VAPID rotation guard — kill stale sub and re-subscribe if keys differ.
+            if (currentVapidKey && !subscriptionKeyMatchesCurrent(existingSub, currentVapidKey)) {
+              try { await existingSub.unsubscribe(); } catch {}
+              await subscribeToPush(reg);
+            } else {
+              // Already subscribed — refresh server-side record
+              setSubscribed(true);
+              const json = existingSub.toJSON();
+              fetch("/api/push", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  subscription: { endpoint: json.endpoint, keys: json.keys },
+                  sessionId: getSessionId(),
+                }),
               })
-              .catch((err) => {
-                console.warn("Failed to refresh push subscription:", err);
-              });
+                .then((r) => {
+                  if (r.ok) localStorage.setItem("nobu_push_subscribed", "1");
+                })
+                .catch((err) => {
+                  console.warn("Failed to refresh push subscription:", err);
+                });
+            }
           } else if ("Notification" in window && Notification.permission === "granted") {
             // Permission already granted but no subscription — re-subscribe
             await subscribeToPush(reg);
