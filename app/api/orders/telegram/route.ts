@@ -331,6 +331,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 });
     }
 
+    // Fast orders require a minimum cart total — same threshold the UI shows.
+    const FAST_ORDER_MIN = 200;
+    const cartTotal = calcTotal(body.items);
+    if (cartTotal > 0 && cartTotal < FAST_ORDER_MIN) {
+      const shortBy = (FAST_ORDER_MIN - cartTotal).toFixed(2);
+      return NextResponse.json(
+        { error: `Fast order minimum is $${FAST_ORDER_MIN}. Add $${shortBy} more to place this order.` },
+        { status: 400 }
+      );
+    }
+
     const orderNumber = generateOrderNumber();
     const config = await getAdminConfig();
 

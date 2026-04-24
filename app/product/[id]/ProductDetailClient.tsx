@@ -127,10 +127,23 @@ export default function ProductDetailClient({
   const incrementQuantity = () => setQuantity((prev) => Math.min(prev + 1, 10));
   const decrementQuantity = () => setQuantity((prev) => Math.max(prev - 1, 1));
 
+  const FAST_ORDER_MIN = 200;
+  const fastUnitPrice = (() => {
+    const m = priceShipLines[0]?.match(/\$?([\d,]+(?:\.\d+)?)/);
+    return m ? parseFloat(m[1].replace(",", "")) : 0;
+  })();
+  const fastMinQty = fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 0;
+  const fastLineTotal = fastUnitPrice * quantity;
+  const fastBelowMin = fastUnitPrice > 0 && fastLineTotal < FAST_ORDER_MIN;
+
   const handleFastOrder = async () => {
     const emailTrimmed = customerEmail.trim();
     if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
       setFastError("Please enter a valid email");
+      return;
+    }
+    if (fastBelowMin) {
+      setFastError(`Fast order minimum is $${FAST_ORDER_MIN}. You need at least ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"}.`);
       return;
     }
 
@@ -301,6 +314,14 @@ export default function ProductDetailClient({
               {buyStep === "fast-contact" && (
                 <>
                   <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
+                  {fastBelowMin && (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
+                      <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                        At {fastUnitPrice ? `$${fastUnitPrice.toFixed(2)}` : "this price"} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}. Use the quantity selector below to bump it up, or switch to Detailed Order.
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-3">
                     <div>
                       <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
@@ -327,7 +348,7 @@ export default function ProductDetailClient({
                     )}
                     <button
                       onClick={handleFastOrder}
-                      disabled={fastLoading}
+                      disabled={fastLoading || fastBelowMin}
                       className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors text-sm"
                     >
                       {fastLoading ? (
@@ -335,6 +356,8 @@ export default function ProductDetailClient({
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Sending...
                         </>
+                      ) : fastBelowMin ? (
+                        `Min ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"} required`
                       ) : (
                         "Submit Order"
                       )}

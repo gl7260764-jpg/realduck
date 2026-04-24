@@ -59,6 +59,7 @@ export default function ProductCard({
   const [fastError, setFastError] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [fastQty, setFastQty] = useState(1);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRef = useRef<HTMLAnchorElement>(null);
@@ -138,10 +139,23 @@ export default function ProductCard({
     }
   };
 
+  const FAST_ORDER_MIN = 200;
+  const fastUnitPrice = (() => {
+    const m = priceShip.split("\n")[0]?.match(/\$?([\d,]+(?:\.\d+)?)/);
+    return m ? parseFloat(m[1].replace(",", "")) : 0;
+  })();
+  const fastMinQty = fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 1;
+  const fastLineTotal = fastUnitPrice * fastQty;
+  const fastBelowMin = fastUnitPrice > 0 && fastLineTotal < FAST_ORDER_MIN;
+
   const handleFastOrder = async () => {
     const emailTrimmed = customerEmail.trim();
     if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
       setFastError("Please enter a valid email");
+      return;
+    }
+    if (fastBelowMin) {
+      setFastError(`Fast order minimum is $${FAST_ORDER_MIN}. You need at least ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"}.`);
       return;
     }
 
@@ -156,7 +170,7 @@ export default function ProductCard({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         sessionId,
-        items: [{ productId: id, title, category, price, deliveryType: "ship", quantity: 1 }],
+        items: [{ productId: id, title, category, price, deliveryType: "ship", quantity: fastQty }],
       }),
     }).catch(() => {});
 
@@ -174,7 +188,7 @@ export default function ProductCard({
             category,
             imageUrl,
             price,
-            quantity: 1,
+            quantity: fastQty,
             deliveryType: "ship",
           }],
         }),
@@ -255,7 +269,10 @@ export default function ProductCard({
                   <p className="text-xs text-gray-500 mb-3 text-center">How would you like to order?</p>
                   <div className="space-y-2">
                     <button
-                      onClick={() => setBuyStep("fast-contact")}
+                      onClick={() => {
+                        setFastQty(fastMinQty);
+                        setBuyStep("fast-contact");
+                      }}
                       className="w-full flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all group"
                     >
                       <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center group-hover:bg-amber-200 transition-colors">
@@ -286,7 +303,41 @@ export default function ProductCard({
               {buyStep === "fast-contact" && (
                 <>
                   <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
+                  {fastUnitPrice > 0 && fastUnitPrice < FAST_ORDER_MIN && (
+                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
+                      <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                        At ${fastUnitPrice.toFixed(2)} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}.
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-3">
+                    <div>
+                      <label className="text-[11px] font-medium text-gray-500 mb-1 block">Quantity</label>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => setFastQty((q) => Math.max(fastMinQty, q - 1))}
+                            disabled={fastQty <= fastMinQty}
+                            className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="w-10 text-center text-sm font-semibold text-gray-900">{fastQty}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFastQty((q) => Math.min(99, q + 1))}
+                            className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Line total: <strong className="text-gray-900">${fastLineTotal.toFixed(2)}</strong>
+                        </p>
+                      </div>
+                    </div>
                     <div>
                       <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
                       <input
@@ -312,7 +363,7 @@ export default function ProductCard({
                     )}
                     <button
                       onClick={handleFastOrder}
-                      disabled={fastLoading}
+                      disabled={fastLoading || fastBelowMin}
                       className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors text-sm"
                     >
                       {fastLoading ? (
@@ -320,6 +371,8 @@ export default function ProductCard({
                           <Loader2 className="w-4 h-4 animate-spin" />
                           Sending...
                         </>
+                      ) : fastBelowMin ? (
+                        `Min ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"} required`
                       ) : (
                         "Submit Order"
                       )}

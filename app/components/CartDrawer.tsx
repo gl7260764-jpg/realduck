@@ -46,12 +46,25 @@ export default function CartDrawer() {
     router.push("/checkout");
   };
 
+  const FAST_ORDER_MIN = 200;
+  const cartTotalNumeric = items.reduce((sum, item) => {
+    const m = getItemPrice(item)?.match(/\$?([\d,]+(?:\.\d+)?)/);
+    if (!m) return sum;
+    return sum + parseFloat(m[1].replace(",", "")) * item.quantity;
+  }, 0);
+  const fastBelowMin = cartTotalNumeric > 0 && cartTotalNumeric < FAST_ORDER_MIN;
+  const fastShortfall = fastBelowMin ? FAST_ORDER_MIN - cartTotalNumeric : 0;
+
   const handleTelegramCheckout = async () => {
     if (items.length === 0) return;
 
     const emailTrimmed = customerEmail.trim();
     if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
       setTelegramError("Please enter a valid email");
+      return;
+    }
+    if (fastBelowMin) {
+      setTelegramError(`Fast order minimum is $${FAST_ORDER_MIN}. Add $${fastShortfall.toFixed(2)} more or use Detailed Checkout.`);
       return;
     }
 
@@ -334,6 +347,14 @@ export default function CartDrawer() {
             {showFastContact ? (
               <div className="space-y-2">
                 <p className="text-xs text-gray-500 text-center">Email is required — phone number is optional</p>
+                {fastBelowMin && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
+                    <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                      Your cart is at <strong>${cartTotalNumeric.toFixed(2)}</strong> — add <strong>${fastShortfall.toFixed(2)}</strong> more to qualify, or use the Detailed Checkout above.
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
                   <input
@@ -368,7 +389,7 @@ export default function CartDrawer() {
                   </button>
                   <button
                     onClick={handleTelegramCheckout}
-                    disabled={telegramLoading}
+                    disabled={telegramLoading || fastBelowMin}
                     className="flex-1 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium text-sm transition-colors"
                   >
                     {telegramLoading ? (
@@ -376,6 +397,8 @@ export default function CartDrawer() {
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Sending...
                       </>
+                    ) : fastBelowMin ? (
+                      `Add $${fastShortfall.toFixed(2)} more`
                     ) : (
                       "Submit Order"
                     )}
