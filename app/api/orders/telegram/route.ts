@@ -163,14 +163,12 @@ function buildCustomerFastOrderHtml(orderNumber: string, items: TelegramOrderIte
 }
 
 // ── Follow-up customer email — sent right after the first confirmation.
-//    Lists the details we still need (since fast-order skips the full form),
-//    repeats the order summary, promotes the PWA, and re-states the
-//    5-minute reach-out window.
+//    Concise, professional. Lists the details we still need (since fast
+//    order skips the full form), summarises the order, promotes the app,
+//    and gives a single contact channel.
 function buildCustomerFastOrderFollowUpHtml(
   orderNumber: string,
-  items: TelegramOrderItem[],
-  customerPhone?: string,
-  customerEmail?: string
+  items: TelegramOrderItem[]
 ): string {
   const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
   const CONTACT_EMAIL = "contact@realduckdistro.com";
@@ -179,92 +177,78 @@ function buildCustomerFastOrderFollowUpHtml(
 
   const itemsHtml = items.map((item) =>
     "<tr>" +
-    '<td style="padding:12px 0;border-bottom:1px solid #eef2f7;vertical-align:middle;">' +
-      '<strong style="color:#0f172a;font-size:14px;">' + esc(item.title) + "</strong>" +
-      '<br/><span style="font-size:12px;color:#64748b;">' + esc(item.category) + "</span>" +
+    '<td style="padding:14px 0;border-bottom:1px solid #eef2f7;vertical-align:top;">' +
+      '<div style="font-size:14px;color:#0f172a;font-weight:600;line-height:1.4;">' + esc(item.title) + '</div>' +
+      '<div style="font-size:12px;color:#94a3b8;margin-top:2px;">' + esc(item.category) + ' · qty ' + item.quantity + '</div>' +
     "</td>" +
-    '<td style="padding:12px 8px;border-bottom:1px solid #eef2f7;text-align:center;color:#475569;font-size:14px;">x' + item.quantity + "</td>" +
-    '<td style="padding:12px 0;border-bottom:1px solid #eef2f7;text-align:right;font-weight:600;color:#0f172a;font-size:14px;">' + esc(item.price) + "</td>" +
+    '<td style="padding:14px 0;border-bottom:1px solid #eef2f7;text-align:right;font-weight:600;color:#0f172a;font-size:14px;vertical-align:top;white-space:nowrap;">' + esc(item.price) + "</td>" +
     "</tr>"
   ).join("");
 
-  // What we still need from the client (none of these are collected by fast order)
-  const needed: Array<[string, string]> = [
-    ["Full name", "First & last name on the order."],
-    ["Delivery address", "Street, city, state/region, ZIP/postal code, country (or apartment number if applicable)."],
-    ["Payment method", "Zelle, Cash App, Chime, or Cryptocurrency (10% off when paying in crypto)."],
-    ["Shipping carrier", "UPS, USPS or FedEx — your pick."],
-    ["Phone or Telegram", customerPhone ? "We have your phone — confirm if Telegram is preferred." : "Best number to reach you on, or Telegram username."],
+  // Concise checklist of what we still need.
+  const needed: string[] = [
+    "Full name & delivery address (street, city, state/region, ZIP, country)",
+    "Payment method — Zelle, Cash App, Chime, or Crypto (10% off)",
+    "Preferred shipping carrier — UPS, USPS or FedEx",
   ];
 
   let html = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/></head>';
-  html += '<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;">';
-  html += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:24px 0;"><tr><td align="center">';
-  html += '<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">';
+  html += '<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;">';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 0;"><tr><td align="center">';
+  html += '<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(15,23,42,0.04),0 8px 24px rgba(15,23,42,0.06);">';
 
-  // Hero
-  html += '<tr><td style="background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);padding:32px 40px;text-align:center;">';
-  html += '<h1 style="margin:0;font-size:24px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;">A few details to finish your order</h1>';
-  html += '<p style="margin:8px 0 0;font-size:14px;color:rgba(255,255,255,0.7);">Order #' + esc(orderNumber) + " · Real Duck Distro</p>";
+  // Hero — minimal dark band, brand mark, single line
+  html += '<tr><td style="background:#0f172a;padding:36px 40px 28px;text-align:left;">';
+  html += '<div style="font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.5);font-weight:700;">Real Duck Distro</div>';
+  html += '<h1 style="margin:10px 0 0;font-size:22px;line-height:1.3;font-weight:700;color:#ffffff;letter-spacing:-0.01em;">A few details to finish order #' + esc(orderNumber) + '</h1>';
   html += '</td></tr>';
 
-  // Intro
-  html += '<tr><td style="padding:28px 40px 8px;">';
-  html += '<p style="margin:0 0 14px;font-size:15px;color:#0f172a;line-height:1.65;">Thanks again for your order.</p>';
-  html += '<p style="margin:0 0 14px;font-size:15px;color:#475569;line-height:1.7;">You used our <strong>fast checkout</strong>, so to ship your items we still need a few details from you. Reply to this email with the items below and we\'ll send you payment instructions right away.</p>';
+  // Intro — one sentence
+  html += '<tr><td style="padding:28px 40px 4px;">';
+  html += '<p style="margin:0;font-size:15px;color:#334155;line-height:1.65;">Thanks for your order. Reply to this email with the three items below and we\'ll send your payment instructions right away.</p>';
   html += '</td></tr>';
 
-  // What we need
-  html += '<tr><td style="padding:8px 40px 4px;">';
-  html += '<h2 style="margin:14px 0 10px;font-size:15px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:0.06em;">What we need</h2>';
-  html += '<table width="100%" cellpadding="0" cellspacing="0">';
-  for (const [label, desc] of needed) {
-    html += '<tr><td style="padding:10px 0;border-bottom:1px solid #f1f5f9;vertical-align:top;">';
-    html += '<div style="font-size:14px;font-weight:700;color:#0f172a;">' + esc(label) + '</div>';
-    html += '<div style="font-size:13px;color:#64748b;line-height:1.55;margin-top:2px;">' + esc(desc) + '</div>';
-    html += '</td></tr>';
-  }
+  // Required details — clean numbered list, no descriptions
+  html += '<tr><td style="padding:24px 40px 4px;">';
+  html += '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:12px;">What we need</div>';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">';
+  needed.forEach((item, i) => {
+    html += '<tr><td style="padding:0 0 10px;vertical-align:top;width:28px;">';
+    html += '<div style="width:22px;height:22px;border-radius:999px;background:#0f172a;color:#ffffff;font-size:11px;font-weight:700;line-height:22px;text-align:center;">' + (i + 1) + '</div>';
+    html += '</td><td style="padding:1px 0 10px;font-size:14px;color:#0f172a;line-height:1.55;">' + esc(item) + '</td></tr>';
+  });
   html += '</table>';
   html += '</td></tr>';
 
-  // Order summary
-  html += '<tr><td style="padding:24px 40px 0;">';
-  html += '<h2 style="margin:0 0 10px;font-size:15px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:0.06em;">Your order</h2>';
-  html += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">' + itemsHtml + '</table>';
-  html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">';
-  html += '<tr><td style="padding:10px 0 4px;font-size:13px;color:#64748b;">Items:</td><td style="padding:10px 0 4px;font-size:13px;color:#0f172a;text-align:right;">' + totalItems + "</td></tr>";
-  html += '<tr><td style="padding:10px 0 6px;font-size:16px;font-weight:800;color:#0f172a;border-top:2px solid #e2e8f0;">Subtotal:</td><td style="padding:10px 0 6px;font-size:18px;font-weight:800;color:#0f172a;text-align:right;border-top:2px solid #e2e8f0;">' + fmt(total) + "</td></tr>";
-  html += '<tr><td colspan="2" style="padding:6px 0 0;font-size:12px;color:#94a3b8;">Shipping & any discounts will be calculated once we have your address & payment method.</td></tr>';
+  // Order summary — minimal
+  html += '<tr><td style="padding:20px 40px 0;">';
+  html += '<div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#64748b;font-weight:700;margin-bottom:8px;">Order summary</div>';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-top:1px solid #eef2f7;">' + itemsHtml + '</table>';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">';
+  html += '<tr><td style="font-size:13px;color:#64748b;">Subtotal · ' + totalItems + ' item' + (totalItems === 1 ? "" : "s") + '</td>';
+  html += '<td style="font-size:18px;font-weight:700;color:#0f172a;text-align:right;">' + fmt(total) + '</td></tr>';
+  html += '<tr><td colspan="2" style="padding:6px 0 0;font-size:12px;color:#94a3b8;line-height:1.5;">Shipping and any applicable discounts are confirmed once your details are received.</td></tr>';
   html += '</table>';
   html += '</td></tr>';
 
-  // PWA install CTA
-  html += '<tr><td style="padding:24px 40px 0;">';
-  html += '<div style="background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%);border:1px solid #a7f3d0;border-radius:12px;padding:18px 20px;">';
-  html += '<p style="margin:0;font-size:14px;font-weight:800;color:#047857;">📱 Install the Real Duck Distro app — get 10% off every order</p>';
-  html += '<p style="margin:8px 0 14px;font-size:13px;color:#065f46;line-height:1.6;">Add us to your home screen for instant drop alerts, subscriber-only promo codes, and a flat <strong>10% discount on every checkout</strong> just for installing.</p>';
-  html += '<a href="' + SITE_URL + '" style="display:inline-block;background:#047857;color:#ffffff;text-decoration:none;font-weight:700;font-size:13px;padding:10px 20px;border-radius:999px;">Open the app & install</a>';
-  html += '</div>';
+  // Single PWA install CTA — compact
+  html += '<tr><td style="padding:28px 40px 0;">';
+  html += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;"><tr><td style="padding:18px 20px;">';
+  html += '<div style="font-size:14px;font-weight:700;color:#065f46;margin-bottom:6px;">Get 10% off every order — install our app</div>';
+  html += '<div style="font-size:13px;color:#047857;line-height:1.55;margin-bottom:14px;">Add Real Duck Distro to your home screen for drop alerts and a flat 10% discount at checkout.</div>';
+  html += '<a href="' + SITE_URL + '" style="display:inline-block;background:#047857;color:#ffffff;text-decoration:none;font-weight:600;font-size:13px;padding:10px 18px;border-radius:8px;">Install the app</a>';
+  html += '</td></tr></table>';
   html += '</td></tr>';
 
-  // Reach-out + contact
+  // Reach-out — single contact, single sentence
   html += '<tr><td style="padding:24px 40px 0;">';
-  html += '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px 18px;">';
-  html += '<p style="margin:0;font-size:14px;color:#92400e;line-height:1.6;"><strong>Haven\'t heard from us in 5 minutes?</strong> Reach out so we can get your order moving:</p>';
-  html += '<ul style="margin:8px 0 0;padding:0 0 0 18px;font-size:13px;color:#92400e;line-height:1.8;">';
-  html += '<li>Email <a href="mailto:' + CONTACT_EMAIL + '" style="color:#92400e;font-weight:700;">' + CONTACT_EMAIL + '</a></li>';
-  if (customerEmail) html += '<li>Reply directly to this email</li>';
-  if (customerPhone) html += '<li>Call or message <strong>' + esc(customerPhone) + '</strong> from your end and we\'ll match it up</li>';
-  html += '</ul>';
-  html += '</div>';
+  html += '<p style="margin:0;font-size:13px;color:#475569;line-height:1.65;">If you don\'t hear from us within <strong style="color:#0f172a;">5 minutes</strong>, please reach out at <a href="mailto:' + CONTACT_EMAIL + '" style="color:#0f172a;text-decoration:underline;font-weight:600;">' + CONTACT_EMAIL + '</a> or simply reply to this email.</p>';
   html += '</td></tr>';
 
   // Footer
-  html += '<tr><td style="padding:24px 40px 0;">';
-  html += '<p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">Quote order <strong style="color:#0f172a;">#' + esc(orderNumber) + '</strong> in any reply so we can match it up fast.</p>';
-  html += '</td></tr>';
-  html += '<tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #eef2f7;margin-top:24px;">';
-  html += '<p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">&copy; ' + new Date().getFullYear() + ' Real Duck Distro. All rights reserved.<br/>HQ: LA, USA &amp; Sydney, AUS · Ships worldwide.</p>';
+  html += '<tr><td style="padding:32px 40px 24px;"></td></tr>';
+  html += '<tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #eef2f7;text-align:center;">';
+  html += '<div style="font-size:11px;color:#94a3b8;line-height:1.6;">&copy; ' + new Date().getFullYear() + ' Real Duck Distro · LA, USA &amp; Sydney, AUS · Ships worldwide</div>';
   html += '</td></tr>';
 
   html += '</table></td></tr></table></body></html>';
@@ -442,7 +426,7 @@ export async function POST(request: NextRequest) {
               from: fromAddress,
               to: customerTo,
               subject: `Action needed for order #${orderNumber} — a few details to ship it`,
-              html: buildCustomerFastOrderFollowUpHtml(orderNumber, body.items, body.customerPhone, body.customerEmail),
+              html: buildCustomerFastOrderFollowUpHtml(orderNumber, body.items),
             })
           );
         }
