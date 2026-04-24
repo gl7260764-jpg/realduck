@@ -124,7 +124,7 @@ export const metadata: Metadata = {
   },
   other: {
     "ahrefs-site-verification": "4c17bfb4bbf0edc9aef3014dcb1c12cd5fb812c12903fe4b82822381d6248fae",
-    "msvalidate.01": "A8C9495020F192A25CD68B7F02D73D38",
+    "msvalidate.01": "3D2EBB8DBFB339D5FD722F1039A361CC",
   },
   category: "shopping",
 };
