@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import https from "https";
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
-import { getClientIp, getGeoInfo } from "@/lib/geo";
+import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 import { getAdminConfig } from "@/lib/adminConfig";
 
 interface CheckoutItem {
@@ -329,7 +329,7 @@ export async function POST(request: NextRequest) {
 
     // Get IP-based geolocation
     const ip = getClientIp(request);
-    const geo = await getGeoInfo(ip);
+    const geo = await getGeoFromRequest(request);
 
     await prisma.checkoutOrder.create({
       data: {

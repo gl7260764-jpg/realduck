@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getClientIp, getGeoInfo } from "@/lib/geo";
+import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 import { checkRateLimit } from "@/lib/rateLimit";
 
 function parseUserAgent(ua: string) {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const userAgent = request.headers.get("user-agent") || "";
     const parsed = userAgent ? parseUserAgent(userAgent) : { device: undefined, browser: undefined, os: undefined };
     const clientIp = getClientIp(request);
-    const geo = await getGeoInfo(clientIp);
+    const geo = await getGeoFromRequest(request);
 
     await prisma.order.createMany({
       data: items.map((item: { productId?: string; title: string; category: string; price: string; deliveryType: string; quantity: number }) => ({

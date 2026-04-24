@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getGeoFromRequest } from "@/lib/geo";
 
 function parseUserAgent(ua: string) {
   const result = { device: "desktop", browser: "Unknown", os: "Unknown" };
@@ -41,53 +42,6 @@ function extractDomain(referer: string | undefined): string | undefined {
   }
 }
 
-function getClientIp(request: NextRequest): string | null {
-  // Check common proxy headers
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0].trim();
-  }
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp;
-  return null;
-}
-
-// Simple in-memory cache for geo lookups to avoid hitting the API too often
-const geoCache = new Map<string, { country: string; city: string; expiry: number }>();
-
-async function getGeoInfo(ip: string): Promise<{ country: string; city: string } | null> {
-  if (!ip || ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
-    return null;
-  }
-
-  // Check cache (5 min TTL)
-  const cached = geoCache.get(ip);
-  if (cached && cached.expiry > Date.now()) {
-    return { country: cached.country, city: cached.city };
-  }
-
-  try {
-    const res = await fetch(`https://ip-api.com/json/${ip}?fields=country,city`, {
-      signal: AbortSignal.timeout(2000),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.country) {
-        const result = { country: data.country, city: data.city || "" };
-        geoCache.set(ip, { ...result, expiry: Date.now() + 5 * 60 * 1000 });
-        // Limit cache size
-        if (geoCache.size > 1000) {
-          const firstKey = geoCache.keys().next().value;
-          if (firstKey) geoCache.delete(firstKey);
-        }
-        return result;
-      }
-    }
-  } catch {
-    // Geo lookup failed - non-critical, just skip
-  }
-  return null;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -111,9 +65,9 @@ export async function POST(request: NextRequest) {
 
     const parsed = userAgent ? parseUserAgent(userAgent) : { device: undefined, browser: undefined, os: undefined };
 
-    // Get geo info from IP (non-blocking - don't fail tracking if geo fails)
-    const ip = getClientIp(request);
-    const geo = ip ? await getGeoInfo(ip) : null;
+    // Resolve geo from Vercel's built-in headers (instant, free), falling
+    // back to the IP-based lookup. Non-blocking — never fails tracking.
+    const geo = await getGeoFromRequest(request).catch(() => null);
 
     if (type === "pageview" && page) {
       await prisma.pageView.create({

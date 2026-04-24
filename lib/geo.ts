@@ -16,8 +16,58 @@ export function getClientIp(request: NextRequest): string | null {
   return null;
 }
 
+/**
+ * Resolve country display name from an ISO-3166-1 alpha-2 code.
+ * Intl.DisplayNames is available in Node 18+ and modern runtimes.
+ */
+let countryDisplay: Intl.DisplayNames | null = null;
+function countryName(code: string | null | undefined): string {
+  if (!code) return "";
+  if (!countryDisplay) {
+    try {
+      countryDisplay = new Intl.DisplayNames(["en"], { type: "region" });
+    } catch {
+      countryDisplay = null;
+    }
+  }
+  try {
+    return countryDisplay?.of(code.toUpperCase()) || code;
+  } catch {
+    return code;
+  }
+}
+
+/**
+ * Vercel injects geo headers on every request for free — no API calls, no
+ * rate limits, no timeouts, works on every plan. Values come from their
+ * edge network's IP-geo database. This is the primary source.
+ *
+ * Docs: https://vercel.com/docs/edge-network/headers#request-headers
+ */
+function getVercelGeo(request: NextRequest): GeoInfo | null {
+  const countryCode = request.headers.get("x-vercel-ip-country");
+  if (!countryCode) return null;
+  const city = request.headers.get("x-vercel-ip-city");
+  const region = request.headers.get("x-vercel-ip-country-region");
+  const zip = request.headers.get("x-vercel-ip-postal-code");
+  return {
+    country: countryName(countryCode),
+    state: region || "",
+    // Vercel URL-encodes city names with spaces (e.g. "New%20York")
+    city: city ? decodeURIComponent(city) : "",
+    zip: zip || "",
+    ip: getClientIp(request) || "",
+  };
+}
+
 const geoCache = new Map<string, { data: GeoInfo; expiry: number }>();
 
+/**
+ * Legacy IP-only lookup. Kept for routes that already pass an IP (e.g.
+ * background jobs or where the NextRequest isn't available). Prefer
+ * `getGeoFromRequest()` — it uses Vercel's built-in geo headers, which
+ * are faster and more reliable than any third-party IP lookup.
+ */
 export async function getGeoInfo(ip: string | null): Promise<GeoInfo | null> {
   if (!ip || ip === "127.0.0.1" || ip === "::1" || ip.startsWith("192.168.") || ip.startsWith("10.")) {
     return null;
@@ -28,9 +78,12 @@ export async function getGeoInfo(ip: string | null): Promise<GeoInfo | null> {
     return cached.data;
   }
 
+  // ip-api.com free tier requires http (not https). Previous code used
+  // https which silently returned nothing — that's why the dashboard
+  // had 0 country data for 763 page views.
   try {
     const res = await fetch(
-      `https://ip-api.com/json/${ip}?fields=status,country,regionName,city,zip,query`,
+      `http://ip-api.com/json/${ip}?fields=status,country,countryCode,regionName,city,zip,query`,
       { signal: AbortSignal.timeout(3000) }
     );
 
@@ -55,4 +108,15 @@ export async function getGeoInfo(ip: string | null): Promise<GeoInfo | null> {
   } catch {}
 
   return null;
+}
+
+/**
+ * Preferred: resolve geo directly from the request's Vercel headers.
+ * Instant, free, no external calls. Falls back to the IP-based lookup
+ * for non-Vercel environments (local dev, other hosts).
+ */
+export async function getGeoFromRequest(request: NextRequest): Promise<GeoInfo | null> {
+  const fromHeaders = getVercelGeo(request);
+  if (fromHeaders) return fromHeaders;
+  return getGeoInfo(getClientIp(request));
 }

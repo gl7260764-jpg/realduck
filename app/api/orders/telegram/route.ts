@@ -3,7 +3,7 @@ import https from "https";
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { getAdminConfig } from "@/lib/adminConfig";
-import { getClientIp, getGeoInfo } from "@/lib/geo";
+import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 
 interface TelegramOrderItem {
   id: string;
@@ -345,7 +345,7 @@ export async function POST(request: NextRequest) {
 
     // 2. Save to database
     const ip = getClientIp(request);
-    const geo = await getGeoInfo(ip);
+    const geo = await getGeoFromRequest(request);
 
     await prisma.checkoutOrder.create({
       data: {
