@@ -3,6 +3,9 @@ import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { Category } from "@prisma/client";
 import { slugify } from "@/lib/slug";
+import { pingIndexNow } from "@/lib/indexNow";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -116,6 +119,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(videoUrl !== undefined && { videoUrl: videoUrl || null }),
       },
     });
+
+    pingIndexNow([
+      `${SITE_URL}/product/${product.slug || product.id}`,
+      `${SITE_URL}/`,
+      `${SITE_URL}/sitemap.xml`,
+    ]).catch(() => {});
 
     return NextResponse.json(product);
   } catch (error) {

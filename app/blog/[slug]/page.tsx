@@ -67,25 +67,53 @@ export async function generateMetadata({
     return { title: "Post Not Found | Real Duck Distro" };
   }
 
+  const desc = post.excerpt || post.content.substring(0, 160);
+  const kw = [
+    "cannabis blog",
+    "cannabis guide",
+    "cannabis education",
+    post.category.toLowerCase().replace(/_/g, " "),
+    ...(post.tags || []),
+    "Real Duck Distro",
+  ];
+
   return {
     title: `${post.title} | Real Duck Distro Blog`,
-    description: post.excerpt || post.content.substring(0, 160),
+    description: desc,
+    keywords: kw,
+    authors: [{ name: post.author }],
     openGraph: {
       title: post.title,
-      description: post.excerpt || post.content.substring(0, 160),
+      description: desc,
       type: "article",
+      url: `https://realduckdistro.com/blog/${post.slug}`,
+      siteName: "Real Duck Distro",
       publishedTime: post.createdAt.toISOString(),
+      modifiedTime: post.updatedAt.toISOString(),
       authors: [post.author],
-      images: post.imageUrl ? [post.imageUrl] : [],
+      section: post.category.toLowerCase().replace(/_/g, " "),
+      tags: post.tags || [],
+      images: post.imageUrl ? [{ url: post.imageUrl, alt: post.title }] : [],
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.excerpt || post.content.substring(0, 160),
+      description: desc,
       images: post.imageUrl ? [post.imageUrl] : [],
     },
     alternates: {
       canonical: `https://realduckdistro.com/blog/${post.slug}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
     },
   };
 }
@@ -105,24 +133,45 @@ export default async function BlogPostPage({
     getProducts(),
   ]);
 
+  const plain = post.content.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  const wordCount = plain ? plain.split(/\s+/).length : 0;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     headline: post.title,
-    description: post.excerpt || post.content.substring(0, 160),
-    image: post.imageUrl,
+    alternativeHeadline: post.subtitle || undefined,
+    description: post.excerpt || plain.slice(0, 160),
+    image: post.images?.length
+      ? [post.imageUrl, ...post.images].filter(Boolean)
+      : (post.imageUrl ? [post.imageUrl] : undefined),
     datePublished: post.createdAt.toISOString(),
     dateModified: post.updatedAt.toISOString(),
+    inLanguage: "en-US",
+    articleSection: post.category.toLowerCase().replace(/_/g, " "),
+    keywords: (post.tags || []).join(", ") || undefined,
+    wordCount: wordCount || undefined,
     author: {
       "@type": "Person",
       name: post.author,
+      url: "https://realduckdistro.com",
     },
     publisher: {
       "@type": "Organization",
       name: "Real Duck Distro",
       url: "https://realduckdistro.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://realduckdistro.com/images/logo.jpg",
+        width: 1111,
+        height: 874,
+      },
     },
-    mainEntityOfPage: `https://realduckdistro.com/blog/${post.slug}`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://realduckdistro.com/blog/${post.slug}`,
+    },
+    url: `https://realduckdistro.com/blog/${post.slug}`,
   };
 
   const breadcrumbLd = {

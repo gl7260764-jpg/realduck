@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
+import { pingIndexNow } from "@/lib/indexNow";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 export async function GET() {
   const authenticated = await isAuthenticated();
@@ -70,6 +73,14 @@ export async function POST(request: NextRequest) {
         tags: body.tags || [],
       },
     });
+
+    if (post.published) {
+      pingIndexNow([
+        `${SITE_URL}/blog/${post.slug}`,
+        `${SITE_URL}/blog`,
+        `${SITE_URL}/sitemap.xml`,
+      ]).catch(() => {});
+    }
 
     return NextResponse.json(post);
   } catch (error) {

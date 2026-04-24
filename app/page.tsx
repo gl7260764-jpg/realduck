@@ -65,12 +65,83 @@ export default async function Home() {
     })),
   };
 
+  // FAQPage schema — unlocks the "People Also Ask" rich snippet in SERP
+  // and captures long-tail informational queries that often have low
+  // competition for cannabis lifestyle brands.
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "Where does Real Duck Distro ship?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Real Duck Distro ships cannabis products across the entire United States, Australia, and worldwide. Orders are packaged discreetly and dispatched from our HQ in Los Angeles, USA and Sydney, Australia. Most domestic US orders arrive in 1–3 business days.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What payment methods are accepted?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "We accept Zelle, Cash App, Chime, and Cryptocurrency (Bitcoin, Ethereum, USDT). Customers paying in crypto automatically receive a 10% discount on their entire order.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Is my order packaged discreetly?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. Every order ships in smell-proof, vacuum-sealed, plain-labelled packaging with no reference to Real Duck Distro, cannabis, or product contents on the exterior. Shipping labels use neutral return addresses.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What kind of cannabis products do you sell?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Real Duck Distro carries exotic top-shelf indoor flower, designer cannabis packs, lab-tested edibles and THC gummies, live rosin, concentrates (wax, shatter, badder, live resin), vape cartridges and disposables, pre-rolls and infused pre-rolls, plus magic mushroom products — all sourced from trusted US and Australian growers.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How do I get a discount on my order?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "There are two automatic discounts. (1) Install the Real Duck Distro app to your home screen for a flat 10% off every order. (2) Pay in crypto for an additional 10% off. Both stack — install the app AND pay in crypto for 20% off your entire order.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Are Real Duck Distro products lab-tested?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes. All cannabis products sold by Real Duck Distro are sourced from licensed growers and processors, lab-tested for potency and contaminants (pesticides, heavy metals, residual solvents), and come with published COAs (Certificates of Analysis) on request.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "What is the minimum order for fast checkout?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Our fast checkout (express order) requires a minimum cart total of $200. For any order below $200, please use the detailed checkout, which has no minimum.",
+        },
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Script
         id="catalog-schema"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(catalogSchema) }}
+      />
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Navbar />
       <main role="main">

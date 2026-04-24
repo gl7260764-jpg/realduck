@@ -23,20 +23,44 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Real Duck Distro | Premium Cannabis Lifestyle Brand | USA & AUS | Ships Worldwide",
+    default: "Real Duck Distro — Buy Premium Cannabis Online | Exotic Flower, Edibles, Vapes & Concentrates",
     template: "%s | Real Duck Distro",
   },
   description:
-    "Real Duck Distro is the world's leading premium cannabis lifestyle brand. Designer cannabis packs, exotic top-shelf flower, lab-tested edibles, concentrates, vapes, rosin, pre-rolls & disposables. HQ in Los Angeles USA & Sydney Australia. Fast, discreet shipping across the USA, Australia & worldwide.",
+    "Buy premium cannabis online at Real Duck Distro — exotic top-shelf flower, designer cannabis packs, lab-tested edibles, live rosin, concentrates, vapes, pre-rolls, gummies, magic mushrooms & disposables. Fast, discreet shipping across the USA, Australia & worldwide. Trusted cannabis brand — HQ in Los Angeles & Sydney.",
+  keywords: [
+    "buy cannabis online",
+    "buy weed online",
+    "premium cannabis store",
+    "exotic cannabis strains",
+    "top shelf flower online",
+    "designer cannabis packs",
+    "cannabis edibles online",
+    "live rosin for sale",
+    "cannabis concentrates online",
+    "THC vapes online",
+    "pre-rolls online",
+    "buy magic mushrooms online",
+    "THC gummies",
+    "discreet cannabis shipping USA",
+    "cannabis delivery Australia",
+    "cannabis store Los Angeles",
+    "cannabis store Sydney",
+    "worldwide cannabis shipping",
+    "Real Duck Distro",
+  ],
   authors: [{ name: "Real Duck Distro" }],
   creator: "Real Duck Distro",
   publisher: "Real Duck Distro",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    shortcut: "/icons/icon-192.png",
+    shortcut: "/favicon.ico",
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
@@ -53,23 +77,24 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "Real Duck Distro",
-    title: "Real Duck Distro | Premium Cannabis Lifestyle Brand | USA & AUS | Ships Worldwide",
+    title: "Real Duck Distro — Buy Premium Cannabis Online | Exotic Flower, Edibles, Vapes & Concentrates",
     description:
-      "Real Duck Distro — the world's leading premium cannabis lifestyle brand. HQ in LA, USA & Sydney, Australia. Delivering across the USA, Australia & worldwide.",
+      "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Fast, discreet cannabis shipping across the USA, Australia & worldwide.",
     images: [
       {
         url: "/images/hero.webp?v=2",
         width: 1200,
         height: 630,
-        alt: "Real Duck Distro product catalog",
+        alt: "Real Duck Distro — premium cannabis online, exotic flower and designer packs",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Real Duck Distro | Premium Cannabis Lifestyle Brand | USA & AUS | Ships Worldwide",
+    site: "@realduckdistro",
+    title: "Real Duck Distro — Buy Premium Cannabis Online | Exotic Flower, Edibles & Vapes",
     description:
-      "Real Duck Distro — the world's leading premium cannabis lifestyle brand. HQ in LA, USA & Sydney, Australia. Delivering across the USA, Australia & worldwide.",
+      "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Discreet shipping — USA, Australia & worldwide.",
     images: ["/images/hero.webp?v=2"],
   },
   robots: {
@@ -92,7 +117,10 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "mkcv_izZVyDLtoaUIC1aAtiXpTU5s1OpwI1DZEXQGOs",
+    google: [
+      "mkcv_izZVyDLtoaUIC1aAtiXpTU5s1OpwI1DZEXQGOs",
+      "5wIrY-yhLrsaHy36yp4V_IHGxQ4ko0saT_3FcsCnIXM",
+    ],
   },
   other: {
     "ahrefs-site-verification": "4c17bfb4bbf0edc9aef3014dcb1c12cd5fb812c12903fe4b82822381d6248fae",
@@ -145,6 +173,38 @@ export default async function RootLayout({
             gtag('config', 'G-RH5BCFNM1L');
           `}
         </Script>
+        <Script
+          id="schema-brand-organization"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "@id": `${SITE_URL}/#organization`,
+              name: "Real Duck Distro",
+              alternateName: "RDD",
+              url: SITE_URL,
+              logo: {
+                "@type": "ImageObject",
+                url: `${SITE_URL}/images/logo.jpg`,
+                width: 1111,
+                height: 874,
+                caption: "Real Duck Distro logo",
+              },
+              image: `${SITE_URL}/images/hero.webp?v=2`,
+              description:
+                "Real Duck Distro — premium cannabis online. Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies, shipped discreetly across the USA, Australia and worldwide.",
+              sameAs: [settings.telegramChannel, settings.snapchatLink],
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer service",
+                email: "contact@realduckdistro.com",
+                url: settings.telegramChannel,
+                availableLanguage: "English",
+              },
+            }),
+          }}
+        />
         <Script
           id="schema-organization"
           type="application/ld+json"

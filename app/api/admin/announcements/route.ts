@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { fanOutPush } from "@/lib/webpush";
+import { pingIndexNow } from "@/lib/indexNow";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 export async function GET() {
   const auth = await isAuthenticated();
@@ -73,11 +76,27 @@ export async function POST(request: NextRequest) {
         data: { pushed: true, pushSentAt: new Date() },
       });
 
+      if (announcement.published) {
+        pingIndexNow([
+          `${SITE_URL}/announcements`,
+          `${SITE_URL}/announcements?id=${announcement.id}`,
+          `${SITE_URL}/sitemap.xml`,
+        ]).catch(() => {});
+      }
+
       return NextResponse.json({
         ...announcement,
         pushed: true,
         pushStats: { sent, failed, total: subs.length },
       });
+    }
+
+    if (announcement.published) {
+      pingIndexNow([
+        `${SITE_URL}/announcements`,
+        `${SITE_URL}/announcements?id=${announcement.id}`,
+        `${SITE_URL}/sitemap.xml`,
+      ]).catch(() => {});
     }
 
     return NextResponse.json(announcement);

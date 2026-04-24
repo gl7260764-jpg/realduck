@@ -3,6 +3,9 @@ import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { Category } from "@prisma/client";
 import { slugify } from "@/lib/slug";
+import { pingIndexNow } from "@/lib/indexNow";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 // GET all products
 export async function GET() {
@@ -92,6 +95,13 @@ export async function POST(request: NextRequest) {
         videoUrl: videoUrl || null,
       },
     });
+
+    // Ping IndexNow so Bing/Yandex pick up the new product immediately
+    pingIndexNow([
+      `${SITE_URL}/product/${product.slug || product.id}`,
+      `${SITE_URL}/`,
+      `${SITE_URL}/sitemap.xml`,
+    ]).catch(() => {});
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {
