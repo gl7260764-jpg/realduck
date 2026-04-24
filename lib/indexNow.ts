@@ -16,7 +16,7 @@
  * Fire-and-forget — a failure here never blocks the caller.
  */
 
-const KEY = "58556fb293bd98e837eda4ad2a633d5674bac24cc176c1be09f07873ca8b2788";
+const KEY = "0a83dcea9b8e48ce895b77e3a75f2f0f";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 function host(): string {
