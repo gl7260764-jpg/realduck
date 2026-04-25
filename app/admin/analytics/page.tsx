@@ -91,10 +91,21 @@ interface AnalyticsData {
     source: string;
     medium: string;
     destination: string;
+    promoter: { id: string; name: string; slug: string } | null;
     clicks: number;
     uniqueSessions: number;
     orders: number;
     revenue: number;
+  }>;
+  trafficByPromoter: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    clicks: number;
+    uniqueSessions: number;
+    orders: number;
+    revenue: number;
+    linkCount: number;
   }>;
   countryBreakdown: Array<{ country: string; count: number }>;
   inventory: {
@@ -845,6 +856,63 @@ export default function AnalyticsPage() {
           )}
         </CollapsibleSection>
 
+        {/* Traffic by Team Member (rolls up across all of a promoter's links) */}
+        <CollapsibleSection
+          title="Traffic by Team Member"
+          icon={Users}
+          badge={data.trafficByPromoter?.length || undefined}
+        >
+          {data.trafficByPromoter && data.trafficByPromoter.length > 0 ? (
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                    <th className="text-left py-2 px-3 sm:px-4">Member</th>
+                    <th className="text-right py-2 px-2">Links</th>
+                    <th className="text-right py-2 px-2">Clicks</th>
+                    <th className="text-right py-2 px-2 hidden sm:table-cell">Sessions</th>
+                    <th className="text-right py-2 px-2">Orders</th>
+                    <th className="text-right py-2 px-3 sm:px-4">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.trafficByPromoter.map((p) => (
+                    <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
+                      <td className="py-3 px-3 sm:px-4">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">
+                            {p.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-semibold text-gray-900 truncate">{p.name}</p>
+                            <p className="text-[10px] text-gray-400 font-mono truncate">/r/{p.slug}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right py-3 px-2 text-gray-700 tabular-nums text-xs">{p.linkCount}</td>
+                      <td className="text-right py-3 px-2 font-semibold text-gray-900 tabular-nums">{p.clicks.toLocaleString()}</td>
+                      <td className="text-right py-3 px-2 text-gray-700 tabular-nums hidden sm:table-cell">{p.uniqueSessions.toLocaleString()}</td>
+                      <td className={`text-right py-3 px-2 tabular-nums font-semibold ${p.orders > 0 ? "text-emerald-700" : "text-gray-400"}`}>{p.orders.toLocaleString()}</td>
+                      <td className={`text-right py-3 px-3 sm:px-4 font-bold tabular-nums ${p.revenue > 0 ? "text-emerald-700" : "text-gray-400"}`}>
+                        ${p.revenue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[11px] text-gray-400 mt-3 px-3 sm:px-0">
+                Each row totals every link assigned to that team member. Manage members → <a href="/admin/links" className="text-blue-600 hover:underline">Link Tracking</a>
+              </p>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Users}
+              text="No team-member link clicks yet"
+              subtext="Add team members in /admin/links and share their personal links — traffic and revenue will be attributed here."
+            />
+          )}
+        </CollapsibleSection>
+
         {/* Tracked links / campaigns */}
         <CollapsibleSection
           title="Tracked Links"
@@ -870,6 +938,11 @@ export default function AnalyticsPage() {
                         <div className="flex flex-col gap-0.5 min-w-0">
                           <span className="font-semibold text-gray-900 text-sm truncate max-w-[180px] sm:max-w-none">{link.name}</span>
                           <div className="flex items-center gap-1.5 flex-wrap">
+                            {link.promoter && (
+                              <span className="px-1.5 py-0.5 bg-purple-50 text-purple-700 rounded text-[10px] font-bold inline-flex items-center gap-1">
+                                <Users className="w-2.5 h-2.5" /> {link.promoter.name}
+                              </span>
+                            )}
                             <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold uppercase">{link.source}</span>
                             <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">{link.medium}</span>
                             <code className="text-[10px] text-gray-400 font-mono truncate hidden sm:inline">/r/{link.slug}</code>

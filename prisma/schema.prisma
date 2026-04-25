@@ -285,25 +285,45 @@ model NewsletterSubscriber {
   @@index([createdAt])
 }
 
-// ── Link Tracking (UTM Campaigns) ──
+// ── Link Tracking (UTM Campaigns + Promoters) ──
+
+model Promoter {
+  id          String     @id @default(cuid())
+  slug        String     @unique // short id used as the default link, e.g. "john"
+  name        String     // display name, e.g. "John Smith"
+  email       String?    // optional contact
+  notes       String?    // free-form
+  archived    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+
+  campaigns   Campaign[]
+
+  @@index([archived])
+  @@index([createdAt])
+}
 
 model Campaign {
-  id          String   @id @default(cuid())
-  slug        String   @unique // short code, e.g. "ig-bio"
-  name        String   // human label, e.g. "Instagram Bio Link — Sept 2024"
-  destination String   // path on site, e.g. "/" or "/product/raspberry-airheadz"
-  utmSource   String   // e.g. "instagram", "facebook", "telegram"
-  utmMedium   String   // e.g. "social", "email", "referral"
-  utmCampaign String?  // optional grouping, e.g. "raspberry-launch"
-  utmContent  String?  // optional variant, e.g. "story-link"
-  utmTerm     String?  // optional keyword
-  archived    Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id          String     @id @default(cuid())
+  slug        String     @unique // short code, e.g. "ig-bio"
+  name        String     // human label, e.g. "Instagram Bio Link — Sept 2024"
+  purpose     String?    // free-form context, e.g. "Friday email blast"
+  destination String     // path on site, e.g. "/" or "/product/raspberry-airheadz"
+  utmSource   String     // e.g. "instagram", "facebook", "telegram"
+  utmMedium   String     // e.g. "social", "email", "referral"
+  utmCampaign String?    // optional grouping, e.g. "raspberry-launch"
+  utmContent  String?    // optional variant, e.g. "story-link"
+  utmTerm     String?    // optional keyword
+  archived    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+
+  promoterId  String?
+  promoter    Promoter?  @relation(fields: [promoterId], references: [id], onDelete: SetNull)
 
   clicks      CampaignClick[]
 
   @@index([archived])
   @@index([createdAt])
+  @@index([promoterId])
 }
 
 model CampaignClick {

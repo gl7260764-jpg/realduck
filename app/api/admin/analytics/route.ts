@@ -423,7 +423,17 @@ export async function GET(request: NextRequest) {
       ordersBySession.set(o.sessionId, list);
     }
 
-    const trackedLinks = activeCampaigns
+    // Pull active campaigns WITH promoter info so we can roll up per-person
+    const campaignsWithPromoter = await prisma.campaign.findMany({
+      where: { archived: false },
+      select: {
+        id: true, slug: true, name: true, utmSource: true, utmMedium: true, destination: true,
+        promoter: { select: { id: true, name: true, slug: true } },
+      },
+    });
+    void activeCampaigns; // keep for future use; we now use the promoter-included list
+
+    const trackedLinks = campaignsWithPromoter
       .map((camp) => {
         const sessions = sessionsByCampaign.get(camp.id) || new Set();
         let orders = 0;
@@ -446,6 +456,7 @@ export async function GET(request: NextRequest) {
           source: camp.utmSource,
           medium: camp.utmMedium,
           destination: camp.destination,
+          promoter: camp.promoter,
           clicks: clicksByCampaign.get(camp.id) || 0,
           uniqueSessions: sessions.size,
           orders,
@@ -453,6 +464,38 @@ export async function GET(request: NextRequest) {
         };
       })
       .filter((c) => c.clicks > 0)
+      .sort((a, b) => b.clicks - a.clicks);
+
+    // Roll up by promoter for the "Traffic by Team Member" view
+    const promoterTotals = new Map<string, {
+      id: string; name: string; slug: string;
+      clicks: number; uniqueSessions: number; orders: number; revenue: number; linkCount: number;
+    }>();
+    for (const link of trackedLinks) {
+      if (!link.promoter) continue;
+      const key = link.promoter.id;
+      const existing = promoterTotals.get(key);
+      if (existing) {
+        existing.clicks += link.clicks;
+        existing.uniqueSessions += link.uniqueSessions;
+        existing.orders += link.orders;
+        existing.revenue += link.revenue;
+        existing.linkCount += 1;
+      } else {
+        promoterTotals.set(key, {
+          id: link.promoter.id,
+          name: link.promoter.name,
+          slug: link.promoter.slug,
+          clicks: link.clicks,
+          uniqueSessions: link.uniqueSessions,
+          orders: link.orders,
+          revenue: link.revenue,
+          linkCount: 1,
+        });
+      }
+    }
+    const trafficByPromoter = Array.from(promoterTotals.values())
+      .map((p) => ({ ...p, revenue: Math.round(p.revenue * 100) / 100 }))
       .sort((a, b) => b.clicks - a.clicks);
 
     return NextResponse.json({
@@ -485,6 +528,7 @@ export async function GET(request: NextRequest) {
       osBreakdown: osBreakdown.map((o) => ({ os: o.os || "Unknown", count: o._count.os })),
       referrers: referrerBreakdown.map((r) => ({ domain: r.refererDomain || "Direct", count: r._count.refererDomain })),
       trackedLinks,
+      trafficByPromoter,
       countryBreakdown: countryBreakdown.map((c) => ({ country: c.country || "Unknown", count: c._count.country })),
       inventory: {
         totalProducts,

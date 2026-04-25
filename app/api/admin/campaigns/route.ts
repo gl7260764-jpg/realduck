@@ -48,6 +48,7 @@ export async function GET() {
     const campaigns = await prisma.campaign.findMany({
       where: { archived: false },
       orderBy: { createdAt: "desc" },
+      include: { promoter: { select: { id: true, name: true, slug: true } } },
     });
 
     if (campaigns.length === 0) {
@@ -122,12 +123,14 @@ export async function GET() {
         id: c.id,
         slug: c.slug,
         name: c.name,
+        purpose: c.purpose,
         destination: c.destination,
         utmSource: c.utmSource,
         utmMedium: c.utmMedium,
         utmCampaign: c.utmCampaign,
         utmContent: c.utmContent,
         utmTerm: c.utmTerm,
+        promoter: c.promoter,
         createdAt: c.createdAt,
         shareUrl: `${SITE_URL}/r/${c.slug}`,
         stats: {
@@ -170,16 +173,26 @@ export async function POST(request: NextRequest) {
     const slugSeed = String(body.slug || "").trim() || name;
     const slug = await ensureUniqueSlug(slugSeed);
 
+    // Optional: assign to a promoter. If provided, the link is owned by them
+    // and rolls up into their totals.
+    const promoterId = body.promoterId ? String(body.promoterId).trim() : null;
+    if (promoterId) {
+      const exists = await prisma.promoter.findUnique({ where: { id: promoterId }, select: { id: true } });
+      if (!exists) return NextResponse.json({ error: "Unknown promoter" }, { status: 400 });
+    }
+
     const campaign = await prisma.campaign.create({
       data: {
         slug,
         name: name.slice(0, 200),
+        purpose: body.purpose?.trim()?.slice(0, 200) || null,
         destination: normalisedDest.slice(0, 500),
         utmSource: utmSource.slice(0, 60),
         utmMedium: utmMedium.slice(0, 60),
         utmCampaign: body.utmCampaign?.trim()?.toLowerCase()?.slice(0, 60) || null,
         utmContent: body.utmContent?.trim()?.toLowerCase()?.slice(0, 60) || null,
         utmTerm: body.utmTerm?.trim()?.toLowerCase()?.slice(0, 60) || null,
+        promoterId,
       },
     });
 
