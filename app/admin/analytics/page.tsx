@@ -37,6 +37,8 @@ import {
   Layers,
   MapPin,
   BarChart3,
+  Link2,
+  Copy,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -82,6 +84,18 @@ interface AnalyticsData {
   browserBreakdown: Array<{ browser: string; count: number }>;
   osBreakdown: Array<{ os: string; count: number }>;
   referrers: Array<{ domain: string; count: number }>;
+  trackedLinks: Array<{
+    id: string;
+    slug: string;
+    name: string;
+    source: string;
+    medium: string;
+    destination: string;
+    clicks: number;
+    uniqueSessions: number;
+    orders: number;
+    revenue: number;
+  }>;
   countryBreakdown: Array<{ country: string; count: number }>;
   inventory: {
     totalProducts: number;
@@ -828,6 +842,66 @@ export default function AnalyticsPage() {
             </div>
           ) : (
             <EmptyState icon={Globe} text="No referrer data yet" subtext="Data appears as visitors arrive from other sites" />
+          )}
+        </CollapsibleSection>
+
+        {/* Tracked links / campaigns */}
+        <CollapsibleSection
+          title="Tracked Links"
+          icon={Link2}
+          badge={data.trackedLinks?.length || undefined}
+        >
+          {data.trackedLinks && data.trackedLinks.length > 0 ? (
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                    <th className="text-left py-2 px-3 sm:px-4">Link</th>
+                    <th className="text-right py-2 px-2">Clicks</th>
+                    <th className="text-right py-2 px-2 hidden sm:table-cell">Sessions</th>
+                    <th className="text-right py-2 px-2">Orders</th>
+                    <th className="text-right py-2 px-3 sm:px-4">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.trackedLinks.map((link) => (
+                    <tr key={link.id} className="border-b border-gray-100 hover:bg-gray-50/60 transition-colors">
+                      <td className="py-3 px-3 sm:px-4">
+                        <div className="flex flex-col gap-0.5 min-w-0">
+                          <span className="font-semibold text-gray-900 text-sm truncate max-w-[180px] sm:max-w-none">{link.name}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold uppercase">{link.source}</span>
+                            <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px]">{link.medium}</span>
+                            <code className="text-[10px] text-gray-400 font-mono truncate hidden sm:inline">/r/{link.slug}</code>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="text-right py-3 px-2 font-semibold text-gray-900 tabular-nums">
+                        {link.clicks.toLocaleString()}
+                      </td>
+                      <td className="text-right py-3 px-2 text-gray-700 tabular-nums hidden sm:table-cell">
+                        {link.uniqueSessions.toLocaleString()}
+                      </td>
+                      <td className={`text-right py-3 px-2 tabular-nums font-semibold ${link.orders > 0 ? "text-emerald-700" : "text-gray-400"}`}>
+                        {link.orders.toLocaleString()}
+                      </td>
+                      <td className={`text-right py-3 px-3 sm:px-4 font-bold tabular-nums ${link.revenue > 0 ? "text-emerald-700" : "text-gray-400"}`}>
+                        ${link.revenue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="text-[11px] text-gray-400 mt-3 px-3 sm:px-0">
+                Showing only links with clicks in this date range. Manage links → <a href="/admin/links" className="text-blue-600 hover:underline">Link Tracking</a>
+              </p>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Link2}
+              text="No tracked link clicks yet"
+              subtext="Create short links in /admin/links and share them — clicks and revenue from each link will appear here."
+            />
           )}
         </CollapsibleSection>
       </div>

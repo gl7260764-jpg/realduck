@@ -378,6 +378,83 @@ export async function GET(request: NextRequest) {
       : 0;
     const avgViewsPerDay = rangeDays > 0 ? Math.round(rangePageViews / rangeDays) : 0;
 
+    // ── TRACKED LINK ANALYTICS ─────────────────────────────────────
+    // Aggregate clicks/sessions/orders/revenue per Campaign within the
+    // selected date range. Same attribution model as /admin/links: join
+    // CampaignClick.sessionId against CheckoutOrder.sessionId.
+    const [activeCampaigns, rangeCampaignClicks] = await Promise.all([
+      prisma.campaign.findMany({
+        where: { archived: false },
+        select: { id: true, slug: true, name: true, utmSource: true, utmMedium: true, destination: true },
+      }),
+      prisma.campaignClick.findMany({
+        where: { createdAt: { gte: rangeStart } },
+        select: { campaignId: true, sessionId: true },
+      }),
+    ]);
+
+    // Sessions per campaign (within range)
+    const sessionsByCampaign = new Map<string, Set<string>>();
+    const clicksByCampaign = new Map<string, number>();
+    for (const c of rangeCampaignClicks) {
+      clicksByCampaign.set(c.campaignId, (clicksByCampaign.get(c.campaignId) || 0) + 1);
+      if (c.sessionId) {
+        let set = sessionsByCampaign.get(c.campaignId);
+        if (!set) { set = new Set(); sessionsByCampaign.set(c.campaignId, set); }
+        set.add(c.sessionId);
+      }
+    }
+
+    // Pull all CheckoutOrders whose sessionId matches any campaign click
+    const allCampaignSessionIds = Array.from(
+      new Set(rangeCampaignClicks.map((c) => c.sessionId).filter(Boolean) as string[])
+    );
+    const ordersForCampaigns = allCampaignSessionIds.length > 0
+      ? await prisma.checkoutOrder.findMany({
+          where: { sessionId: { in: allCampaignSessionIds }, createdAt: { gte: rangeStart } },
+          select: { sessionId: true, items: true },
+        })
+      : [];
+    const ordersBySession = new Map<string, typeof ordersForCampaigns>();
+    for (const o of ordersForCampaigns) {
+      if (!o.sessionId) continue;
+      const list = ordersBySession.get(o.sessionId) || [];
+      list.push(o);
+      ordersBySession.set(o.sessionId, list);
+    }
+
+    const trackedLinks = activeCampaigns
+      .map((camp) => {
+        const sessions = sessionsByCampaign.get(camp.id) || new Set();
+        let orders = 0;
+        let revenue = 0;
+        for (const sid of sessions) {
+          const sOrders = ordersBySession.get(sid) || [];
+          for (const o of sOrders) {
+            orders += 1;
+            const items = (o.items as Array<{ price?: string; quantity?: number }>) || [];
+            for (const it of items) {
+              const m = String(it.price || "").match(/\$?([\d,]+(?:\.\d+)?)/);
+              if (m) revenue += parseFloat(m[1].replace(/,/g, "")) * (it.quantity || 1);
+            }
+          }
+        }
+        return {
+          id: camp.id,
+          slug: camp.slug,
+          name: camp.name,
+          source: camp.utmSource,
+          medium: camp.utmMedium,
+          destination: camp.destination,
+          clicks: clicksByCampaign.get(camp.id) || 0,
+          uniqueSessions: sessions.size,
+          orders,
+          revenue: Math.round(revenue * 100) / 100,
+        };
+      })
+      .filter((c) => c.clicks > 0)
+      .sort((a, b) => b.clicks - a.clicks);
+
     return NextResponse.json({
       overview: {
         totalPageViews,
@@ -407,6 +484,7 @@ export async function GET(request: NextRequest) {
       browserBreakdown: browserBreakdown.map((b) => ({ browser: b.browser || "Unknown", count: b._count.browser })),
       osBreakdown: osBreakdown.map((o) => ({ os: o.os || "Unknown", count: o._count.os })),
       referrers: referrerBreakdown.map((r) => ({ domain: r.refererDomain || "Direct", count: r._count.refererDomain })),
+      trackedLinks,
       countryBreakdown: countryBreakdown.map((c) => ({ country: c.country || "Unknown", count: c._count.country })),
       inventory: {
         totalProducts,
