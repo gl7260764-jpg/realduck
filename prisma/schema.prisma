@@ -284,3 +284,44 @@ model NewsletterSubscriber {
   @@index([active])
   @@index([createdAt])
 }
+
+// ── Link Tracking (UTM Campaigns) ──
+
+model Campaign {
+  id          String   @id @default(cuid())
+  slug        String   @unique // short code, e.g. "ig-bio"
+  name        String   // human label, e.g. "Instagram Bio Link — Sept 2024"
+  destination String   // path on site, e.g. "/" or "/product/raspberry-airheadz"
+  utmSource   String   // e.g. "instagram", "facebook", "telegram"
+  utmMedium   String   // e.g. "social", "email", "referral"
+  utmCampaign String?  // optional grouping, e.g. "raspberry-launch"
+  utmContent  String?  // optional variant, e.g. "story-link"
+  utmTerm     String?  // optional keyword
+  archived    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  clicks      CampaignClick[]
+
+  @@index([archived])
+  @@index([createdAt])
+}
+
+model CampaignClick {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sessionId  String?
+  ip         String?
+  country    String?
+  city       String?
+  device     String?
+  browser    String?
+  os         String?
+  referer    String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([campaignId])
+  @@index([sessionId])
+  @@index([createdAt])
+}

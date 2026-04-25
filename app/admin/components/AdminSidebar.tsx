@@ -17,6 +17,7 @@ import {
   Megaphone,
   Smartphone,
   Mail,
+  Link2,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -29,6 +30,7 @@ const navItems = [
   { href: "/admin/blog", label: "Blog Posts", icon: FileText },
   { href: "/admin/announcements", label: "Announcements", icon: Megaphone },
   { href: "/admin/newsletter", label: "Newsletter", icon: Mail },
+  { href: "/admin/links", label: "Link Tracking", icon: Link2 },
   { href: "/admin/pwa", label: "PWA & Push", icon: Smartphone },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
