@@ -22,19 +22,14 @@ export default async function AdminLayout({
 
   return (
     <SidebarProvider>
-      <div className="h-screen bg-gray-50 flex overflow-hidden">
+      <div className="h-screen flex overflow-hidden bg-slate-50">
         <AdminSidebar />
-        <main className="flex-1 lg:ml-64 transition-all duration-300 h-full overflow-y-scroll admin-scrollbar">
-          {/* Mobile Header */}
-          <div className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3 lg:hidden">
+        <main className="flex-1 lg:ml-64 h-full overflow-y-scroll admin-scrollbar admin-main relative">
+          {/* Mobile Header — sticky glass */}
+          <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-slate-200/60 px-4 py-3 flex items-center gap-3 lg:hidden shadow-sm">
             <MobileMenuButton />
-            <div className="flex items-center gap-2">
-              <div
-                className="relative w-8 h-7 flex-shrink-0"
-                style={{
-                  clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
-                }}
-              >
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-8 h-8 rounded-lg overflow-hidden ring-1 ring-slate-200">
                 <Image
                   src="/images/logo.jpg"
                   alt="Real Duck Distro"
@@ -42,10 +37,14 @@ export default async function AdminLayout({
                   className="object-cover"
                 />
               </div>
-              <h1 className="font-semibold text-gray-900">Admin</h1>
+              <div>
+                <h1 className="font-bold text-slate-900 text-sm leading-tight">Admin</h1>
+                <p className="text-[10px] text-slate-500 -mt-0.5">Real Duck Distro</p>
+              </div>
             </div>
           </div>
-          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+          {/* Page content */}
+          <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8 admin-fade-in">{children}</div>
         </main>
       </div>
     </SidebarProvider>

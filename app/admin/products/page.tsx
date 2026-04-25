@@ -21,22 +21,26 @@ export default async function ProductsPage() {
   const products = await getProducts();
 
   return (
-    <div className="space-y-6">
+    <div className="admin-page">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Manage your product inventory
-          </p>
+      <div className="admin-page-header">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="admin-page-title">Products</h1>
+            <p className="admin-page-subtitle">
+              {products.length === 0
+                ? "No products yet — create your first one"
+                : `${products.length} product${products.length === 1 ? "" : "s"} in your catalog`}
+            </p>
+          </div>
+          <Link
+            href="/admin/products/new"
+            className="admin-btn-primary self-start sm:self-end"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <span>Add Product</span>
+          </Link>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Add Product
-        </Link>
       </div>
 
       {/* Products Table */}

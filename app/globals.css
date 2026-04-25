@@ -124,30 +124,225 @@
   }
 }
 
-/* Custom scrollbar for admin panel */
+/* ─── Admin Panel Design System ──────────────────────────────────── */
+
+/* Sidebar — modern dark with subtle radial accent */
+.admin-sidebar {
+  background:
+    radial-gradient(800px 280px at 50% 0%, rgba(99, 102, 241, 0.08), transparent 60%),
+    linear-gradient(180deg, #0b1220 0%, #0a0f1c 50%, #060a14 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    32px 0 64px -32px rgba(0, 0, 0, 0.4);
+}
+
+.admin-sidebar .admin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.admin-sidebar .admin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-sidebar .admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+.admin-sidebar .admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Main content area — soft gradient backdrop */
+.admin-main {
+  background:
+    radial-gradient(1200px 400px at 0% 0%, rgba(99, 102, 241, 0.04), transparent 60%),
+    radial-gradient(1200px 400px at 100% 100%, rgba(168, 85, 247, 0.03), transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Standard scrollbar for main content */
+.admin-main.admin-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.admin-main.admin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-main.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.15);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.admin-main.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 23, 42, 0.3);
+  background-clip: padding-box;
+}
+
+/* Legacy fallback (kept for any other places that use .admin-scrollbar standalone) */
+.admin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.2) transparent;
+}
 .admin-scrollbar::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
-
 .admin-scrollbar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 5px;
+  background: transparent;
 }
-
 .admin-scrollbar::-webkit-scrollbar-thumb {
-  background: #888;
+  background: rgba(15, 23, 42, 0.2);
   border-radius: 5px;
 }
-
 .admin-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(15, 23, 42, 0.4);
 }
 
-/* Firefox scrollbar */
-.admin-scrollbar {
-  scrollbar-width: auto;
-  scrollbar-color: #888 #f1f1f1;
+/* ─── Page-level utilities ──────────────────────────────────────── */
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-page-header {
+  position: relative;
+}
+
+.admin-page-title {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (min-width: 640px) {
+  .admin-page-title { font-size: 2rem; }
+}
+
+.admin-page-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────── */
+
+.admin-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.08),
+    0 8px 24px -8px rgba(15, 23, 42, 0.5);
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
+  white-space: nowrap;
+}
+.admin-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.08),
+    0 12px 28px -8px rgba(15, 23, 42, 0.55);
+}
+.admin-btn-primary:active {
+  transform: translateY(0);
+}
+
+.admin-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  transition: all 180ms ease;
+}
+.admin-btn-secondary:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+/* ─── Card primitive ─────────────────────────────────────────────── */
+
+.admin-card {
+  background: #fff;
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px -4px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.admin-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.06),
+    0 12px 32px -8px rgba(15, 23, 42, 0.1);
+}
+
+/* ─── Animations ─────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes adminFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.admin-fade-in {
+  animation: adminFadeUp 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.admin-stagger > * {
+  animation: adminFadeUp 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.admin-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.admin-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.admin-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.admin-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.admin-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.admin-stagger > *:nth-child(6) { animation-delay: 300ms; }
+.admin-stagger > *:nth-child(7) { animation-delay: 360ms; }
+.admin-stagger > *:nth-child(8) { animation-delay: 420ms; }
+
+/* Subtle nav-item glow on hover */
+.admin-nav-item {
+  position: relative;
+  isolation: isolate;
+}
+.admin-nav-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.06));
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: -1;
+}
+.admin-nav-item:hover::before {
+  opacity: 1;
 }
 
 /* Hide scrollbar but keep scrollable */
