@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import {
-  Link2, Plus, Copy, Check, Trash2, ExternalLink, TrendingUp,
-  MousePointerClick, ShoppingBag, DollarSign, Loader2, AlertCircle,
+  Plus, Copy, Check, Trash2, ExternalLink, Loader2, AlertCircle,
   Instagram, Facebook, Send, Globe, Mail as MailIcon, Twitter,
-  Users, ChevronDown, ChevronRight, UserPlus,
+  Users, ChevronDown, ChevronRight, UserPlus, ArrowRight, Link2,
 } from "lucide-react";
 
 interface Promoter {
@@ -48,17 +47,18 @@ interface Campaign {
 }
 
 const SOURCE_PRESETS = [
-  { label: "Instagram", value: "instagram", medium: "social", icon: Instagram, color: "from-pink-500 to-rose-500" },
-  { label: "Facebook", value: "facebook", medium: "social", icon: Facebook, color: "from-blue-600 to-blue-700" },
-  { label: "Telegram", value: "telegram", medium: "social", icon: Send, color: "from-sky-500 to-sky-600" },
-  { label: "Snapchat", value: "snapchat", medium: "social", icon: Send, color: "from-yellow-400 to-yellow-500" },
-  { label: "Twitter/X", value: "twitter", medium: "social", icon: Twitter, color: "from-slate-800 to-black" },
-  { label: "TikTok", value: "tiktok", medium: "social", icon: Send, color: "from-pink-500 to-cyan-500" },
-  { label: "Reddit", value: "reddit", medium: "social", icon: Globe, color: "from-orange-500 to-red-500" },
-  { label: "Email", value: "newsletter", medium: "email", icon: MailIcon, color: "from-violet-500 to-purple-600" },
+  { label: "Instagram", value: "instagram", medium: "social", icon: Instagram },
+  { label: "Facebook", value: "facebook", medium: "social", icon: Facebook },
+  { label: "Telegram", value: "telegram", medium: "social", icon: Send },
+  { label: "Snapchat", value: "snapchat", medium: "social", icon: Send },
+  { label: "Twitter/X", value: "twitter", medium: "social", icon: Twitter },
+  { label: "TikTok", value: "tiktok", medium: "social", icon: Send },
+  { label: "Reddit", value: "reddit", medium: "social", icon: Globe },
+  { label: "Email", value: "newsletter", medium: "email", icon: MailIcon },
 ];
 
 const fmt = (n: number) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtCompact = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmt(n);
 
 export default function LinksClient() {
   const [promoters, setPromoters] = useState<Promoter[]>([]);
@@ -116,44 +116,47 @@ export default function LinksClient() {
     { clicks: 0, sessions: 0, orders: 0, revenue: 0 }
   );
 
+  const standaloneCampaigns = campaigns.filter((c) => !c.promoter);
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Link2 className="w-7 h-7 text-blue-600" />
-          Link Tracking
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Each team member has a personal link. Add more links per person and assign each one a purpose. Every order traces back to whoever drove the click.
-        </p>
-      </div>
+    <div className="admin-page">
+      {/* ─── Header ─────────────────────────────────────────────── */}
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 pb-2">
+        <div>
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-[0.14em]">Attribution</p>
+          <h1 className="text-[26px] sm:text-[28px] font-semibold text-slate-900 tracking-tight mt-1 leading-tight">Link tracking</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Generate trackable short links for each team member. Every order traces back to whoever drove the click.
+          </p>
+        </div>
+      </header>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
+        <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-lg text-sm text-rose-700">
+          <AlertCircle className="w-4 h-4" /> {error}
+        </div>
       )}
 
-      {/* Team totals */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatCard icon={MousePointerClick} label="Total Clicks" value={teamTotals.clicks.toLocaleString()} color="blue" />
-        <StatCard icon={TrendingUp} label="Unique Sessions" value={teamTotals.sessions.toLocaleString()} color="violet" />
-        <StatCard icon={ShoppingBag} label="Orders" value={teamTotals.orders.toLocaleString()} color="emerald" />
-        <StatCard icon={DollarSign} label="Revenue" value={fmt(teamTotals.revenue)} color="amber" />
-      </div>
+      {/* ─── KPI strip ──────────────────────────────────────────── */}
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200">
+        <Kpi label="Total clicks" value={teamTotals.clicks.toLocaleString()} sub="all team links" />
+        <Kpi label="Unique sessions" value={teamTotals.sessions.toLocaleString()} sub="distinct visitors" />
+        <Kpi label="Attributed orders" value={teamTotals.orders.toLocaleString()} sub="through tracked links" highlight={teamTotals.orders > 0} />
+        <Kpi label="Revenue" value={fmtCompact(teamTotals.revenue)} sub="attributed total" highlight={teamTotals.revenue > 0} />
+      </section>
 
       {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+          <Loader2 className="w-6 h-6 animate-spin text-slate-300" />
         </div>
       )}
 
       {!loading && (
         <>
-          {/* ─── Promoters Section ─── */}
+          {/* ─── Team members section ─── */}
           <PromotersSection
             promoters={promoters}
-            campaigns={campaigns}
             expanded={expandedPromoters}
             onToggle={togglePromoter}
             onCopy={handleCopy}
@@ -161,9 +164,9 @@ export default function LinksClient() {
             onReload={load}
           />
 
-          {/* ─── Standalone Links Section (no promoter assigned) ─── */}
+          {/* ─── Standalone links section ─── */}
           <StandaloneLinksSection
-            campaigns={campaigns.filter((c) => !c.promoter)}
+            campaigns={standaloneCampaigns}
             promoters={promoters}
             onCopy={handleCopy}
             copiedSlug={copiedSlug}
@@ -180,10 +183,9 @@ export default function LinksClient() {
 // ════════════════════════════════════════════════════════════════════════
 
 function PromotersSection({
-  promoters, campaigns, expanded, onToggle, onCopy, copiedSlug, onReload,
+  promoters, expanded, onToggle, onCopy, copiedSlug, onReload,
 }: {
   promoters: Promoter[];
-  campaigns: Campaign[];
   expanded: Set<string>;
   onToggle: (id: string) => void;
   onCopy: (url: string, slug: string) => void;
@@ -194,24 +196,23 @@ function PromotersSection({
   const [showAddLinkFor, setShowAddLinkFor] = useState<string | null>(null);
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-            <Users className="w-4.5 h-4.5 text-white" />
-          </div>
-          <div>
-            <h2 className="font-bold text-gray-900">Team members</h2>
-            <p className="text-xs text-gray-500">Each member gets a personal link they can share anywhere</p>
+    <section className="admin-card overflow-hidden">
+      <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Users className="w-4 h-4 text-slate-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <h2 className="text-[13px] font-semibold text-slate-900">Team members</h2>
+            <p className="text-[11px] text-slate-500 mt-0.5 hidden sm:block">Each member gets a personal link they can share anywhere.</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={() => setShowAddPromoter(!showAddPromoter)}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
         >
-          <UserPlus className="w-4 h-4" /> Add member
+          <UserPlus className="w-3.5 h-3.5" strokeWidth={2.4} /> Add member
         </button>
-      </div>
+      </header>
 
       {showAddPromoter && (
         <AddPromoterForm
@@ -220,26 +221,26 @@ function PromotersSection({
         />
       )}
 
-      {promoters.length === 0 && !showAddPromoter && (
+      {promoters.length === 0 && !showAddPromoter ? (
         <EmptyPromoters onAdd={() => setShowAddPromoter(true)} />
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {promoters.map((p) => (
+            <PromoterRow
+              key={p.id}
+              promoter={p}
+              isExpanded={expanded.has(p.id)}
+              onToggle={() => onToggle(p.id)}
+              onCopy={onCopy}
+              copiedSlug={copiedSlug}
+              onAddLink={() => setShowAddLinkFor(p.id)}
+              onReload={onReload}
+              showAddLink={showAddLinkFor === p.id}
+              onCancelAddLink={() => setShowAddLinkFor(null)}
+            />
+          ))}
+        </ul>
       )}
-
-      <div className="divide-y divide-gray-100">
-        {promoters.map((p) => (
-          <PromoterRow
-            key={p.id}
-            promoter={p}
-            isExpanded={expanded.has(p.id)}
-            onToggle={() => onToggle(p.id)}
-            onCopy={onCopy}
-            copiedSlug={copiedSlug}
-            onAddLink={() => setShowAddLinkFor(p.id)}
-            onReload={onReload}
-            showAddLink={showAddLinkFor === p.id}
-            onCancelAddLink={() => setShowAddLinkFor(null)}
-          />
-        ))}
-      </div>
     </section>
   );
 }
@@ -271,79 +272,104 @@ function PromoterRow({
     }
   };
 
+  const initials = promoter.name.split(/\s+/).map(s => s[0]).slice(0, 2).join("").toUpperCase();
+  const isDefaultCopied = copiedSlug === `default-${promoter.slug}`;
+
   return (
-    <div>
-      {/* Row header */}
-      <div className="p-4 sm:p-5">
+    <li>
+      {/* Row */}
+      <div className="px-5 py-3.5 hover:bg-slate-50/40 transition-colors">
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onToggle}
-            aria-label={isExpanded ? "Collapse promoter" : "Expand promoter"}
-            className="flex-shrink-0 text-gray-400 hover:text-gray-700"
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+            className="flex-shrink-0 text-slate-300 hover:text-slate-700 transition-colors p-0.5"
           >
-            {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            {promoter.name.slice(0, 2).toUpperCase()}
+
+          <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-700 text-[11px] font-semibold flex items-center justify-center flex-shrink-0 ring-1 ring-slate-200">
+            {initials}
           </div>
+
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-bold text-gray-900 truncate">{promoter.name}</h3>
-              <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase">
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="text-sm font-semibold text-slate-900 truncate">{promoter.name}</p>
+              <span className="text-[10px] font-medium text-slate-500 px-1.5 py-0.5 bg-slate-100 rounded">
                 {promoter.totals.campaignCount} link{promoter.totals.campaignCount === 1 ? "" : "s"}
               </span>
             </div>
-            {promoter.email && <p className="text-[11px] text-gray-400 truncate">{promoter.email}</p>}
+            <code className="text-[11px] font-mono text-slate-500 truncate block">{promoter.defaultLink}</code>
           </div>
+
+          {/* Inline copy button for personal link */}
+          <button
+            type="button"
+            onClick={() => onCopy(promoter.defaultLink, `default-${promoter.slug}`)}
+            aria-label={isDefaultCopied ? "Copied" : "Copy personal link"}
+            className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors flex-shrink-0 ${
+              isDefaultCopied
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+            }`}
+          >
+            {isDefaultCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+            {isDefaultCopied ? "Copied" : "Copy"}
+          </button>
+
+          {/* Stats */}
+          <div className="hidden lg:grid grid-cols-4 gap-4 flex-shrink-0 min-w-[280px]">
+            <Stat value={promoter.totals.clicks.toLocaleString()} label="clicks" />
+            <Stat value={promoter.totals.uniqueSessions.toLocaleString()} label="sessions" />
+            <Stat value={promoter.totals.orders.toLocaleString()} label="orders" highlight={promoter.totals.orders > 0} />
+            <Stat value={fmtCompact(promoter.totals.revenue)} label="revenue" highlight={promoter.totals.revenue > 0} />
+          </div>
+
           <button
             type="button"
             onClick={handleArchive}
             disabled={archiving}
             aria-label={`Archive ${promoter.name}`}
             title={`Archive ${promoter.name}`}
-            className="text-gray-400 hover:text-red-500 p-2 -m-2 transition-colors flex-shrink-0"
+            className="text-slate-300 hover:text-rose-500 p-2 -m-2 transition-colors flex-shrink-0"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Personal default link */}
-        <div className="flex items-center gap-2 mt-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200/60 rounded-xl">
-          <div>
-            <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Personal link</p>
-            <code className="text-xs sm:text-sm font-mono text-slate-800 block truncate max-w-[180px] sm:max-w-none">{promoter.defaultLink}</code>
-          </div>
-          <button
-            onClick={() => onCopy(promoter.defaultLink, `default-${promoter.slug}`)}
-            className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-              copiedSlug === `default-${promoter.slug}` ? "bg-emerald-500 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
-            }`}
-          >
-            {copiedSlug === `default-${promoter.slug}` ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
-          </button>
+        {/* Mobile copy button + stats */}
+        <div className="lg:hidden mt-3 grid grid-cols-4 gap-2">
+          <Stat value={promoter.totals.clicks.toLocaleString()} label="clicks" />
+          <Stat value={promoter.totals.uniqueSessions.toLocaleString()} label="sessions" />
+          <Stat value={promoter.totals.orders.toLocaleString()} label="orders" highlight={promoter.totals.orders > 0} />
+          <Stat value={fmtCompact(promoter.totals.revenue)} label="revenue" highlight={promoter.totals.revenue > 0} />
         </div>
-
-        {/* Totals */}
-        <div className="grid grid-cols-4 gap-2 mt-3">
-          <MiniStat label="Clicks" value={promoter.totals.clicks.toLocaleString()} />
-          <MiniStat label="Sessions" value={promoter.totals.uniqueSessions.toLocaleString()} />
-          <MiniStat label="Orders" value={promoter.totals.orders.toLocaleString()} highlight={promoter.totals.orders > 0} />
-          <MiniStat label="Revenue" value={fmt(promoter.totals.revenue)} highlight={promoter.totals.revenue > 0} />
-        </div>
+        <button
+          type="button"
+          onClick={() => onCopy(promoter.defaultLink, `default-${promoter.slug}`)}
+          aria-label={isDefaultCopied ? "Copied" : "Copy personal link"}
+          className={`sm:hidden mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-md text-[12px] font-medium transition-colors ${
+            isDefaultCopied
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              : "bg-white text-slate-700 border border-slate-200"
+          }`}
+        >
+          {isDefaultCopied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy personal link</>}
+        </button>
       </div>
 
       {/* Expanded: per-link breakdown */}
       {isExpanded && (
-        <div className="bg-gray-50/60 px-4 sm:px-5 py-4 border-t border-gray-100">
+        <div className="bg-slate-50/60 px-5 py-4 border-t border-slate-100">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">All links assigned to {promoter.name}</p>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">All links assigned to {promoter.name}</p>
             <button
               type="button"
               onClick={onAddLink}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-gray-300 hover:border-slate-900 text-slate-900 rounded-lg text-xs font-semibold"
+              className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 rounded-md text-[11px] font-medium transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" /> Add link
+              <Plus className="w-3 h-3" /> Add link
             </button>
           </div>
 
@@ -356,54 +382,66 @@ function PromoterRow({
             />
           )}
 
-          <div className="space-y-2">
-            {promoter.campaigns.map((c) => (
-              <div key={c.id} className="bg-white border border-gray-200 rounded-xl p-3">
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <span className="font-semibold text-sm text-gray-900 truncate">{c.name}</span>
-                      <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-[9px] font-bold uppercase">{c.source}</span>
-                      <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[9px]">{c.medium}</span>
-                    </div>
-                    {c.purpose && <p className="text-[11px] text-gray-500 italic">{c.purpose}</p>}
-                    <p className="text-[11px] text-gray-400 font-mono truncate">→ {c.destination}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg mb-2">
-                  <code className="flex-1 text-[11px] sm:text-xs font-mono text-slate-700 truncate">{c.shareUrl}</code>
-                  <button
-                    onClick={() => onCopy(c.shareUrl, c.slug)}
-                    className={`flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold whitespace-nowrap ${
-                      copiedSlug === c.slug ? "bg-emerald-500 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
-                    }`}
-                  >
-                    {copiedSlug === c.slug ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                  </button>
-                </div>
-                <div className="grid grid-cols-4 gap-1.5 text-center">
-                  <MiniInline label="Clicks" value={c.stats.clicks.toLocaleString()} />
-                  <MiniInline label="Sessions" value={c.stats.uniqueSessions.toLocaleString()} />
-                  <MiniInline label="Orders" value={c.stats.orders.toLocaleString()} highlight={c.stats.orders > 0} />
-                  <MiniInline label="Revenue" value={fmt(c.stats.revenue)} highlight={c.stats.revenue > 0} />
-                </div>
-              </div>
-            ))}
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[10px] font-medium text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                  <th className="text-left py-2 px-3">Link</th>
+                  <th className="text-right py-2 px-2">Clicks</th>
+                  <th className="text-right py-2 px-2 hidden sm:table-cell">Sessions</th>
+                  <th className="text-right py-2 px-2">Orders</th>
+                  <th className="text-right py-2 px-3">Revenue</th>
+                  <th className="py-2 px-2"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {promoter.campaigns.map((c) => (
+                  <tr key={c.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                    <td className="py-2.5 px-3">
+                      <div className="text-[12px] font-medium text-slate-900 truncate">{c.name}</div>
+                      {c.purpose && <div className="text-[10px] text-slate-500 italic">{c.purpose}</div>}
+                      <code className="text-[10px] text-slate-400 font-mono truncate block">/r/{c.slug}</code>
+                    </td>
+                    <td className="text-right py-2.5 px-2 text-[12px] text-slate-700 tabular-nums">{c.stats.clicks.toLocaleString()}</td>
+                    <td className="text-right py-2.5 px-2 text-[12px] text-slate-600 tabular-nums hidden sm:table-cell">{c.stats.uniqueSessions.toLocaleString()}</td>
+                    <td className={`text-right py-2.5 px-2 text-[12px] tabular-nums font-medium ${c.stats.orders > 0 ? "text-emerald-700" : "text-slate-400"}`}>{c.stats.orders.toLocaleString()}</td>
+                    <td className={`text-right py-2.5 px-3 text-[12px] tabular-nums font-semibold ${c.stats.revenue > 0 ? "text-emerald-700" : "text-slate-400"}`}>{fmtCompact(c.stats.revenue)}</td>
+                    <td className="py-2.5 px-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => onCopy(c.shareUrl, c.slug)}
+                        aria-label="Copy link"
+                        className={`inline-flex items-center justify-center w-6 h-6 rounded transition-colors ${
+                          copiedSlug === c.slug
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                        }`}
+                      >
+                        {copiedSlug === c.slug ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
-    </div>
+    </li>
   );
 }
 
 function EmptyPromoters({ onAdd }: { onAdd: () => void }) {
   return (
-    <div className="text-center py-10 px-6">
-      <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-      <h3 className="font-bold text-gray-900 mb-1">No team members yet</h3>
-      <p className="text-sm text-gray-500 mb-4">Add the people who promote your site. Each gets a personal link.</p>
-      <button onClick={onAdd} className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-semibold text-sm">
-        <UserPlus className="w-4 h-4" /> Add first member
+    <div className="px-5 py-12 text-center">
+      <p className="text-sm font-medium text-slate-900 mb-1">No team members yet</p>
+      <p className="text-[12px] text-slate-500 mb-5">Add the people who promote your site. Each gets a personal link they can share anywhere.</p>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
+      >
+        <UserPlus className="w-4 h-4" strokeWidth={2.4} /> Add first member
       </button>
     </div>
   );
@@ -437,26 +475,26 @@ function AddPromoterForm({ onSave, onCancel }: { onSave: () => Promise<void>; on
   };
 
   return (
-    <form onSubmit={submit} className="bg-blue-50/40 border-y border-blue-100 p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <form onSubmit={submit} className="bg-slate-50/80 border-y border-slate-200 px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
       <Field label="Name" required>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Smith" className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+        <Input value={name} onChange={setName} placeholder="John Smith" />
       </Field>
       <Field label="Short ID (link slug)">
-        <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="auto from name (e.g. john)" className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+        <Input value={slug} onChange={setSlug} placeholder="auto from name" mono />
       </Field>
       <Field label="Email (optional)">
-        <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="john@example.com" className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+        <Input value={email} onChange={setEmail} placeholder="john@example.com" type="email" />
       </Field>
       {err && (
-        <div className="sm:col-span-3 flex items-center gap-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="w-4 h-4 text-red-500" />
-          <p className="text-xs text-red-700">{err}</p>
+        <div className="sm:col-span-3 flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+          <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+          <p className="text-[12px] text-rose-700">{err}</p>
         </div>
       )}
       <div className="sm:col-span-3 flex items-center justify-end gap-2">
-        <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900">Cancel</button>
-        <button type="submit" disabled={submitting} className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white rounded-lg text-sm font-semibold">
-          {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Adding…</> : <><UserPlus className="w-4 h-4" /> Add member</>}
+        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-[12px] text-slate-600 hover:text-slate-900 transition-colors">Cancel</button>
+        <button type="submit" disabled={submitting} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-md transition-colors">
+          {submitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Adding…</> : <><UserPlus className="w-3.5 h-3.5" /> Add member</>}
         </button>
       </div>
     </form>
@@ -479,24 +517,23 @@ function StandaloneLinksSection({
   const [showForm, setShowForm] = useState(false);
 
   return (
-    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center">
-            <Link2 className="w-4.5 h-4.5 text-white" />
-          </div>
-          <div>
-            <h2 className="font-bold text-gray-900">Standalone links</h2>
-            <p className="text-xs text-gray-500">Links not assigned to a team member (e.g. brand campaigns, ads)</p>
+    <section className="admin-card overflow-hidden">
+      <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Link2 className="w-4 h-4 text-slate-500 flex-shrink-0" />
+          <div className="min-w-0">
+            <h2 className="text-[13px] font-semibold text-slate-900">Standalone links</h2>
+            <p className="text-[11px] text-slate-500 mt-0.5 hidden sm:block">Links not assigned to a team member — brand campaigns, ads, partnerships.</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors"
         >
-          <Plus className="w-4 h-4" /> New link
+          <Plus className="w-3.5 h-3.5" strokeWidth={2.4} /> New link
         </button>
-      </div>
+      </header>
 
       {showForm && (
         <AddLinkForm
@@ -507,26 +544,89 @@ function StandaloneLinksSection({
       )}
 
       {campaigns.length === 0 && !showForm ? (
-        <div className="py-10 px-6 text-center text-sm text-gray-500">
-          No standalone links yet. Use the button above to create one — or assign all your links to team members above.
+        <div className="px-5 py-10 text-center">
+          <p className="text-sm font-medium text-slate-900">No standalone links yet</p>
+          <p className="text-[12px] text-slate-500 mt-1">Create one above, or assign all your links to team members.</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-100">
-          {campaigns.map((c) => (
-            <CampaignRow key={c.id}
-              campaign={c}
-              copied={copiedSlug === c.slug}
-              onCopy={() => onCopy(c.shareUrl, c.slug)}
-              onArchive={async () => {
-                if (!confirm("Archive this link? Its history is preserved but the URL stops redirecting.")) return;
-                await fetch(`/api/admin/campaigns/${c.id}`, { method: "DELETE" });
-                await onReload();
-              }}
-            />
-          ))}
-        </div>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-[11px] font-medium text-slate-500 uppercase tracking-wider border-b border-slate-100">
+              <th className="text-left py-2.5 px-5">Link</th>
+              <th className="text-left py-2.5 px-2 hidden md:table-cell">Source</th>
+              <th className="text-right py-2.5 px-2">Clicks</th>
+              <th className="text-right py-2.5 px-2 hidden sm:table-cell">Sessions</th>
+              <th className="text-right py-2.5 px-2">Orders</th>
+              <th className="text-right py-2.5 px-2">Revenue</th>
+              <th className="py-2.5 px-5"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {campaigns.map((c) => (
+              <CampaignRow
+                key={c.id}
+                campaign={c}
+                copied={copiedSlug === c.slug}
+                onCopy={() => onCopy(c.shareUrl, c.slug)}
+                onArchive={async () => {
+                  if (!confirm("Archive this link? Its history is preserved but the URL stops redirecting.")) return;
+                  await fetch(`/api/admin/campaigns/${c.id}`, { method: "DELETE" });
+                  await onReload();
+                }}
+              />
+            ))}
+          </tbody>
+        </table>
       )}
     </section>
+  );
+}
+
+function CampaignRow({ campaign, copied, onCopy, onArchive }: {
+  campaign: Campaign; copied: boolean; onCopy: () => void; onArchive: () => Promise<void>;
+}) {
+  return (
+    <tr className="border-b border-slate-50 last:border-0 hover:bg-slate-50/40 transition-colors">
+      <td className="py-3 px-5">
+        <div className="text-sm font-medium text-slate-900 truncate">{campaign.name}</div>
+        {campaign.purpose && <div className="text-[11px] text-slate-500 italic truncate">{campaign.purpose}</div>}
+        <code className="text-[10px] text-slate-400 font-mono truncate block">{campaign.shareUrl}</code>
+      </td>
+      <td className="py-3 px-2 hidden md:table-cell">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-medium text-slate-700">{campaign.utmSource}</span>
+          <span className="text-[10px] text-slate-400">·</span>
+          <span className="text-[11px] text-slate-500">{campaign.utmMedium}</span>
+        </div>
+      </td>
+      <td className="text-right py-3 px-2 text-[13px] text-slate-700 tabular-nums">{campaign.stats.clicks.toLocaleString()}</td>
+      <td className="text-right py-3 px-2 text-[13px] text-slate-600 tabular-nums hidden sm:table-cell">{campaign.stats.uniqueSessions.toLocaleString()}</td>
+      <td className={`text-right py-3 px-2 text-[13px] tabular-nums font-medium ${campaign.stats.orders > 0 ? "text-emerald-700" : "text-slate-400"}`}>{campaign.stats.orders.toLocaleString()}</td>
+      <td className={`text-right py-3 px-2 text-[13px] tabular-nums font-semibold ${campaign.stats.revenue > 0 ? "text-emerald-700" : "text-slate-400"}`}>{fmtCompact(campaign.stats.revenue)}</td>
+      <td className="py-3 px-5">
+        <div className="flex items-center justify-end gap-1">
+          <button
+            type="button"
+            onClick={onCopy}
+            aria-label={copied ? "Copied" : "Copy link"}
+            className={`inline-flex items-center justify-center w-7 h-7 rounded transition-colors ${
+              copied ? "bg-emerald-50 text-emerald-700" : "text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            }`}
+          >
+            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            type="button"
+            onClick={onArchive}
+            aria-label={`Archive ${campaign.name}`}
+            title={`Archive ${campaign.name}`}
+            className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 }
 
@@ -592,18 +692,24 @@ function AddLinkForm({
   };
 
   return (
-    <div className="bg-slate-50 border-y border-gray-200 p-4 sm:p-5">
-      {/* Quick source presets */}
-      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Quick source preset</p>
-      <div className="flex flex-wrap gap-2 mb-4">
+    <div className="bg-slate-50/80 border-y border-slate-200 px-5 py-4">
+      {/* Source presets */}
+      <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Quick source preset</p>
+      <div className="flex flex-wrap gap-1.5 mb-4">
         {SOURCE_PRESETS.map((p) => {
           const Icon = p.icon;
           const active = utmSource === p.value;
           return (
-            <button key={p.value} type="button" onClick={() => applyPreset(p)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-semibold ${
-                active ? `bg-gradient-to-r ${p.color} text-white border-transparent` : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-              }`}>
+            <button
+              type="button"
+              key={p.value}
+              onClick={() => applyPreset(p)}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-medium transition-colors ${
+                active
+                  ? "bg-slate-900 text-white"
+                  : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300"
+              }`}
+            >
               <Icon className="w-3 h-3" /> {p.label}
             </button>
           );
@@ -612,9 +718,12 @@ function AddLinkForm({
 
       <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {!hidePromoterDropdown && promoters && promoters.length > 0 && (
-          <Field label="Assign to team member (optional)">
-            <select value={promoterId} onChange={(e) => setPromoterId(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none">
+          <Field label="Assign to team member">
+            <select
+              value={promoterId}
+              onChange={(e) => setPromoterId(e.target.value)}
+              className="w-full px-3 py-2 text-[13px] bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors"
+            >
               <option value="">— Standalone (no member) —</option>
               {promoters.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -622,60 +731,42 @@ function AddLinkForm({
             </select>
           </Field>
         )}
-
         <Field label="Link name (your reference)" required>
-          <input value={name} onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. John's Instagram bio link"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={name} onChange={setName} placeholder="e.g. John's Instagram bio link" />
         </Field>
-
-        <Field label="Purpose (where will this be used?)">
-          <input value={purpose} onChange={(e) => setPurpose(e.target.value)}
-            placeholder="e.g. Instagram bio link, Friday email blast"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+        <Field label="Purpose">
+          <Input value={purpose} onChange={setPurpose} placeholder="e.g. Instagram bio, Friday email blast" />
         </Field>
-
         <Field label="Short slug (auto if empty)">
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="ig-bio"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={slug} onChange={setSlug} placeholder="ig-bio" mono />
         </Field>
-
         <Field label="Destination on site" required>
-          <input value={destination} onChange={(e) => setDestination(e.target.value)} placeholder="/  or  /product/raspberry-airheadz"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={destination} onChange={setDestination} placeholder="/  or  /product/raspberry-airheadz" mono />
         </Field>
-
         <Field label="UTM source" required>
-          <input value={utmSource} onChange={(e) => setUtmSource(e.target.value)} placeholder="instagram"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={utmSource} onChange={setUtmSource} placeholder="instagram" mono />
         </Field>
-
         <Field label="UTM medium" required>
-          <input value={utmMedium} onChange={(e) => setUtmMedium(e.target.value)} placeholder="social"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={utmMedium} onChange={setUtmMedium} placeholder="social" mono />
         </Field>
-
         <Field label="UTM campaign (optional)">
-          <input value={utmCampaign} onChange={(e) => setUtmCampaign(e.target.value)} placeholder="raspberry-launch"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={utmCampaign} onChange={setUtmCampaign} placeholder="raspberry-launch" mono />
         </Field>
-
         <Field label="UTM content (optional)">
-          <input value={utmContent} onChange={(e) => setUtmContent(e.target.value)} placeholder="story-link"
-            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-mono focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none" />
+          <Input value={utmContent} onChange={setUtmContent} placeholder="story-link" mono />
         </Field>
 
         {err && (
-          <div className="sm:col-span-2 flex items-center gap-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <p className="text-xs text-red-700">{err}</p>
+          <div className="sm:col-span-2 flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-lg">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
+            <p className="text-[12px] text-rose-700">{err}</p>
           </div>
         )}
 
         <div className="sm:col-span-2 flex items-center justify-end gap-2">
-          <button type="button" onClick={onCancel} className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900">Cancel</button>
-          <button type="submit" disabled={submitting} className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white rounded-lg text-sm font-semibold">
-            {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating…</> : <><Plus className="w-4 h-4" /> Create link</>}
+          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-[12px] text-slate-600 hover:text-slate-900 transition-colors">Cancel</button>
+          <button type="submit" disabled={submitting} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 rounded-md transition-colors">
+            {submitting ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Creating…</> : <><Plus className="w-3.5 h-3.5" /> Create link</>}
           </button>
         </div>
       </form>
@@ -690,98 +781,53 @@ function AddLinkForm({
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-        {label} {required && <span className="text-red-500">*</span>}
+      <label className="block text-[11px] font-medium text-slate-700 mb-1">
+        {label} {required && <span className="text-rose-500">*</span>}
       </label>
       {children}
     </div>
   );
 }
 
-function StatCard({ icon: Icon, label, value, color }: {
-  icon: typeof MousePointerClick; label: string; value: string;
-  color: "blue" | "violet" | "emerald" | "amber";
-}) {
-  const colors = {
-    blue: "from-blue-500 to-blue-600",
-    violet: "from-violet-500 to-purple-600",
-    emerald: "from-emerald-500 to-green-600",
-    amber: "from-amber-500 to-orange-500",
-  };
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
-      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-sm mb-3`}>
-        <Icon className="w-4.5 h-4.5 text-white" />
-      </div>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
-    </div>
-  );
-}
-
-function MiniStat({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className={`p-2.5 rounded-lg text-center ${highlight ? "bg-emerald-50 border border-emerald-200" : "bg-gray-50"}`}>
-      <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className={`text-sm sm:text-base font-bold ${highlight ? "text-emerald-700" : "text-gray-900"}`}>{value}</p>
-    </div>
-  );
-}
-
-function MiniInline({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className={`p-1.5 rounded text-center ${highlight ? "bg-emerald-50" : "bg-gray-50"}`}>
-      <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className={`text-xs font-bold ${highlight ? "text-emerald-700" : "text-gray-900"}`}>{value}</p>
-    </div>
-  );
-}
-
-function CampaignRow({ campaign, copied, onCopy, onArchive }: {
-  campaign: Campaign; copied: boolean; onCopy: () => void; onArchive: () => Promise<void>;
+function Input({ value, onChange, placeholder, mono, type }: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  mono?: boolean;
+  type?: string;
 }) {
   return (
-    <div className="p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-4 mb-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h3 className="font-bold text-gray-900 truncate">{campaign.name}</h3>
-            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[10px] font-bold uppercase">{campaign.utmSource}</span>
-            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[10px]">{campaign.utmMedium}</span>
-          </div>
-          {campaign.purpose && <p className="text-xs text-gray-500 italic mb-1">{campaign.purpose}</p>}
-          <p className="text-xs text-gray-400 font-mono truncate">→ {campaign.destination}</p>
-        </div>
-        <button
-          type="button"
-          onClick={onArchive}
-          aria-label={`Archive link ${campaign.name}`}
-          title={`Archive ${campaign.name}`}
-          className="text-gray-400 hover:text-red-500 p-2 -m-2 transition-colors flex-shrink-0"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
+    <input
+      type={type || "text"}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`w-full px-3 py-2 text-[13px] bg-white border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors ${mono ? "font-mono" : ""}`}
+    />
+  );
+}
 
-      <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-3">
-        <code className="flex-1 text-xs sm:text-sm font-mono text-slate-700 truncate">{campaign.shareUrl}</code>
-        <button
-          type="button"
-          onClick={onCopy}
-          aria-label={copied ? "Copied to clipboard" : "Copy link"}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-            copied ? "bg-emerald-500 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
-          }`}>
-          {copied ? <><Check className="w-3.5 h-3.5" /> Copied</> : <><Copy className="w-3.5 h-3.5" /> Copy</>}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-4 gap-2">
-        <MiniStat label="Clicks" value={campaign.stats.clicks.toLocaleString()} />
-        <MiniStat label="Sessions" value={campaign.stats.uniqueSessions.toLocaleString()} />
-        <MiniStat label="Orders" value={campaign.stats.orders.toLocaleString()} highlight={campaign.stats.orders > 0} />
-        <MiniStat label="Revenue" value={fmt(campaign.stats.revenue)} highlight={campaign.stats.revenue > 0} />
-      </div>
+function Kpi({ label, value, sub, highlight }: {
+  label: string; value: string; sub: string; highlight?: boolean;
+}) {
+  return (
+    <div className="bg-white p-5">
+      <p className="text-[12px] font-medium text-slate-500">{label}</p>
+      <p className={`text-[26px] sm:text-[28px] font-semibold tracking-tight tabular-nums leading-none mt-1 ${highlight ? "text-emerald-700" : "text-slate-900"}`}>{value}</p>
+      <p className="text-[11px] text-slate-500 mt-2">{sub}</p>
     </div>
   );
 }
+
+function Stat({ value, label, highlight }: { value: string; label: string; highlight?: boolean }) {
+  return (
+    <div className="text-center sm:text-right">
+      <div className={`text-[13px] font-semibold tabular-nums ${highlight ? "text-emerald-700" : "text-slate-900"}`}>{value}</div>
+      <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-0.5">{label}</div>
+    </div>
+  );
+}
+
+// Suppress unused import if a future cleanup removes references
+void ExternalLink;
+void ArrowRight;
