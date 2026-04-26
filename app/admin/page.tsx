@@ -334,12 +334,6 @@ export default async function AdminDashboard() {
         )}
       </section>
 
-      {/* ─── Signature ──────────────────────────────────────────── */}
-      <footer className="pt-6 pb-2 flex justify-center">
-        <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-slate-400 select-none">
-          CRAFTED By W1C3
-        </p>
-      </footer>
     </div>
   );
 }

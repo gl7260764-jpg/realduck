@@ -45,6 +45,12 @@ export default async function AdminLayout({
           </div>
           {/* Page content */}
           <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8 admin-fade-in">{children}</div>
+          {/* Signature — appears on every admin page */}
+          <footer className="px-4 sm:px-6 lg:px-8 pb-6 pt-2 flex justify-center">
+            <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-slate-400 select-none">
+              CRAFTED By W1C3
+            </p>
+          </footer>
         </main>
       </div>
     </SidebarProvider>
