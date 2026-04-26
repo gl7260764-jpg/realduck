@@ -239,11 +239,14 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
           {/* Pricing */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-sm font-semibold text-gray-900 mb-3">Pricing</h2>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Pricing</h2>
+            <p className="text-[11px] text-gray-500 mb-3">
+              These are the prices customers actually pay (the active prices).
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Local Price *
+                  Local Price (Intown) — <span className="text-emerald-600 font-semibold">active</span> *
                 </label>
                 <textarea
                   name="priceLocal"
@@ -254,10 +257,11 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
                   placeholder="$600/HP&#10;$1100/P"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">The price customers see and pay.</p>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Shipped Price *
+                  Shipped Price — <span className="text-emerald-600 font-semibold">active</span> *
                 </label>
                 <textarea
                   name="priceShip"
@@ -268,27 +272,32 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
                   placeholder="$650/HP&#10;$1200/P"
                 />
+                <p className="text-[10px] text-gray-400 mt-1">The price customers see and pay.</p>
               </div>
             </div>
 
             {/* Slashed/compare-at prices — optional, leave empty to auto-calc */}
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                  Slashed price <span className="text-gray-400 font-normal normal-case tracking-normal">(optional)</span>
+            <div className="mt-5 pt-5 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-semibold text-gray-900">
+                  Compare-at price <span className="text-gray-400 font-normal">(crossed out)</span>
                 </h3>
                 <span className="text-[10px] text-gray-500">
-                  Leave empty → auto-calculated as +30%
+                  Empty → auto +30%
                 </span>
               </div>
               <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
-                Shown crossed-out next to the real price as a "compare-at" / discount indicator.
-                Use the same multi-line format as the price above (one slashed price per real price line).
+                The <strong>old / higher</strong> price shown <span className="line-through text-rose-600">crossed out</span> next to the active price.
+                Always enter a value <strong>higher than</strong> the active price (or leave empty to auto-calculate as +30%).
+                Same multi-line format as the price above.
               </p>
+              <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 mb-3 text-[11px] text-blue-900 leading-relaxed">
+                <strong>Example:</strong> active price <code className="px-1 py-0.5 bg-white rounded text-blue-700">$400</code> · compare-at <code className="px-1 py-0.5 bg-white rounded text-blue-700">$800</code> displays as <span className="text-rose-600 line-through font-semibold">$800</span> <span className="font-semibold">$400</span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Slashed Local Price
+                    Compare-at Local Price <span className="text-gray-400 font-normal">(higher than active)</span>
                   </label>
                   <textarea
                     name="slashedPriceLocal"
@@ -296,12 +305,12 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                     onChange={handleChange}
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
-                    placeholder="$800/HP&#10;$1500/P"
+                    placeholder="$1200/HP&#10;$2200/P (higher than active)"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Slashed Shipped Price
+                    Compare-at Shipped Price <span className="text-gray-400 font-normal">(higher than active)</span>
                   </label>
                   <textarea
                     name="slashedPriceShip"
@@ -309,7 +318,7 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                     onChange={handleChange}
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
-                    placeholder="$900/HP&#10;$1700/P"
+                    placeholder="$1300/HP&#10;$2400/P (higher than active)"
                   />
                 </div>
               </div>
