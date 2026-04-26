@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Save, Send, MessageSquare, CheckCircle, AlertCircle, Loader2, ExternalLink, Bot, Mail, Server, Shield, Eye, EyeOff, Music, Phone, MessageCircle, Settings as SettingsIcon, Link2 } from "lucide-react";
 
@@ -69,13 +69,6 @@ export default function SettingsPage() {
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [activeSection, setActiveSection] = useState<SectionKey>("social");
 
-  // Refs for scroll-into-view when sidebar nav is clicked
-  const sectionRefs = useRef<Record<SectionKey, HTMLElement | null>>({
-    social: null,
-    telegram: null,
-    email: null,
-  });
-
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((r) => {
@@ -97,23 +90,6 @@ export default function SettingsPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [router]);
-
-  // Highlight the section currently in view as the user scrolls
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const key = entry.target.getAttribute("data-section") as SectionKey | null;
-            if (key) setActiveSection(key);
-          }
-        }
-      },
-      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
-    );
-    Object.values(sectionRefs.current).forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, [loading]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -139,12 +115,10 @@ export default function SettingsPage() {
     }
   };
 
-  const scrollToSection = (key: SectionKey) => {
-    const el = sectionRefs.current[key];
-    if (!el) return;
-    const top = el.getBoundingClientRect().top + window.scrollY - 100;
-    window.scrollTo({ top, behavior: "smooth" });
+  const switchSection = (key: SectionKey) => {
     setActiveSection(key);
+    // Scroll back to top so the user sees the freshly-rendered section
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const toggleSecret = (key: string) =>
@@ -348,7 +322,7 @@ export default function SettingsPage() {
                   <li key={s.key} className="flex-shrink-0">
                     <button
                       type="button"
-                      onClick={() => scrollToSection(s.key)}
+                      onClick={() => switchSection(s.key)}
                       className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
                         isActive ? "bg-slate-900 text-white" : "bg-white border border-slate-200 text-slate-600"
                       }`}
@@ -369,7 +343,7 @@ export default function SettingsPage() {
                   <li key={s.key}>
                     <button
                       type="button"
-                      onClick={() => scrollToSection(s.key)}
+                      onClick={() => switchSection(s.key)}
                       className={`group w-full text-left flex items-start gap-3 px-3 py-2.5 rounded-lg transition-all border ${
                         isActive
                           ? "bg-white border-slate-200 shadow-sm"
@@ -408,11 +382,8 @@ export default function SettingsPage() {
         <main className="lg:col-span-9 xl:col-span-9 2xl:col-span-10 space-y-6 xl:space-y-8">
 
           {/* SOCIAL */}
-          <section
-            data-section="social"
-            ref={(el) => { sectionRefs.current.social = el; }}
-            className="scroll-mt-24"
-          >
+          {activeSection === "social" && (
+          <section className="admin-fade-in">
             <SectionHeader
               title="Social & contact links"
               description="Public channels shown across your storefront. Empty fields are hidden from the site automatically."
@@ -448,13 +419,11 @@ export default function SettingsPage() {
               ))}
             </div>
           </section>
+          )}
 
           {/* TELEGRAM */}
-          <section
-            data-section="telegram"
-            ref={(el) => { sectionRefs.current.telegram = el; }}
-            className="scroll-mt-24"
-          >
+          {activeSection === "telegram" && (
+          <section className="admin-fade-in">
             <SectionHeader
               title="Telegram bot"
               description="Bot credentials for receiving order notifications in your Telegram chat."
@@ -481,13 +450,11 @@ export default function SettingsPage() {
               ))}
             </div>
           </section>
+          )}
 
           {/* EMAIL */}
-          <section
-            data-section="email"
-            ref={(el) => { sectionRefs.current.email = el; }}
-            className="scroll-mt-24"
-          >
+          {activeSection === "email" && (
+          <section className="admin-fade-in">
             <SectionHeader
               title="Email & SMTP"
               description="Outbound email server config and admin notification address."
@@ -513,6 +480,7 @@ export default function SettingsPage() {
               ))}
             </div>
           </section>
+          )}
 
           {/* Mobile-only inline status (desktop has it in the sticky bar) */}
           {(status === "success" || status === "error") && (
