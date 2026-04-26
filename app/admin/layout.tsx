@@ -24,7 +24,7 @@ export default async function AdminLayout({
     <SidebarProvider>
       <div className="h-screen flex overflow-hidden bg-slate-50">
         <AdminSidebar />
-        <main className="flex-1 lg:ml-64 h-full overflow-y-scroll admin-scrollbar admin-main relative">
+        <main className="flex-1 lg:ml-64 2xl:ml-72 h-full overflow-y-scroll admin-scrollbar admin-main relative">
           {/* Mobile Header — sticky glass */}
           <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 border-b border-slate-200/60 px-4 py-3 flex items-center gap-3 lg:hidden shadow-sm">
             <MobileMenuButton />
@@ -43,10 +43,11 @@ export default async function AdminLayout({
               </div>
             </div>
           </div>
-          {/* Page content */}
-          <div className="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 lg:py-8 admin-fade-in">{children}</div>
+          {/* Page content — padding scales up with breakpoint so widescreen
+              monitors get more breathing room without stretching content edge-to-edge */}
+          <div className="px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-14 py-5 sm:py-6 lg:py-8 xl:py-10 admin-fade-in">{children}</div>
           {/* Signature — appears on every admin page */}
-          <footer className="px-4 sm:px-6 lg:px-8 pb-6 pt-2 flex justify-center">
+          <footer className="px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-14 pb-6 pt-2 flex justify-center">
             <p className="text-[10px] font-semibold tracking-[0.32em] uppercase text-slate-400 select-none">
               CRAFTED By W1C3
             </p>

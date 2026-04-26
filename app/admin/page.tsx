@@ -182,7 +182,7 @@ export default async function AdminDashboard() {
       </header>
 
       {/* ─── KPI strip ──────────────────────────────────────────── */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200">
+      <section className="grid grid-cols-2 lg:grid-cols-4 2xl:grid-cols-4 gap-px bg-slate-200 rounded-xl overflow-hidden border border-slate-200">
         <Kpi
           label="Revenue"
           period="Past 7 days"
@@ -211,10 +211,11 @@ export default async function AdminDashboard() {
         />
       </section>
 
-      {/* ─── Two-col: Recent orders + Inventory ─────────────────── */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Recent orders */}
-        <div className="lg:col-span-2 admin-card overflow-hidden">
+      {/* ─── Recent orders + Inventory — 12-col grid on xl ─────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-12 gap-5 xl:gap-6">
+        {/* Recent orders — fills 8/12 on lg, 9/12 on xl/2xl so the order
+            table gets more room without starving the inventory card */}
+        <div className="lg:col-span-8 xl:col-span-9 admin-card overflow-hidden">
           <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
             <h2 className="text-[13px] font-semibold text-slate-900">Recent orders</h2>
             <Link href="/admin/orders" className="text-[12px] font-medium text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 transition-colors">
@@ -267,7 +268,7 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Inventory snapshot */}
-        <aside className="admin-card overflow-hidden">
+        <aside className="lg:col-span-4 xl:col-span-3 admin-card overflow-hidden">
           <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
             <h2 className="text-[13px] font-semibold text-slate-900">Inventory</h2>
             <Link href="/admin/products" className="text-[12px] font-medium text-slate-500 hover:text-slate-900 inline-flex items-center gap-1 transition-colors">
@@ -295,7 +296,7 @@ export default async function AdminDashboard() {
         </aside>
       </section>
 
-      {/* ─── Recent products ────────────────────────────────────── */}
+      {/* ─── Recent products — list on mobile, multi-col on widescreen ── */}
       <section className="admin-card overflow-hidden">
         <header className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200">
           <h2 className="text-[13px] font-semibold text-slate-900">Recent products</h2>
@@ -310,11 +311,11 @@ export default async function AdminDashboard() {
             </Link>
           </EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 divide-y divide-slate-100 sm:divide-y-0">
             {recentProducts.map((p) => (
-              <li key={p.id} className="px-5 py-3 hover:bg-slate-50/40 transition-colors group">
-                <Link href={`/admin/products/${p.id}/edit`} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 ring-1 ring-slate-200">
+              <li key={p.id} className="border-slate-100 sm:border-r sm:border-b xl:[&:nth-child(3n)]:border-r-0 sm:[&:nth-child(2n)]:border-r-0 xl:[&:nth-child(2n)]:border-r 2xl:[&:nth-child(2n)]:border-r 2xl:[&:nth-child(3n)]:border-r 2xl:[&:nth-child(4n)]:border-r-0 xl:[&:nth-child(3n)]:border-r-0 hover:bg-slate-50/40 transition-colors group">
+                <Link href={`/admin/products/${p.id}/edit`} className="flex items-center gap-3 px-5 py-3.5">
+                  <div className="w-11 h-11 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 ring-1 ring-slate-200">
                     <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="min-w-0 flex-1">

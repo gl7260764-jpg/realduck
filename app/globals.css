@@ -204,8 +204,18 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 1400px;
+  /* Full-width on huge screens, capped only on monitors >2300px so content
+     stays readable on ultra-wide displays without becoming a single line. */
+  max-width: 2200px;
   margin: 0 auto;
+  width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .admin-page { gap: 1.75rem; }
+}
+@media (min-width: 1536px) {
+  .admin-page { gap: 2rem; }
 }
 
 .admin-page-header {

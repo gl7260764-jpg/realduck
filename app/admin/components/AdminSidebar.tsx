@@ -99,7 +99,7 @@ export default function AdminSidebar() {
         className={`
           admin-sidebar fixed left-0 top-0 h-full
           flex flex-col z-50
-          w-72 sm:w-64
+          w-72 sm:w-64 2xl:w-72
           transition-all duration-300 ease-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
