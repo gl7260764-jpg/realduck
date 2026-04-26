@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Eye, CalendarClock, Bell } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Eye, CalendarClock, Bell, Users } from "lucide-react";
 import FileUpload from "../../components/FileUpload";
 
 type LinkMode = "announcements" | "product" | "custom";
@@ -22,11 +22,20 @@ export default function NewAnnouncementPage() {
   const [products, setProducts] = useState<LiteProduct[]>([]);
   const [productQuery, setProductQuery] = useState("");
   const [selectedProductId, setSelectedProductId] = useState("");
+  // How many people will receive the push when this is posted.
+  // Pulled from the same /api/admin/pwa stats the dashboard uses.
+  const [pushReach, setPushReach] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/products")
       .then((r) => (r.ok ? r.json() : []))
       .then((d) => Array.isArray(d) ? setProducts(d.map((p) => ({ id: p.id, slug: p.slug, title: p.title, category: p.category }))) : null)
+      .catch(() => {});
+    fetch("/api/admin/pwa")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && typeof d.stats?.activeSubscribers === "number") setPushReach(d.stats.activeSubscribers);
+      })
       .catch(() => {});
   }, []);
 
@@ -208,12 +217,26 @@ export default function NewAnnouncementPage() {
 
           {/* Publish Now Options */}
           {!scheduleMode && (
-            <div className="flex items-start gap-3 p-3 rounded-xl bg-blue-50 border border-blue-100">
-              <Bell className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Publish &amp; Notify Everyone</p>
-                <p className="text-xs text-gray-600 mt-0.5">
-                  Publishing will immediately send a push notification to every subscriber — it appears on their lock screen like a WhatsApp message.
+            <div className="rounded-xl bg-blue-50 border border-blue-100 overflow-hidden">
+              <div className="flex items-start gap-3 p-3">
+                <Bell className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900">Publish &amp; Notify Everyone</p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    Publishing will immediately send a push notification to every subscriber — it appears on their lock screen like a WhatsApp message.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2.5 bg-white/80 border-t border-blue-100">
+                <Users className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <p className="text-xs sm:text-sm text-gray-700">
+                  This will reach{" "}
+                  {pushReach === null ? (
+                    <span className="inline-block w-12 h-4 bg-gray-200 animate-pulse rounded align-middle" />
+                  ) : (
+                    <strong className="text-blue-700 tabular-nums">{pushReach.toLocaleString()} {pushReach === 1 ? "subscriber" : "subscribers"}</strong>
+                  )}{" "}
+                  who installed the app and accepted notifications.
                 </p>
               </div>
             </div>
@@ -236,6 +259,18 @@ export default function NewAnnouncementPage() {
               <p className="text-xs text-gray-500 mt-1.5">
                 The announcement will auto-publish and send push notifications to all subscribers at this time.
               </p>
+              <div className="flex items-center gap-2 mt-2.5 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg">
+                <Users className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                <p className="text-xs text-gray-700">
+                  Will reach{" "}
+                  {pushReach === null ? (
+                    <span className="inline-block w-10 h-3 bg-gray-200 animate-pulse rounded align-middle" />
+                  ) : (
+                    <strong className="text-blue-700 tabular-nums">{pushReach.toLocaleString()} {pushReach === 1 ? "subscriber" : "subscribers"}</strong>
+                  )}{" "}
+                  at scheduled time (count may grow before then).
+                </p>
+              </div>
             </div>
           )}
         </div>
