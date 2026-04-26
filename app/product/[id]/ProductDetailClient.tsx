@@ -33,15 +33,7 @@ import { useSettings } from "../../context/SettingsContext";
 import { optimizeImage, blurUrl } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/formatPrice";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
-
-function slashedPrice(priceStr: string): string | null {
-  const match = priceStr.match(/\$?([\d,]+(?:\.\d+)?)/);
-  if (!match) return null;
-  const num = parseFloat(match[1].replace(",", ""));
-  if (isNaN(num) || num <= 0) return null;
-  const original = Math.round(num * 1.3);
-  return `$${original.toLocaleString()}`;
-}
+import { slashedPrice, nthLine } from "@/lib/slashedPrice";
 
 interface Product {
   id: string;
@@ -52,6 +44,8 @@ interface Product {
   rating: string;
   priceLocal: string;
   priceShip: string;
+  slashedPriceLocal?: string | null;
+  slashedPriceShip?: string | null;
   isSoldOut: boolean;
   imageUrl: string;
   images?: string[];
@@ -594,8 +588,8 @@ export default function ProductDetailClient({
                 <div className="space-y-1.5">
                   {priceLocalLines.map((line, idx) => {
                     const shipLine = priceShipLines[idx] || "N/A";
-                    const localSlash = slashedPrice(line);
-                    const shipSlash = slashedPrice(shipLine);
+                    const localSlash = slashedPrice(line, nthLine(product.slashedPriceLocal, idx));
+                    const shipSlash = slashedPrice(shipLine, nthLine(product.slashedPriceShip, idx));
                     return (
                       <div
                         key={idx}

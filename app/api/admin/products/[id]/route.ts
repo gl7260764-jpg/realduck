@@ -60,6 +60,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       rating,
       priceLocal,
       priceShip,
+      slashedPriceLocal,
+      slashedPriceShip,
       isSoldOut,
       imageUrl,
       images,
@@ -113,6 +115,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(rating && { rating }),
         ...(priceLocal && { priceLocal }),
         ...(priceShip && { priceShip }),
+        // Allow editor to clear the slashed prices (revert to auto-calc) by sending an empty string.
+        ...(slashedPriceLocal !== undefined && { slashedPriceLocal: slashedPriceLocal?.trim() || null }),
+        ...(slashedPriceShip !== undefined && { slashedPriceShip: slashedPriceShip?.trim() || null }),
         ...(isSoldOut !== undefined && { isSoldOut }),
         ...(imageUrl && { imageUrl }),
         ...(images !== undefined && { images: Array.isArray(images) ? images : [] }),

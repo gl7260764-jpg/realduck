@@ -12,14 +12,7 @@ import { optimizeImage, blurUrl } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/formatPrice";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 
-function slashedPrice(priceStr: string): string | null {
-  const match = priceStr.match(/\$?([\d,]+(?:\.\d+)?)/);
-  if (!match) return null;
-  const num = parseFloat(match[1].replace(",", ""));
-  if (isNaN(num) || num <= 0) return null;
-  const original = Math.round(num * 1.3);
-  return `$${original.toLocaleString()}`;
-}
+import { slashedPrice, nthLine } from "@/lib/slashedPrice";
 
 interface ProductCardProps {
   id: string;
@@ -30,6 +23,10 @@ interface ProductCardProps {
   rating: string;
   priceLocal: string;
   priceShip: string;
+  /** Optional admin-set "compare-at" price shown crossed out next to priceLocal. */
+  slashedPriceLocal?: string | null;
+  /** Optional admin-set "compare-at" price shown crossed out next to priceShip. */
+  slashedPriceShip?: string | null;
   isSoldOut: boolean;
   imageUrl: string;
   videoUrl?: string | null;
@@ -44,6 +41,8 @@ export default function ProductCard({
   rating,
   priceLocal,
   priceShip,
+  slashedPriceLocal,
+  slashedPriceShip,
   isSoldOut,
   imageUrl,
   videoUrl,
@@ -545,8 +544,8 @@ export default function ProductCard({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Intown:</span>
                     <div className="flex items-center gap-1.5">
-                      {slashedPrice(priceLocalLines[0]) && (
-                        <span className="text-[10px] text-red-600 line-through font-bold">{slashedPrice(priceLocalLines[0])}</span>
+                      {slashedPrice(priceLocalLines[0], nthLine(slashedPriceLocal, 0)) && (
+                        <span className="text-[10px] text-red-600 line-through font-bold">{slashedPrice(priceLocalLines[0], nthLine(slashedPriceLocal, 0))}</span>
                       )}
                       <span className="font-semibold text-gray-900">{priceLocalLines[0]}</span>
                     </div>
@@ -554,8 +553,8 @@ export default function ProductCard({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Shipped:</span>
                     <div className="flex items-center gap-1.5">
-                      {slashedPrice(priceShipLines[0]) && (
-                        <span className="text-[10px] text-red-600 line-through font-bold">{slashedPrice(priceShipLines[0])}</span>
+                      {slashedPrice(priceShipLines[0], nthLine(slashedPriceShip, 0)) && (
+                        <span className="text-[10px] text-red-600 line-through font-bold">{slashedPrice(priceShipLines[0], nthLine(slashedPriceShip, 0))}</span>
                       )}
                       <span className="font-semibold text-gray-900">{priceShipLines[0]}</span>
                     </div>
@@ -564,17 +563,19 @@ export default function ProductCard({
               ) : (
                 priceLocalLines.map((localLine, idx) => {
                   const shipLine = priceShipLines[idx] || "";
+                  const localSlash = slashedPrice(localLine, nthLine(slashedPriceLocal, idx));
+                  const shipSlash = slashedPrice(shipLine, nthLine(slashedPriceShip, idx));
                   return (
                     <div key={idx} className="flex justify-between text-[10px]">
                       <div className="flex items-center gap-1">
-                        {slashedPrice(localLine) && (
-                          <span className="text-red-600 line-through font-bold">{slashedPrice(localLine)}</span>
+                        {localSlash && (
+                          <span className="text-red-600 line-through font-bold">{localSlash}</span>
                         )}
                         <span className="text-gray-700 font-medium">{localLine}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        {slashedPrice(shipLine) && (
-                          <span className="text-red-600 line-through font-bold">{slashedPrice(shipLine)}</span>
+                        {shipSlash && (
+                          <span className="text-red-600 line-through font-bold">{shipSlash}</span>
                         )}
                         <span className="text-gray-700 font-medium">{shipLine}</span>
                       </div>

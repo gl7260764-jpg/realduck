@@ -31,6 +31,8 @@ interface Product {
   rating: string;
   priceLocal: string;
   priceShip: string;
+  slashedPriceLocal?: string | null;
+  slashedPriceShip?: string | null;
   isSoldOut: boolean;
   imageUrl: string;
   images?: string[];
@@ -55,6 +57,8 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     rating: product?.rating || "10/10",
     priceLocal: product?.priceLocal || "",
     priceShip: product?.priceShip || "",
+    slashedPriceLocal: product?.slashedPriceLocal || "",
+    slashedPriceShip: product?.slashedPriceShip || "",
     isSoldOut: product?.isSoldOut ?? false,
     imageUrl: product?.imageUrl || "",
     images: product?.images || [] as string[],
@@ -264,6 +268,50 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
                   placeholder="$650/HP&#10;$1200/P"
                 />
+              </div>
+            </div>
+
+            {/* Slashed/compare-at prices — optional, leave empty to auto-calc */}
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                  Slashed price <span className="text-gray-400 font-normal normal-case tracking-normal">(optional)</span>
+                </h3>
+                <span className="text-[10px] text-gray-500">
+                  Leave empty → auto-calculated as +30%
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
+                Shown crossed-out next to the real price as a "compare-at" / discount indicator.
+                Use the same multi-line format as the price above (one slashed price per real price line).
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Slashed Local Price
+                  </label>
+                  <textarea
+                    name="slashedPriceLocal"
+                    value={formData.slashedPriceLocal}
+                    onChange={handleChange}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                    placeholder="$800/HP&#10;$1500/P"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Slashed Shipped Price
+                  </label>
+                  <textarea
+                    name="slashedPriceShip"
+                    value={formData.slashedPriceShip}
+                    onChange={handleChange}
+                    rows={2}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                    placeholder="$900/HP&#10;$1700/P"
+                  />
+                </div>
               </div>
             </div>
           </div>

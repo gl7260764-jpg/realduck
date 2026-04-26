@@ -13,6 +13,8 @@ interface Product {
   rating: string;
   priceLocal: string;
   priceShip: string;
+  slashedPriceLocal?: string | null;
+  slashedPriceShip?: string | null;
   isSoldOut: boolean;
   imageUrl: string;
   videoUrl?: string | null;
@@ -84,6 +86,8 @@ export default function ProductGrid({ products }: ProductGridProps) {
             rating={product.rating}
             priceLocal={product.priceLocal}
             priceShip={product.priceShip}
+            slashedPriceLocal={product.slashedPriceLocal}
+            slashedPriceShip={product.slashedPriceShip}
             isSoldOut={product.isSoldOut}
             imageUrl={product.imageUrl}
             videoUrl={product.videoUrl}

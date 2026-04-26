@@ -63,6 +63,11 @@ model Product {
   rating      String   @default("10/10")
   priceLocal  String
   priceShip   String
+  // Optional "compare-at" / slashed prices shown crossed-out next to the
+  // real price. If empty, the storefront falls back to auto-calculating
+  // a 30%-higher slashed value. Same multi-line shape as priceLocal/Ship.
+  slashedPriceLocal String?
+  slashedPriceShip  String?
   isSoldOut   Boolean  @default(false)
   imageUrl    String
   images      String[] @default([])
