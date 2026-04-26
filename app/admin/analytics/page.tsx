@@ -39,6 +39,9 @@ import {
   BarChart3,
   Link2,
   Copy,
+  Search,
+  Share2,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -107,6 +110,13 @@ interface AnalyticsData {
     revenue: number;
     linkCount: number;
   }>;
+  trafficChannels: {
+    total: number;
+    breakdown: Array<{ key: string; label: string; count: number; pct: number }>;
+    topSeoSources: Array<{ source: string; count: number }>;
+    topSocialSources: Array<{ source: string; count: number }>;
+    topOtherSources: Array<{ source: string; count: number }>;
+  };
   countryBreakdown: Array<{ country: string; count: number }>;
   inventory: {
     totalProducts: number;
@@ -170,6 +180,63 @@ const DEVICE_ICONS: Record<string, typeof Monitor> = {
   desktop: Monitor,
   mobile: Smartphone,
   tablet: Tablet,
+};
+
+// Color tokens + icons for the Traffic Channels card
+const CHANNEL_COLORS: Record<string, {
+  icon: typeof Search;
+  iconGradient: string;
+  bar: string;
+  cardBg: string;
+  border: string;
+  pillBg: string;
+  pillText: string;
+}> = {
+  seo: {
+    icon: Search,
+    iconGradient: "from-blue-500 to-cyan-600",
+    bar: "bg-blue-500",
+    cardBg: "bg-gradient-to-br from-blue-50/40 to-white",
+    border: "border-blue-200/60",
+    pillBg: "bg-blue-100",
+    pillText: "text-blue-700",
+  },
+  tracked: {
+    icon: Link2,
+    iconGradient: "from-indigo-500 to-violet-600",
+    bar: "bg-indigo-500",
+    cardBg: "bg-gradient-to-br from-indigo-50/40 to-white",
+    border: "border-indigo-200/60",
+    pillBg: "bg-indigo-100",
+    pillText: "text-indigo-700",
+  },
+  social: {
+    icon: Share2,
+    iconGradient: "from-rose-500 to-pink-600",
+    bar: "bg-rose-500",
+    cardBg: "bg-gradient-to-br from-rose-50/40 to-white",
+    border: "border-rose-200/60",
+    pillBg: "bg-rose-100",
+    pillText: "text-rose-700",
+  },
+  direct: {
+    icon: Globe,
+    iconGradient: "from-emerald-500 to-teal-600",
+    bar: "bg-emerald-500",
+    cardBg: "bg-gradient-to-br from-emerald-50/40 to-white",
+    border: "border-emerald-200/60",
+    pillBg: "bg-emerald-100",
+    pillText: "text-emerald-700",
+  },
+  other: {
+    icon: ExternalLink,
+    iconGradient: "from-amber-500 to-orange-600",
+    bar: "bg-amber-500",
+    cardBg: "bg-gradient-to-br from-amber-50/40 to-white",
+    border: "border-amber-200/60",
+    pillBg: "bg-amber-100",
+    pillText: "text-amber-700",
+  },
 };
 
 type DateRange = "24h" | "7d" | "30d" | "90d";
@@ -829,6 +896,95 @@ export default function AnalyticsPage() {
             </div>
           ) : (
             <EmptyState icon={Globe} text="No country data yet" subtext="Geo data appears with real visitors" />
+          )}
+        </CollapsibleSection>
+
+        {/* ─── TRAFFIC CHANNELS — categorised overview ─────────── */}
+        <CollapsibleSection
+          title="Traffic Channels"
+          icon={PieChartIcon}
+          badge={data.trafficChannels?.total || undefined}
+        >
+          {data.trafficChannels && data.trafficChannels.total > 0 ? (
+            <div className="space-y-5">
+              {/* Stacked bar showing share of each channel */}
+              <div>
+                <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
+                  {data.trafficChannels.breakdown
+                    .filter((c) => c.count > 0)
+                    .map((c) => (
+                      <div
+                        key={c.key}
+                        title={`${c.label}: ${c.count.toLocaleString()} (${c.pct}%)`}
+                        className={`h-full transition-all ${CHANNEL_COLORS[c.key]?.bar || "bg-slate-400"}`}
+                        style={{ width: `${c.pct}%` }}
+                      />
+                    ))}
+                </div>
+                <p className="text-[11px] text-slate-400 mt-2 text-center">
+                  Total tracked: <strong className="text-slate-700">{data.trafficChannels.total.toLocaleString()}</strong> visits + clicks
+                </p>
+              </div>
+
+              {/* Per-channel cards with top sources */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+                {data.trafficChannels.breakdown.map((c) => {
+                  const color = CHANNEL_COLORS[c.key];
+                  const Icon = color?.icon || Globe;
+                  // Top sources per channel
+                  let topSources: Array<{ source: string; count: number }> = [];
+                  if (c.key === "seo") topSources = data.trafficChannels.topSeoSources;
+                  else if (c.key === "social") topSources = data.trafficChannels.topSocialSources;
+                  else if (c.key === "other") topSources = data.trafficChannels.topOtherSources;
+
+                  return (
+                    <div
+                      key={c.key}
+                      className={`relative overflow-hidden rounded-2xl border ${color?.border || "border-slate-200"} ${color?.cardBg || "bg-white"} p-4 transition-all hover:shadow-md`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${color?.iconGradient || "from-slate-500 to-slate-700"} flex items-center justify-center shadow-sm`}>
+                          <Icon className="w-4 h-4 text-white" strokeWidth={2.4} />
+                        </div>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${color?.pillBg || "bg-slate-100"} ${color?.pillText || "text-slate-700"}`}>
+                          {c.pct}%
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider truncate">{c.label}</p>
+                      <p className="text-2xl font-extrabold text-slate-900 tabular-nums leading-tight">{c.count.toLocaleString()}</p>
+
+                      {/* Top sources */}
+                      {topSources.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
+                          {topSources.slice(0, 3).map((s) => (
+                            <div key={s.source} className="flex items-center justify-between gap-2 text-[11px]">
+                              <span className="text-slate-600 truncate font-medium">{s.source}</span>
+                              <span className="text-slate-900 font-bold tabular-nums">{s.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {c.key === "tracked" && c.count > 0 && (
+                        <p className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                          Visits via your <a href="/admin/links" className="text-indigo-600 font-semibold hover:underline">/r/&lt;slug&gt;</a> short links
+                        </p>
+                      )}
+                      {c.key === "direct" && (
+                        <p className="mt-3 pt-3 border-t border-slate-100 text-[11px] text-slate-500">
+                          Typed URL, bookmark, or app referer stripped
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <EmptyState
+              icon={PieChartIcon}
+              text="No traffic data yet"
+              subtext="Categorised view appears once visits start flowing in"
+            />
           )}
         </CollapsibleSection>
 

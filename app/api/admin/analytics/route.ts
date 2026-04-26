@@ -498,6 +498,100 @@ export async function GET(request: NextRequest) {
       .map((p) => ({ ...p, revenue: Math.round(p.revenue * 100) / 100 }))
       .sort((a, b) => b.clicks - a.clicks);
 
+    // ── TRAFFIC CHANNEL CATEGORISATION ─────────────────────────────
+    // Bucket every visit + click into one of 4 categories so the user
+    // can see at-a-glance what % of traffic is SEO vs custom links vs
+    // organic social vs direct/other.
+    //
+    // PageView.refererDomain tells us where the visit came from:
+    //   - search engines  → SEO
+    //   - social domains  → Organic Social
+    //   - null / empty    → Direct
+    //   - everything else → Other (other websites, blog mentions, etc.)
+    //
+    // CampaignClick rows are counted separately as "Tracked Links" —
+    // these are the visits that came through your /r/<slug> URLs.
+    // (Some overlap is possible — IG in-app browsers may also stamp a
+    //  referer — but in practice this is a small fraction.)
+    const SEARCH_HOSTS = new Set([
+      "google.com", "google.co.uk", "google.com.au", "google.ca",
+      "bing.com", "duckduckgo.com", "yahoo.com", "yandex.com",
+      "naver.com", "baidu.com", "ecosia.org", "brave.com",
+      "search.brave.com", "qwant.com", "kagi.com",
+    ]);
+    const SOCIAL_HOSTS = new Set([
+      "instagram.com", "l.instagram.com", "facebook.com", "l.facebook.com", "m.facebook.com", "lm.facebook.com",
+      "twitter.com", "x.com", "t.co",
+      "telegram.me", "t.me", "web.telegram.org",
+      "snapchat.com",
+      "tiktok.com",
+      "reddit.com", "old.reddit.com", "out.reddit.com",
+      "pinterest.com", "pinterest.co.uk", "pinterest.com.au",
+      "linkedin.com", "lnkd.in",
+      "youtube.com", "m.youtube.com", "youtu.be",
+      "whatsapp.com",
+      "discord.com", "discord.gg", "discordapp.com",
+      "threads.net",
+    ]);
+
+    function classify(host: string | null): "seo" | "social" | "direct" | "other" {
+      if (!host) return "direct";
+      const h = host.toLowerCase().replace(/^www\./, "");
+      if (SEARCH_HOSTS.has(h)) return "seo";
+      if (SOCIAL_HOSTS.has(h)) return "social";
+      // Common search subdomain patterns
+      if (h.startsWith("google.") || h.endsWith(".google.com")) return "seo";
+      if (h.includes("search.")) return "seo";
+      return "other";
+    }
+
+    // Pull all pageviews in range with their refererDomain
+    const rangePageViewRows = await prisma.pageView.findMany({
+      where: { createdAt: { gte: rangeStart } },
+      select: { refererDomain: true },
+    });
+
+    const channelCounts = { seo: 0, social: 0, direct: 0, other: 0 };
+    const seoSources = new Map<string, number>();
+    const socialSources = new Map<string, number>();
+    const otherSources = new Map<string, number>();
+
+    for (const pv of rangePageViewRows) {
+      const cls = classify(pv.refererDomain);
+      channelCounts[cls] += 1;
+      const host = (pv.refererDomain || "").toLowerCase().replace(/^www\./, "");
+      if (cls === "seo" && host) seoSources.set(host, (seoSources.get(host) || 0) + 1);
+      else if (cls === "social" && host) socialSources.set(host, (socialSources.get(host) || 0) + 1);
+      else if (cls === "other" && host) otherSources.set(host, (otherSources.get(host) || 0) + 1);
+    }
+
+    const trackedLinkClicks = rangeCampaignClicks.length;
+    const totalAttributable = channelCounts.seo + channelCounts.social + channelCounts.direct + channelCounts.other + trackedLinkClicks;
+
+    function pct(n: number) {
+      return totalAttributable > 0 ? Number(((n / totalAttributable) * 100).toFixed(1)) : 0;
+    }
+
+    const trafficChannels = {
+      total: totalAttributable,
+      breakdown: [
+        { key: "seo",     label: "Search (SEO)",      count: channelCounts.seo,    pct: pct(channelCounts.seo) },
+        { key: "tracked", label: "Tracked Links",     count: trackedLinkClicks,    pct: pct(trackedLinkClicks) },
+        { key: "social",  label: "Organic Social",    count: channelCounts.social, pct: pct(channelCounts.social) },
+        { key: "direct",  label: "Direct",            count: channelCounts.direct, pct: pct(channelCounts.direct) },
+        { key: "other",   label: "Other Websites",    count: channelCounts.other,  pct: pct(channelCounts.other) },
+      ],
+      topSeoSources: Array.from(seoSources.entries())
+        .sort((a, b) => b[1] - a[1]).slice(0, 5)
+        .map(([source, count]) => ({ source, count })),
+      topSocialSources: Array.from(socialSources.entries())
+        .sort((a, b) => b[1] - a[1]).slice(0, 5)
+        .map(([source, count]) => ({ source, count })),
+      topOtherSources: Array.from(otherSources.entries())
+        .sort((a, b) => b[1] - a[1]).slice(0, 5)
+        .map(([source, count]) => ({ source, count })),
+    };
+
     return NextResponse.json({
       overview: {
         totalPageViews,
@@ -529,6 +623,7 @@ export async function GET(request: NextRequest) {
       referrers: referrerBreakdown.map((r) => ({ domain: r.refererDomain || "Direct", count: r._count.refererDomain })),
       trackedLinks,
       trafficByPromoter,
+      trafficChannels,
       countryBreakdown: countryBreakdown.map((c) => ({ country: c.country || "Unknown", count: c._count.country })),
       inventory: {
         totalProducts,
