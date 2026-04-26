@@ -366,6 +366,13 @@ export default async function AdminDashboard() {
           )}
         </div>
       </section>
+
+      {/* ─── Signature ──────────────────────────────────────────── */}
+      <footer className="pt-6 pb-2 flex justify-center">
+        <p className="text-[10px] font-bold tracking-[0.32em] uppercase text-transparent bg-clip-text bg-gradient-to-r from-slate-400 via-violet-400 to-slate-400 select-none">
+          CRAFTED By W1C3
+        </p>
+      </footer>
     </div>
   );
 }
