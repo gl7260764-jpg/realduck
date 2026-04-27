@@ -419,6 +419,7 @@ export default function CheckoutPage() {
         <div className="max-w-3xl mx-auto px-4 py-3.5 flex items-center gap-3">
           <button
             onClick={() => router.back()}
+            aria-label="Go back"
             className="p-2 -ml-2 hover:bg-gray-100 rounded-xl transition-all duration-200 active:scale-95"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -494,11 +495,13 @@ export default function CheckoutPage() {
                     <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
                       <button type="button" onClick={() => updateQuantity(item.id, item.priceType, item.quantity - 1)}
                         disabled={isLowPriceItem(item) && item.quantity <= getMinQty(item)}
+                        aria-label={`Decrease quantity of ${item.title}`}
                         className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition-all duration-200 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="text-xs font-bold w-6 text-center text-gray-900">{item.quantity}</span>
                       <button type="button" onClick={() => updateQuantity(item.id, item.priceType, item.quantity + 1)}
+                        aria-label={`Increase quantity of ${item.title}`}
                         className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition-all duration-200 active:scale-90">
                         <Plus className="w-3 h-3" />
                       </button>
@@ -509,6 +512,7 @@ export default function CheckoutPage() {
                   </div>
                   <p className="text-xs sm:text-sm font-bold text-slate-900 w-16 sm:w-20 text-right flex-shrink-0">{getPrice(item)}</p>
                   <button type="button" onClick={() => removeItem(item.id, item.priceType)}
+                    aria-label={`Remove ${item.title} from cart`}
                     className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 opacity-0 group-hover/item:opacity-100 focus:opacity-100 flex-shrink-0 active:scale-90">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -598,6 +602,7 @@ export default function CheckoutPage() {
                 <select
                   value={form.country}
                   onChange={(e) => updateField("country", e.target.value)}
+                  aria-label="Country"
                   className={`${inputCls("country")} ${!form.country ? "text-gray-400" : ""}`}
                 >
                   <option value="">Country *</option>
@@ -638,6 +643,7 @@ export default function CheckoutPage() {
                     <select
                       value={form.state}
                       onChange={(e) => updateField("state", e.target.value)}
+                      aria-label="State or region"
                       className={`${inputCls("state")} ${!form.state ? "text-gray-400" : ""}`}
                     >
                       <option value="">State/Region *</option>

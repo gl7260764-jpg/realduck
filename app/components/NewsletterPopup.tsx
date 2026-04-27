@@ -288,7 +288,7 @@ export default function NewsletterPopup() {
                     if (status === "error") setStatus("idle");
                   }}
                   disabled={status === "loading"}
-                  aria-invalid={status === "error"}
+                  aria-invalid={status === "error" ? "true" : "false"}
                   aria-describedby={status === "error" ? "rdd-newsletter-error" : undefined}
                   className="w-full h-12 pl-11 pr-4 rounded-full border border-slate-200 bg-slate-50 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-900/10 focus:border-slate-400 transition-all disabled:opacity-60"
                 />

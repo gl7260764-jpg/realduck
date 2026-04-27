@@ -246,6 +246,7 @@ export default function ProductDetailClient({
                     setBuyStep("choose");
                     setFastError("");
                   }}
+                  aria-label="Back to order options"
                   className="absolute left-3 top-3 p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -254,6 +255,7 @@ export default function ProductDetailClient({
               <h3 className="text-lg font-semibold text-white text-center">Buy Now</h3>
               <button
                 onClick={closeBuyModal}
+                aria-label="Close buy dialog"
                 className="absolute right-3 top-3 p-1.5 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -465,12 +467,14 @@ export default function ProductDetailClient({
                   <>
                     <button
                       onClick={prevImage}
+                      aria-label="Previous product image"
                       className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
                     >
                       <ChevronLeft className="w-5 h-5 text-gray-700" />
                     </button>
                     <button
                       onClick={nextImage}
+                      aria-label="Next product image"
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
                     >
                       <ChevronRight className="w-5 h-5 text-gray-700" />
@@ -515,6 +519,8 @@ export default function ProductDetailClient({
                     <button
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
+                      aria-label={`View product image ${idx + 1} of ${images.length}`}
+                      aria-pressed={currentImageIndex === idx}
                       className={`relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 transition-all duration-200 ${currentImageIndex === idx
                           ? "ring-2 ring-slate-900 ring-offset-2"
                           : "opacity-60 hover:opacity-100"
@@ -648,6 +654,7 @@ export default function ProductDetailClient({
                     <button
                       onClick={decrementQuantity}
                       disabled={quantity <= 1}
+                      aria-label="Decrease quantity"
                       className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-90 transition-all duration-150 disabled:opacity-40 disabled:hover:bg-transparent"
                     >
                       <Minus className="w-4 h-4" />
@@ -658,6 +665,7 @@ export default function ProductDetailClient({
                     <button
                       onClick={incrementQuantity}
                       disabled={quantity >= 10}
+                      aria-label="Increase quantity"
                       className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-90 transition-all duration-150 disabled:opacity-40 disabled:hover:bg-transparent"
                     >
                       <Plus className="w-4 h-4" />
