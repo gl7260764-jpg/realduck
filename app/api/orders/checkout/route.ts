@@ -189,7 +189,7 @@ function buildCustomerEmailHtml(orderNumber: string, data: CheckoutBody): string
   }
 
   html += '<tr><td style="padding:30px 40px;"><p style="margin:0;font-size:14px;color:#444;line-height:1.6;">Thanks again! If you need any help with your order, please contact us at <a href="mailto:' + CONTACT_EMAIL + '" style="color:#2563eb;">' + CONTACT_EMAIL + "</a>.</p></td></tr>";
-  html += '<tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #eee;"><p style="margin:0;font-size:12px;color:#aaa;text-align:center;">&#169; ' + new Date().getFullYear() + " Real Duck Distro. All rights reserved. | HQ: LA, USA &amp; Sydney, AUS | USA | AUS | Worldwide</p></td></tr>";
+  html += '<tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #eee;"><p style="margin:0;font-size:12px;color:#aaa;text-align:center;">&#169; ' + new Date().getFullYear() + " Real Duck Distro. All rights reserved. | HQ: LA, USA &amp; Sydney, AUS | Priority: KY · MI · FL · MS | USA | AUS | Worldwide</p></td></tr>";
   html += "</table></td></tr></table></body></html>";
   return html;
 }

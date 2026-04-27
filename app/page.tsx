@@ -54,7 +54,7 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Real Duck Distro - Premium Cannabis Lifestyle Brand | USA & AUS | Worldwide Shipping",
-    description: "The world's leading premium cannabis lifestyle brand. Designer cannabis packs, exotic flower, edibles, concentrates, vapes, rosin, pre-rolls & disposables. HQ in Los Angeles USA & Sydney Australia. Delivering across the USA, Australia & worldwide.",
+    description: "The world's leading premium cannabis lifestyle brand. Designer cannabis packs, exotic flower, edibles, concentrates, vapes, rosin, pre-rolls & disposables. HQ in Los Angeles USA & Sydney Australia, with priority delivery to Kentucky, Michigan, Florida and Mississippi. Delivering across the USA, Australia & worldwide.",
     numberOfItems: products.length,
     itemListElement: products.slice(0, 30).map((product, index) => ({
       "@type": "ListItem",
@@ -77,7 +77,7 @@ export default async function Home() {
         name: "Where does Real Duck Distro ship?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "Real Duck Distro ships cannabis products across the entire United States, Australia, and worldwide. Orders are packaged discreetly and dispatched from our HQ in Los Angeles, USA and Sydney, Australia. Most domestic US orders arrive in 1–3 business days.",
+          text: "Real Duck Distro ships cannabis products across the entire United States, Australia, and worldwide. Orders are packaged discreetly and dispatched from our HQ in Los Angeles, USA and Sydney, Australia, with priority delivery to customers in Kentucky, Michigan, Florida, and Mississippi. Most domestic US orders arrive in 1–3 business days.",
         },
       },
       {
@@ -146,14 +146,14 @@ export default async function Home() {
       <Navbar />
       <main role="main">
         <h1 className="sr-only">
-          Real Duck Distro — The World&apos;s Leading Premium Cannabis Lifestyle Brand | USA &amp; Australia | Worldwide Shipping
+          Real Duck Distro — The World&apos;s Leading Premium Cannabis Lifestyle Brand | USA &amp; Australia | Priority Delivery to Kentucky, Michigan, Florida &amp; Mississippi | Worldwide Shipping
         </h1>
         <CatalogClient initialProducts={products} />
         <SEOBlock
           heading="The World's Leading Premium Cannabis Lifestyle Brand"
-          content="Real Duck Distro is a world leading premium cannabis lifestyle brand, trusted by thousands of customers across the United States, Australia, and worldwide. Headquartered in Los Angeles, USA and Sydney, Australia — we deliver across the entire USA and Australia with fast, discreet worldwide shipping. From designer cannabis packs and exotic top-shelf flower to lab-tested edibles, concentrates, vapes, rosin, pre-rolls and disposables Real Duck Distro sets the standard. Browse our collection and experience what it means to shop with the best."
+          content="Real Duck Distro is a world leading premium cannabis lifestyle brand, trusted by thousands of customers across the United States, Australia, and worldwide. Headquartered in Los Angeles, USA and Sydney, Australia — with priority delivery to Kentucky, Michigan, Florida and Mississippi — we deliver across the entire USA and Australia with fast, discreet worldwide shipping. From designer cannabis packs and exotic top-shelf flower to lab-tested edibles, concentrates, vapes, rosin, pre-rolls and disposables, Real Duck Distro sets the standard. Browse our collection and experience what it means to shop with the best."
           imageSrc="/images/logo.jpg"
-          imageAlt="Real Duck Distro — Premium Cannabis Lifestyle Brand | HQ in LA USA & Sydney Australia | Worldwide Shipping"
+          imageAlt="Real Duck Distro — Premium Cannabis Lifestyle Brand | HQ in LA USA & Sydney Australia | Priority Delivery to Kentucky, Michigan, Florida & Mississippi | Worldwide Shipping"
           headingLevel="h2"
         />
       </main>

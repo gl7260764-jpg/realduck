@@ -87,7 +87,7 @@ function buildWelcomeEmailHtml(email: string): string {
   html += '<p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.6;">Have a question? Reply to this email or reach us at <a href="mailto:' + CONTACT_EMAIL + '" style="color:#0f172a;font-weight:600;">' + CONTACT_EMAIL + '</a>.</p>';
   html += '</td></tr>';
   html += '<tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #eef2f7;margin-top:24px;">';
-  html += '<p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">&copy; ' + new Date().getFullYear() + ' Real Duck Distro. All rights reserved.<br/>HQ: LA, USA &amp; Sydney, AUS · Ships worldwide.</p>';
+  html += '<p style="margin:0;font-size:12px;color:#94a3b8;text-align:center;">&copy; ' + new Date().getFullYear() + ' Real Duck Distro. All rights reserved.<br/>HQ: LA, USA &amp; Sydney, AUS · Priority delivery: KY · MI · FL · MS · Ships worldwide.</p>';
   html += '</td></tr>';
   html += '</table></td></tr></table></body></html>';
   return html;

@@ -895,9 +895,9 @@ export default function CheckoutPage() {
         <section className="sr-only" aria-label="About Real Duck Distro Checkout">
           <h2>The Best Premium Cannabis Lifestyle Store Online</h2>
           <p>
-            Real Duck Distro is the world&apos;s leading premium cannabis lifestyle store online — headquartered in Los Angeles, USA and Sydney, Australia. We deliver across the entire USA and Australia with fast, secure, discreet worldwide shipping. Designer cannabis packs, luxury cannabis packaging and premium cannabis products. Complete your order now.
+            Real Duck Distro is the world&apos;s leading premium cannabis lifestyle store online — headquartered in Los Angeles, USA and Sydney, Australia, with priority delivery to Kentucky, Michigan, Florida and Mississippi. We deliver across the entire USA and Australia with fast, secure, discreet worldwide shipping. Designer cannabis packs, luxury cannabis packaging and premium cannabis products. Complete your order now.
           </p>
-          <img src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Store | HQ in LA USA & Sydney Australia | Worldwide Shipping" />
+          <img src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Store | HQ in LA USA & Sydney Australia | Priority Delivery KY · MI · FL · MS | Worldwide Shipping" />
         </section>
       </form>
     </div>

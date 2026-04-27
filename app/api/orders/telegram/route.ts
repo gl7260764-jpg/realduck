@@ -248,7 +248,7 @@ function buildCustomerFastOrderFollowUpHtml(
   // Footer
   html += '<tr><td style="padding:32px 40px 24px;"></td></tr>';
   html += '<tr><td style="background:#f8fafc;padding:20px 40px;border-top:1px solid #eef2f7;text-align:center;">';
-  html += '<div style="font-size:11px;color:#94a3b8;line-height:1.6;">&copy; ' + new Date().getFullYear() + ' Real Duck Distro · LA, USA &amp; Sydney, AUS · Ships worldwide</div>';
+  html += '<div style="font-size:11px;color:#94a3b8;line-height:1.6;">&copy; ' + new Date().getFullYear() + ' Real Duck Distro · LA, USA &amp; Sydney, AUS · Priority: KY · MI · FL · MS · Ships worldwide</div>';
   html += '</td></tr>';
 
   html += '</table></td></tr></table></body></html>';

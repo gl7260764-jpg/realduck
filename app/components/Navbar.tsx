@@ -296,6 +296,7 @@ export default function Navbar() {
                 Real Duck Distro
               </h2>
               <p className="text-white/30 text-[10px] font-semibold tracking-wider">HQ: LA, USA | SYDNEY, AUS</p>
+              <p className="text-white/20 text-[10px] font-semibold tracking-wider">PRIORITY: KY · MI · FL · MS</p>
               <p className="text-white/20 text-[10px] font-semibold tracking-wider">USA | AUS | WORLDWIDE</p>
             </div>
           </div>
@@ -308,7 +309,7 @@ export default function Navbar() {
             style={{ transitionDelay: isMenuOpen ? "150ms" : "0ms" }}
           >
             <p className="text-white/50 text-sm leading-relaxed">
-              The world&apos;s leading premium cannabis lifestyle brand. Delivering across the USA, Australia &amp; worldwide.
+              The world&apos;s leading premium cannabis lifestyle brand. Delivering across the USA, Australia &amp; worldwide — priority service to Kentucky, Michigan, Florida &amp; Mississippi.
             </p>
             {settings.telegramChannel && (
               <a

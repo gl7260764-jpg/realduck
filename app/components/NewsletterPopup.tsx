@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { X, Mail, CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { Mail, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 
 /**
  * Newsletter subscription popup.
@@ -207,16 +207,6 @@ export default function NewsletterPopup() {
         className="relative w-full max-w-md sm:max-w-lg max-h-full bg-white rounded-3xl shadow-2xl overflow-y-auto overscroll-contain"
         style={{ animation: "rdd-pop 260ms cubic-bezier(0.22, 1, 0.36, 1)", WebkitOverflowScrolling: "touch" }}
       >
-        {/* Close */}
-        <button
-          type="button"
-          onClick={handleDismiss}
-          aria-label="Close newsletter popup"
-          className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-600 hover:text-slate-900 backdrop-blur flex items-center justify-center transition-colors border border-slate-200"
-        >
-          <X className="w-4.5 h-4.5" strokeWidth={2.2} />
-        </button>
-
         {/* Hero banner */}
         <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-5 pt-7 pb-6 sm:px-8 sm:pt-9 sm:pb-7 text-center overflow-hidden">
           <div

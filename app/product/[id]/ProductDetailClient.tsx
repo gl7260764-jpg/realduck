@@ -797,7 +797,7 @@ export default function ProductDetailClient({
                     {/* Closing */}
                     <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-100">
                       <p className="text-sm text-slate-700 leading-relaxed">
-                        {product.title} is available for delivery across the USA and Australia, with fast worldwide shipping on all orders. Headquartered in Los Angeles, USA and Sydney, Australia — at Real Duck Distro, every product is backed by our commitment to quality. If it&apos;s not premium, we don&apos;t carry it.
+                        {product.title} is available for delivery across the USA and Australia, with fast worldwide shipping on all orders. Headquartered in Los Angeles, USA and Sydney, Australia — with priority delivery to Kentucky, Michigan, Florida and Mississippi — every Real Duck Distro product is backed by our commitment to quality. If it&apos;s not premium, we don&apos;t carry it.
                       </p>
                     </div>
                   </div>
@@ -878,14 +878,14 @@ export default function ProductDetailClient({
                   The World&apos;s Leading Premium Cannabis Brand
                 </h2>
                 <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-                  {product.title} is part of the Real Duck Distro premium collection — the world&apos;s leading cannabis lifestyle brand, headquartered in Los Angeles, USA and Sydney, Australia. Trusted by thousands of customers across the USA, Australia and worldwide, every product is hand-selected for uncompromising quality. We deliver across the entire United States and Australia with fast, discreet worldwide shipping to all major regions.
+                  {product.title} is part of the Real Duck Distro premium collection — the world&apos;s leading cannabis lifestyle brand, headquartered in Los Angeles, USA and Sydney, Australia, with priority delivery to Kentucky, Michigan, Florida and Mississippi. Trusted by thousands of customers across the USA, Australia and worldwide, every product is hand-selected for uncompromising quality. We deliver across the entire United States and Australia with fast, discreet worldwide shipping to all major regions.
                 </p>
               </div>
               <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg bg-gray-100">
                 <CloudImage
                   src={optimizeImage(product.imageUrl, "detail")}
-                  alt={`${product.title} - Premium Cannabis | Real Duck Distro USA & Australia`}
-                  title={`Premium Cannabis | Real Duck Distro - HQ in LA & Sydney`}
+                  alt={`${product.title} - Premium Cannabis | Real Duck Distro USA & Australia | Priority delivery to KY, MI, FL, MS`}
+                  title={`Premium Cannabis | Real Duck Distro - HQ in LA & Sydney · KY/MI/FL/MS priority`}
                   fill
                   loading="lazy"
                   placeholder={blurUrl(product.imageUrl) ? "blur" : "empty"}

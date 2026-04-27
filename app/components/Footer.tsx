@@ -53,6 +53,16 @@ export default function Footer() {
               <span className="text-white/15">|</span>
               <span>SYDNEY, AUS</span>
             </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-[10px] sm:text-xs font-semibold text-white/25 tracking-wider">
+              <span>PRIORITY:</span>
+              <span>KENTUCKY</span>
+              <span className="text-white/10">·</span>
+              <span>MICHIGAN</span>
+              <span className="text-white/10">·</span>
+              <span>FLORIDA</span>
+              <span className="text-white/10">·</span>
+              <span>MISSISSIPPI</span>
+            </div>
             <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm font-semibold text-white/20 tracking-wider">
               <span>USA</span>
               <span className="text-white/10">|</span>

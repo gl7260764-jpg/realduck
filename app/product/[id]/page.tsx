@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const title = `${product.title} | ${catDisplay} - Real Duck Distro`;
   const description = product.description
     ? product.description.slice(0, 160)
-    : `${product.title} - premium ${catLower} from Real Duck Distro. Delivering across the USA, Australia & worldwide. HQ in LA & Sydney. ${product.isSoldOut ? "Currently sold out." : "In stock - order now."}`;
+    : `${product.title} - premium ${catLower} from Real Duck Distro. Delivering across the USA, Australia & worldwide — priority service to Kentucky, Michigan, Florida & Mississippi. HQ in LA & Sydney. ${product.isSoldOut ? "Currently sold out." : "In stock - order now."}`;
 
   return {
     title,
@@ -115,7 +115,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.title,
-    description: product.description || `${product.title} - premium ${product.category.toLowerCase()} from Real Duck Distro. Delivering across the USA, Australia & worldwide. HQ in Los Angeles & Sydney.`,
+    description: product.description || `${product.title} - premium ${product.category.toLowerCase()} from Real Duck Distro. Delivering across the USA, Australia & worldwide — priority service to Kentucky, Michigan, Florida & Mississippi. HQ in Los Angeles & Sydney.`,
     image: product.images?.length
       ? [product.imageUrl, ...product.images]
       : [product.imageUrl],
