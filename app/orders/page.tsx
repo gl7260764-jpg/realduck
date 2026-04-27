@@ -3,9 +3,14 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OrderTracker from "./OrderTracker";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+
 export const metadata: Metadata = {
   title: "Track Your Order",
   description: "Track the status of your Real Duck Distro order. Enter your order number and email to see real-time updates.",
+  alternates: {
+    canonical: `${SITE_URL}/orders`,
+  },
 };
 
 export default function OrderTrackingPage() {

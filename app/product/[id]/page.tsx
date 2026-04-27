@@ -9,6 +9,8 @@ import Script from "next/script";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
+export const revalidate = 0;
+
 interface ProductPageProps {
   params: Promise<{ id: string }>;
 }
@@ -166,12 +168,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
           },
         },
       ],
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: product.rating.replace(/[^0-9.]/g, "") || "10",
-      bestRating: "10",
-      ratingCount: "1",
     },
   };
 

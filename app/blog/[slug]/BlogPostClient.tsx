@@ -244,7 +244,7 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
               <div className="bg-gray-50 rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm lg:text-base font-bold text-gray-900">Our Products</h3>
-                  <Link href="/" className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors">View all →</Link>
+                  <Link href="/" aria-label="View all Real Duck Distro products" className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors">Shop all products →</Link>
                 </div>
                 <div className="grid grid-cols-3 lg:grid-cols-2 gap-2.5">
                   {products.slice(0, 6).map((p) => (

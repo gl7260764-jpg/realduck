@@ -405,12 +405,35 @@ export default function ProductDetailClient({
       )}
 
       <main className="flex-1 bg-white">
-        {/* Back Button - Links to Telegram */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        {/* Breadcrumb + Telegram contact */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 flex flex-wrap items-center justify-between gap-3">
+          <nav aria-label="Breadcrumb" className="min-w-0">
+            <ol className="flex items-center gap-1.5 text-sm text-gray-500 flex-wrap">
+              <li>
+                <Link href="/" className="hover:text-slate-900 transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-gray-300">/</li>
+              <li>
+                <Link
+                  href={`/?category=${product.category}`}
+                  className="hover:text-slate-900 transition-colors capitalize"
+                >
+                  {product.category.toLowerCase()}
+                </Link>
+              </li>
+              <li aria-hidden="true" className="text-gray-300">/</li>
+              <li className="text-slate-900 font-medium truncate max-w-[200px] sm:max-w-xs" aria-current="page">
+                {product.title}
+              </li>
+            </ol>
+          </nav>
           <a
             href={settings.telegramChannel}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="Contact Real Duck Distro on Telegram"
             className="inline-flex items-center gap-2 text-gray-500 hover:text-[#29B6F6] transition-colors duration-200"
           >
             <Send className="w-4 h-4" />

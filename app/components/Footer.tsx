@@ -160,27 +160,27 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-4">
             {settings.phoneNumber && (
-              <a href={`tel:${settings.phoneNumber.replace(/\s/g, "")}`} className="text-white/50 hover:text-white transition-colors">
+              <a href={`tel:${settings.phoneNumber.replace(/\s/g, "")}`} aria-label="Call Real Duck Distro" className="text-white/50 hover:text-white transition-colors">
                 <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
             {settings.telegramChannel && (
-              <a href={settings.telegramChannel} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white transition-colors">
+              <a href={settings.telegramChannel} target="_blank" rel="noopener noreferrer" aria-label="Real Duck Distro on Telegram" className="text-white/50 hover:text-white transition-colors">
                 <TelegramIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
             {settings.snapchatLink && (
-              <a href={settings.snapchatLink} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white transition-colors">
+              <a href={settings.snapchatLink} target="_blank" rel="noopener noreferrer" aria-label="Real Duck Distro on Snapchat" className="text-white/50 hover:text-white transition-colors">
                 <SnapchatIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
             {settings.signalLink && (
-              <a href={settings.signalLink} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white transition-colors">
+              <a href={settings.signalLink} target="_blank" rel="noopener noreferrer" aria-label="Real Duck Distro on Signal" className="text-white/50 hover:text-white transition-colors">
                 <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
             {settings.potatoChat && (
-              <a href={settings.potatoChat} target="_blank" rel="noopener noreferrer" className="text-white/50 hover:text-white transition-colors">
+              <a href={settings.potatoChat} target="_blank" rel="noopener noreferrer" aria-label="Real Duck Distro on Potato Chat" className="text-white/50 hover:text-white transition-colors">
                 <PotatoChatIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </a>
             )}
