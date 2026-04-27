@@ -165,6 +165,11 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Resource hints — open early TCP/TLS to image and analytics origins so first paint is faster */}
+        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://analytics.ahrefs.com" />
         <Script
           src="https://analytics.ahrefs.com/analytics.js"
           data-key="awWcY/FuVfVDJgvn2CIiiw"

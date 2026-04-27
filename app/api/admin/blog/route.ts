@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { pingIndexNow } from "@/lib/indexNow";
@@ -81,6 +82,9 @@ export async function POST(request: NextRequest) {
         `${SITE_URL}/sitemap.xml`,
       ]).catch(() => {});
     }
+
+    revalidatePath("/blog");
+    revalidatePath(`/blog/${post.slug}`);
 
     return NextResponse.json(post);
   } catch (error) {

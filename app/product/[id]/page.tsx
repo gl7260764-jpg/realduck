@@ -9,7 +9,7 @@ import Script from "next/script";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;

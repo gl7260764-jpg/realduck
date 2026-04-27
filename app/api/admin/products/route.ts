@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { Category } from "@prisma/client";
@@ -106,6 +107,10 @@ export async function POST(request: NextRequest) {
       `${SITE_URL}/`,
       `${SITE_URL}/sitemap.xml`,
     ]).catch(() => {});
+
+    // Invalidate ISR cache so the new product appears instantly
+    revalidatePath("/");
+    revalidatePath(`/product/${product.slug || product.id}`);
 
     return NextResponse.json(product, { status: 201 });
   } catch (error) {

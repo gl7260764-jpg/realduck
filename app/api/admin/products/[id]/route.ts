@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { Category } from "@prisma/client";
@@ -131,6 +132,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       `${SITE_URL}/sitemap.xml`,
     ]).catch(() => {});
 
+    // Invalidate ISR cache so edits show up instantly
+    revalidatePath("/");
+    revalidatePath(`/product/${product.slug || product.id}`);
+    if (existingProduct.slug && existingProduct.slug !== product.slug) {
+      revalidatePath(`/product/${existingProduct.slug}`);
+    }
+
     return NextResponse.json(product);
   } catch (error) {
     console.error("Error updating product:", error);
@@ -166,6 +174,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await prisma.product.delete({
       where: { id },
     });
+
+    revalidatePath("/");
+    if (existingProduct.slug) {
+      revalidatePath(`/product/${existingProduct.slug}`);
+    }
+    revalidatePath(`/product/${id}`);
 
     return NextResponse.json({ success: true });
   } catch (error) {

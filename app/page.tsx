@@ -8,7 +8,7 @@ import { dailyShuffle } from "@/lib/dailyShuffle";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 async function getProducts() {
   const products = await prisma.product.findMany({

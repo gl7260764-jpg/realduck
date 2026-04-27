@@ -21,6 +21,20 @@ import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
+/**
+ * Bot / crawler / link-preview detector. These User-Agents prefetch any link
+ * pasted into a chat or social platform to generate preview cards — they
+ * inflate click counts without ever producing a real session.
+ *
+ * Order matters: most common first. The check is a single regex pass.
+ */
+const BOT_UA_REGEX = /bot|crawler|spider|crawling|preview|fetch|facebookexternalhit|telegram|whatsapp|skypeuripreview|twitter|linkedin|slack|discord|applebot|googlebot|bingbot|yandex|duckduckbot|baiduspider|embedly|pinterest|redditbot|tumblr|vkshare|w3c_validator|chatgpt|gptbot|claudebot|anthropic|perplexity|amazonbot|petalbot|semrush|ahrefs|mj12bot|dotbot|ia_archiver|archive\.org|headlesschrome/i;
+
+function isBot(ua: string): boolean {
+  if (!ua) return true; // empty UA is almost always a script/bot
+  return BOT_UA_REGEX.test(ua);
+}
+
 function detectDeviceBrowserOs(ua: string): { device: string; browser: string; os: string } {
   let device = "desktop";
   if (/iPad|tablet|playbook|silk/i.test(ua)) device = "tablet";
@@ -80,38 +94,13 @@ export async function GET(
   if (campaign.utmContent) dest.searchParams.set("utm_content", campaign.utmContent);
   if (campaign.utmTerm) dest.searchParams.set("utm_term", campaign.utmTerm);
 
-  // Capture the click — fire-and-forget, never block the redirect
-  const sessionInfo = getOrMintSessionId(request);
   const ua = request.headers.get("user-agent") || "";
-  const referer = request.headers.get("referer") || null;
-  const ip = getClientIp(request);
-  const { device, browser, os } = detectDeviceBrowserOs(ua);
-  let geo = null;
-  try {
-    geo = await getGeoFromRequest(request);
-  } catch {}
+  const sessionInfo = getOrMintSessionId(request);
 
-  prisma.campaignClick
-    .create({
-      data: {
-        campaignId: campaign.id,
-        sessionId: sessionInfo.id,
-        ip: geo?.ip || ip || null,
-        country: geo?.country || null,
-        city: geo?.city || null,
-        device,
-        browser,
-        os,
-        referer: referer ? referer.slice(0, 500) : null,
-        userAgent: ua ? ua.slice(0, 500) : null,
-      },
-    })
-    .catch((err) => {
-      console.error(`[/r/${safeSlug}] click insert failed:`, err.message);
-    });
-
-  // Build response and set the session cookie if we minted a new one
+  // Build the redirect response immediately — DO NOT await any DB or geo work.
+  // Set Cache-Control to no-store so intermediaries don't cache the redirect.
   const response = NextResponse.redirect(dest.toString(), { status: 302 });
+  response.headers.set("Cache-Control", "no-store, max-age=0");
   if (sessionInfo.minted) {
     response.cookies.set("analytics_session_id", sessionInfo.id, {
       httpOnly: false, // client-side analytics also reads it
@@ -121,5 +110,46 @@ export async function GET(
       path: "/",
     });
   }
+
+  // Skip click logging for bots / link-preview crawlers — they don't generate
+  // sessions and would inflate click counts (one paste in a group chat can
+  // produce 5–20 bot prefetches before any human clicks).
+  if (isBot(ua)) {
+    return response;
+  }
+
+  // Fire-and-forget click logging. Geo lookup is also non-blocking — we never
+  // await it on the redirect path. Vercel keeps the function alive long
+  // enough for short DB writes to complete after the response flushes.
+  const referer = request.headers.get("referer") || null;
+  const ip = getClientIp(request);
+  const { device, browser, os } = detectDeviceBrowserOs(ua);
+  const campaignId = campaign.id;
+
+  void (async () => {
+    let geo = null;
+    try {
+      geo = await getGeoFromRequest(request);
+    } catch {}
+    try {
+      await prisma.campaignClick.create({
+        data: {
+          campaignId,
+          sessionId: sessionInfo.id,
+          ip: geo?.ip || ip || null,
+          country: geo?.country || null,
+          city: geo?.city || null,
+          device,
+          browser,
+          os,
+          referer: referer ? referer.slice(0, 500) : null,
+          userAgent: ua ? ua.slice(0, 500) : null,
+        },
+      });
+    } catch (err) {
+      console.error(`[/r/${safeSlug}] click insert failed:`, (err as Error).message);
+    }
+  })();
+
   return response;
 }

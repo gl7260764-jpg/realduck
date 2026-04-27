@@ -5,7 +5,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import BlogPostClient from "./BlogPostClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 async function getPost(slug: string) {
   try {
