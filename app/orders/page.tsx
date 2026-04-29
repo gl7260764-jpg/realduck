@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import OrderTracker from "./OrderTracker";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 export const metadata: Metadata = {
   title: "Track Your Order",

@@ -13,7 +13,7 @@ const dmSans = DM_Sans({
   fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Arial", "sans-serif"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 export const viewport: Viewport = {
   themeColor: "#0f172a",
   width: "device-width",

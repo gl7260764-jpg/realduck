@@ -21,7 +21,7 @@ import { pingIndexNow } from "@/lib/indexNow";
 
 export const maxDuration = 120; // allow up to 2 minutes (Vercel Pro)
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 const EVERGREEN_TOPICS: Array<{ topic: string; category: BlogCategory }> = [
   { topic: "How to identify top-shelf indoor flower vs mids", category: "EDUCATION" },

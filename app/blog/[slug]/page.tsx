@@ -86,7 +86,7 @@ export async function generateMetadata({
       title: post.title,
       description: desc,
       type: "article",
-      url: `https://realduckdistro.com/blog/${post.slug}`,
+      url: `https://www.realduckdistro.com/blog/${post.slug}`,
       siteName: "Real Duck Distro",
       publishedTime: post.createdAt.toISOString(),
       modifiedTime: post.updatedAt.toISOString(),
@@ -102,7 +102,7 @@ export async function generateMetadata({
       images: post.imageUrl ? [post.imageUrl] : [],
     },
     alternates: {
-      canonical: `https://realduckdistro.com/blog/${post.slug}`,
+      canonical: `https://www.realduckdistro.com/blog/${post.slug}`,
     },
     robots: {
       index: true,
@@ -154,33 +154,33 @@ export default async function BlogPostPage({
     author: {
       "@type": "Person",
       name: post.author,
-      url: "https://realduckdistro.com",
+      url: "https://www.realduckdistro.com",
     },
     publisher: {
       "@type": "Organization",
       name: "Real Duck Distro",
-      url: "https://realduckdistro.com",
+      url: "https://www.realduckdistro.com",
       logo: {
         "@type": "ImageObject",
-        url: "https://realduckdistro.com/images/logo.jpg",
+        url: "https://www.realduckdistro.com/images/logo.jpg",
         width: 1111,
         height: 874,
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://realduckdistro.com/blog/${post.slug}`,
+      "@id": `https://www.realduckdistro.com/blog/${post.slug}`,
     },
-    url: `https://realduckdistro.com/blog/${post.slug}`,
+    url: `https://www.realduckdistro.com/blog/${post.slug}`,
   };
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://realduckdistro.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://realduckdistro.com/blog" },
-      { "@type": "ListItem", position: 3, name: post.title, item: `https://realduckdistro.com/blog/${post.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.realduckdistro.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.realduckdistro.com/blog" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://www.realduckdistro.com/blog/${post.slug}` },
     ],
   };
 

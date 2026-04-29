@@ -6,7 +6,7 @@ import { Category } from "@prisma/client";
 import { slugify } from "@/lib/slug";
 import { pingIndexNow } from "@/lib/indexNow";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 // GET all products
 export async function GET() {

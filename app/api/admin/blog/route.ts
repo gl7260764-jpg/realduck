@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 import { isAuthenticated } from "@/lib/auth";
 import { pingIndexNow } from "@/lib/indexNow";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 export async function GET() {
   const authenticated = await isAuthenticated();

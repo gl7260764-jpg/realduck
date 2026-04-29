@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   alternates: {
-    canonical: "https://realduckdistro.com/blog",
+    canonical: "https://www.realduckdistro.com/blog",
   },
 };
 
@@ -53,17 +53,17 @@ export default async function BlogPage() {
     "@type": "Blog",
     name: "Real Duck Distro Blog",
     description: "Cannabis education, guides, health benefits, and industry insights.",
-    url: "https://realduckdistro.com/blog",
+    url: "https://www.realduckdistro.com/blog",
     publisher: {
       "@type": "Organization",
       name: "Real Duck Distro",
-      url: "https://realduckdistro.com",
+      url: "https://www.realduckdistro.com",
     },
     blogPost: posts.slice(0, 10).map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,
       description: post.excerpt,
-      url: `https://realduckdistro.com/blog/${post.slug}`,
+      url: `https://www.realduckdistro.com/blog/${post.slug}`,
       datePublished: post.createdAt,
       author: { "@type": "Person", name: post.author },
       image: post.imageUrl,

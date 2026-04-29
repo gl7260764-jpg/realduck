@@ -74,7 +74,7 @@ function fmt(n: number): string {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 const LOGO_URL = SITE_URL + "/images/logo.jpg";
 const CONTACT_EMAIL = "contact@realduckdistro.com";
 

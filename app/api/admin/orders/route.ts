@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest) {
       const smtpPass = config.smtpPassword;
 
       if (smtpHost && smtpUser && smtpPass) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
         const trackUrl = `${siteUrl}/orders`;
 
         try {

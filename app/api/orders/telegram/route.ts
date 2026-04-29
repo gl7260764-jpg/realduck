@@ -170,7 +170,7 @@ function buildCustomerFastOrderFollowUpHtml(
   orderNumber: string,
   items: TelegramOrderItem[]
 ): string {
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
   const CONTACT_EMAIL = "contact@realduckdistro.com";
   const total = calcTotal(items);
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);

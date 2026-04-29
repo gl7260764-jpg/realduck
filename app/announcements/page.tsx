@@ -6,7 +6,7 @@ import AnnouncementsClient from "./AnnouncementsClient";
 
 export const revalidate = 60;
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 export const metadata: Metadata = {
   title: "Announcements | Real Duck Distro",

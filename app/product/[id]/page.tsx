@@ -7,7 +7,7 @@ import Footer from "@/app/components/Footer";
 import { Category } from "@prisma/client";
 import Script from "next/script";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 export const revalidate = 60;
 

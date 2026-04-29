@@ -4,7 +4,7 @@
  * not (yet) an IndexNow partner but does not mind.
  *
  * Verification: the key file must be reachable at
- *   https://realduckdistro.com/<KEY>.txt  →  plain text body == KEY
+ *   https://www.realduckdistro.com/<KEY>.txt  →  plain text body == KEY
  * (already placed in /public so Next.js serves it statically).
  *
  * Usage:
@@ -17,7 +17,7 @@
  */
 
 const KEY = "0a83dcea9b8e48ce895b77e3a75f2f0f";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 function host(): string {
   try {
