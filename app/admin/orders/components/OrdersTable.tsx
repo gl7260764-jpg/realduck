@@ -38,6 +38,7 @@ interface Order {
   items: OrderItem[]; totalItems: number; paymentMethod: string;
   deliveryNotes: string | null; orderSource: string; status: string; createdAt: string;
   attribution?: OrderAttribution | null;
+  isFastOrder?: boolean;
 }
 
 const CHANNEL_BADGE: Record<OrderAttribution["channel"], { label: string; bg: string; ring: string; dot: string }> = {
@@ -206,12 +207,19 @@ export default function OrdersTable() {
 
                     {/* Name + Location */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm lg:text-base font-semibold text-gray-900 truncate">
-                          {order.firstName} {order.lastName}
+                          {order.isFastOrder
+                            ? (items[0]?.title || "Fast Order")
+                            : `${order.firstName} ${order.lastName}`}
                         </span>
                         <span className="text-xs lg:text-sm text-gray-400 font-mono hidden sm:inline">#{order.orderNumber.slice(-8)}</span>
-                        {isTg && <Send className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />}
+                        {order.isFastOrder && (
+                          <span className="inline-flex items-center gap-1 text-[10px] lg:text-xs font-semibold px-1.5 py-0.5 rounded bg-sky-100 text-sky-700 border border-sky-200">
+                            <Send className="w-3 h-3" /> Fast Order
+                          </span>
+                        )}
+                        {isTg && !order.isFastOrder && <Send className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />}
                       </div>
                       <div className="flex items-center gap-2 mt-0.5 text-xs lg:text-sm text-gray-400">
                         <Globe className="w-3 h-3 lg:w-3.5 lg:h-3.5 flex-shrink-0" />
@@ -254,8 +262,17 @@ export default function OrdersTable() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-3">
                       <div className="bg-white rounded-xl p-3 lg:p-4 border border-gray-100">
                         <div className="flex items-center gap-1.5 text-xs lg:text-sm text-gray-400 mb-1.5"><User className="w-3.5 h-3.5" /> Contact</div>
-                        <p className="text-sm lg:text-base font-medium text-gray-900 truncate">{order.email}</p>
-                        <p className="text-xs lg:text-sm text-gray-500 mt-0.5">{order.phone}</p>
+                        {order.isFastOrder ? (
+                          <>
+                            <p className="text-sm lg:text-base font-medium text-gray-900">Telegram fast order</p>
+                            <p className="text-xs lg:text-sm text-gray-500 mt-0.5">Customer reached out via the Telegram channel — no email/phone captured.</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm lg:text-base font-medium text-gray-900 truncate">{order.email}</p>
+                            <p className="text-xs lg:text-sm text-gray-500 mt-0.5">{order.phone}</p>
+                          </>
+                        )}
                       </div>
                       <div className="bg-white rounded-xl p-3 lg:p-4 border border-gray-100">
                         <div className="flex items-center gap-1.5 text-xs lg:text-sm text-gray-400 mb-1.5"><Globe className="w-3.5 h-3.5" /> IP Location</div>
@@ -351,9 +368,15 @@ export default function OrdersTable() {
                     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                       {items.map((item, i) => (
                         <div key={i} className={`flex items-center gap-3 lg:gap-4 px-3 py-2.5 lg:px-4 lg:py-3 ${i > 0 ? "border-t border-gray-50" : ""}`}>
-                          <div className="relative w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                            <CloudImage src={item.imageUrl} alt={item.title} fill sizes="48px" className="object-cover" />
-                          </div>
+                          {item.imageUrl ? (
+                            <div className="relative w-10 h-10 lg:w-12 lg:h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                              <CloudImage src={item.imageUrl} alt={item.title} fill sizes="48px" className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                              <Package className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm lg:text-base font-medium text-gray-900 truncate">{item.title}</p>
                             <p className="text-xs lg:text-sm text-gray-400">{item.category}</p>
@@ -377,31 +400,37 @@ export default function OrdersTable() {
                       </div>
                     )}
 
-                    {/* Status Buttons + Delete */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex gap-1.5 lg:gap-2 flex-wrap">
-                        {STATUS_OPTIONS.map((s) => (
-                          <button
-                            key={s.value}
-                            onClick={() => handleStatus(order.id, s.value)}
-                            disabled={updatingStatus === order.id}
-                            className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm font-semibold border transition-all ${
-                              order.status === s.value
-                                ? `${s.color} ring-2 ring-offset-1`
-                                : "border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                            } ${updatingStatus === order.id ? "opacity-40" : ""}`}
-                          >
-                            {s.label}
-                          </button>
-                        ))}
+                    {/* Status Buttons + Delete — only meaningful for full checkout orders */}
+                    {!order.isFastOrder ? (
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex gap-1.5 lg:gap-2 flex-wrap">
+                          {STATUS_OPTIONS.map((s) => (
+                            <button
+                              key={s.value}
+                              onClick={() => handleStatus(order.id, s.value)}
+                              disabled={updatingStatus === order.id}
+                              className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm font-semibold border transition-all ${
+                                order.status === s.value
+                                  ? `${s.color} ring-2 ring-offset-1`
+                                  : "border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                              } ${updatingStatus === order.id ? "opacity-40" : ""}`}
+                            >
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteId(order.id); }}
+                          className="p-2 lg:p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
+                        </button>
                       </div>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setDeleteId(order.id); }}
-                        className="p-2 lg:p-2.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 lg:w-5 lg:h-5" />
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="text-xs lg:text-sm text-gray-500 italic px-1">
+                        Fast orders are fulfilled directly via Telegram — no status workflow here.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

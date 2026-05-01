@@ -96,16 +96,80 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(Number(searchParams.get("limit")) || 500, 500);
     const cursor = searchParams.get("cursor") || undefined;
 
-    const orders = await prisma.checkoutOrder.findMany({
-      orderBy: { createdAt: "desc" },
-      take: limit,
-      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-    });
+    // Pull both checkout orders (full email/web checkout) and fast orders
+    // (Telegram express checkout, $200+ min) in parallel. Both surface here
+    // so WICE sees every inbound order and its source attribution.
+    const [checkoutOrders, fastOrders] = await Promise.all([
+      prisma.checkoutOrder.findMany({
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      }),
+      prisma.order.findMany({
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      }),
+    ]);
+
+    // Normalize fast orders into the same wire shape as checkout orders so
+    // the UI can render both with one component path. Empty/null for fields
+    // that don't exist on the Order model (full address, payment, etc).
+    const normalizedFastOrders = fastOrders.map((o) => ({
+      id: o.id,
+      orderNumber: `FAST-${o.id.slice(-8).toUpperCase()}`,
+      sessionId: o.sessionId,
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      address: "",
+      apartment: null,
+      city: o.city || "",
+      state: o.state || "",
+      zipCode: o.zip || "",
+      country: o.country || "United States",
+      ipCountry: o.country || null,
+      ipState: o.state || null,
+      ipCity: o.city || null,
+      ipZip: o.zip || null,
+      ipAddress: o.ip || null,
+      items: [
+        {
+          id: o.productId || o.id,
+          title: o.productTitle,
+          category: o.category,
+          imageUrl: "",
+          price: o.price,
+          quantity: o.quantity,
+          deliveryType: o.deliveryType,
+        },
+      ],
+      totalItems: o.quantity,
+      paymentMethod: "pending",
+      shippingMethod: null,
+      pwaDiscount: false,
+      deliveryNotes: null,
+      orderSource: "telegram-fast",
+      status: "pending",
+      isFastOrder: true,
+      device: o.device,
+      browser: o.browser,
+      os: o.os,
+      createdAt: o.createdAt,
+      updatedAt: o.createdAt,
+    }));
+
+    // Tag the checkout orders so the UI can differentiate
+    const taggedCheckoutOrders = checkoutOrders.map((o) => ({ ...o, isFastOrder: false }));
+
+    // Merge and sort by createdAt desc
+    const merged = [...taggedCheckoutOrders, ...normalizedFastOrders]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, limit);
 
     // Attach source attribution to each order in parallel.
-    // Each lookup is 3 cheap indexed queries — safe to fan out for a page of 500.
     const ordersWithAttribution = await Promise.all(
-      orders.map(async (o) => {
+      merged.map(async (o) => {
         const attribution = await getOrderAttribution(o.sessionId).catch(() => null);
         return { ...o, attribution };
       })
