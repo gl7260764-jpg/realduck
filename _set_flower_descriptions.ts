@@ -2,7 +2,7 @@
  * One-shot: update the `description` field on FLOWER-category products
  * based on the first line of `priceShip`:
  *
- *   • $250 – $399 inclusive → write "Sold Out" in red (description only,
+ *   • $300 – $499 inclusive → write "Sold Out" in red (description only,
  *                              no image badge — clears `isSoldOut`)
  *   • $500 – $800 inclusive → write "Minimum order is 2 Pounds" in red
  *
@@ -16,8 +16,8 @@
 
 import { prisma } from "./lib/prisma";
 
-const SOLD_OUT_MIN = 250;
-const SOLD_OUT_MAX = 399;
+const SOLD_OUT_MIN = 300;
+const SOLD_OUT_MAX = 499;
 const MIN_ORDER_MIN = 500;
 const MIN_ORDER_MAX = 800;
 
