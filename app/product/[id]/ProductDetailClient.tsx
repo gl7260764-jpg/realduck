@@ -39,6 +39,7 @@ interface Product {
   id: string;
   slug?: string | null;
   title: string;
+  description?: string | null;
   category: string;
   indoor: boolean;
   rating: string;
@@ -771,6 +772,12 @@ export default function ProductDetailClient({
 
                 return (
                   <div className="prose max-w-none">
+                    {product.description && product.description.trim().length > 0 && (
+                      <div
+                        className="mb-4 text-[15px] leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: product.description }}
+                      />
+                    )}
                     {desc.blocks.map((block, i) => (
                       <div key={i}>
                         {block.heading && (
