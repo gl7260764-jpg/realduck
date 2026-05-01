@@ -16,7 +16,9 @@
       "Bash(curl -sL https://www.realduckdistro.com/favicon.ico -o /tmp/live_favicon.bin)",
       "Bash(convert --version)",
       "Bash(python3 -c \"from PIL import Image; print\\('PIL OK'\\)\")",
-      "Bash(python3 _build_favicons.py)"
+      "Bash(python3 _build_favicons.py)",
+      "Bash(curl -sI \"https://res.cloudinary.com/dewstyanq/image/upload/v1772005757/nnjpiih8r6s1xmnw9gkq.jpg\")",
+      "Bash(node -e ' *)"
     ],
     "additionalDirectories": [
       "/home/chendi/Desktop/New Folder/nobupacks/public/images/payments",
