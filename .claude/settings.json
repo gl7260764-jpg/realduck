@@ -18,7 +18,11 @@
       "Bash(python3 -c \"from PIL import Image; print\\('PIL OK'\\)\")",
       "Bash(python3 _build_favicons.py)",
       "Bash(curl -sI \"https://res.cloudinary.com/dewstyanq/image/upload/v1772005757/nnjpiih8r6s1xmnw9gkq.jpg\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "Bash(curl -s \"http://localhost:3001/api/admin/products\")",
+      "Read(//home/wice2/Desktop/realduck-media/2cb/**)",
+      "Bash(pkill -f \"next dev\")"
     ],
     "additionalDirectories": [
       "/home/chendi/Desktop/New Folder/nobupacks/public/images/payments",

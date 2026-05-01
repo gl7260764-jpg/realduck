@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import ProductsTable from "./components/ProductsTable";
+import FlowerDescriptionToggle from "./components/FlowerDescriptionToggle";
 
 async function getProducts() {
   return prisma.product.findMany({
@@ -42,6 +43,9 @@ export default async function ProductsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Flower price-range description toggle */}
+      <FlowerDescriptionToggle />
 
       {/* Products Table */}
       <ProductsTable initialProducts={products} />

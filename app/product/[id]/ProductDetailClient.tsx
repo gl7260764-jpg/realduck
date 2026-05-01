@@ -645,6 +645,13 @@ export default function ProductDetailClient({
                 </div>
               </div>
 
+              {product.description && product.description.trim().length > 0 && (
+                <div
+                  className="mb-3 text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
+              )}
+
               {/* Quantity Selector */}
               <div className="mb-3">
                 <h3 className="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-2">
@@ -772,12 +779,6 @@ export default function ProductDetailClient({
 
                 return (
                   <div className="prose max-w-none">
-                    {product.description && product.description.trim().length > 0 && (
-                      <div
-                        className="mb-4 text-[15px] leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: product.description }}
-                      />
-                    )}
                     {desc.blocks.map((block, i) => (
                       <div key={i}>
                         {block.heading && (
