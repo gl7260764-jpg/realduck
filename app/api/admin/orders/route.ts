@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { isAuthenticated } from "@/lib/auth";
 import { getAdminConfig } from "@/lib/adminConfig";
+import { getOrderAttribution } from "@/lib/orderAttribution";
 
 // ── Status labels and email content ──
 
@@ -101,7 +102,16 @@ export async function GET(request: NextRequest) {
       ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     });
 
-    return NextResponse.json(orders);
+    // Attach source attribution to each order in parallel.
+    // Each lookup is 3 cheap indexed queries — safe to fan out for a page of 500.
+    const ordersWithAttribution = await Promise.all(
+      orders.map(async (o) => {
+        const attribution = await getOrderAttribution(o.sessionId).catch(() => null);
+        return { ...o, attribution };
+      })
+    );
+
+    return NextResponse.json(ordersWithAttribution);
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });

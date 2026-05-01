@@ -6,7 +6,17 @@
       "Bash(lighthouse http://localhost:3001 --output=json --output-path=/tmp/lh-report.json --chrome-flags=\"--headless --no-sandbox --disable-gpu\" --only-categories=performance,accessibility,best-practices,seo)",
       "Bash(lighthouse http://localhost:3001 --output=json --output-path=/tmp/lh-report2.json --chrome-flags=\"--headless --no-sandbox --disable-gpu\" --only-categories=performance,accessibility,best-practices,seo)",
       "Bash(npm install:*)",
-      "Bash(npx web-push:*)"
+      "Bash(npx web-push:*)",
+      "WebFetch(domain:www.bing.com)",
+      "WebFetch(domain:html.duckduckgo.com)",
+      "WebFetch(domain:www.google.com)",
+      "WebFetch(domain:www.realduckdistro.com)",
+      "Bash(curl -sL https://www.realduckdistro.com/ -A \"Mozilla/5.0\")",
+      "Bash(curl -sI https://www.realduckdistro.com/favicon.ico)",
+      "Bash(curl -sL https://www.realduckdistro.com/favicon.ico -o /tmp/live_favicon.bin)",
+      "Bash(convert --version)",
+      "Bash(python3 -c \"from PIL import Image; print\\('PIL OK'\\)\")",
+      "Bash(python3 _build_favicons.py)"
     ],
     "additionalDirectories": [
       "/home/chendi/Desktop/New Folder/nobupacks/public/images/payments",

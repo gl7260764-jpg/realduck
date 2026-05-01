@@ -4,13 +4,29 @@ import { useState, useEffect } from "react";
 import {
   Search, ChevronLeft, ChevronRight, Trash2, Package, MapPin, Mail,
   CreditCard, StickyNote, Loader2, RefreshCw, Send, Clock, User,
-  ChevronDown, ChevronUp, Globe,
+  ChevronDown, ChevronUp, Globe, Compass,
 } from "lucide-react";
 import CloudImage from "@/app/components/CloudImage";
 
 interface OrderItem {
   id: string; title: string; category: string; imageUrl: string;
   price: string; quantity: number; deliveryType: string;
+}
+
+interface OrderAttribution {
+  source: string;
+  channel: "tracked-link" | "search" | "social" | "direct" | "internal" | "unknown";
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  campaignName: string | null;
+  campaignSlug: string | null;
+  promoterName: string | null;
+  entryPage: string | null;
+  refererDomain: string | null;
+  pageViewCount: number;
+  firstSeenAt: string | null;
+  verdict: string;
 }
 
 interface Order {
@@ -21,7 +37,17 @@ interface Order {
   ipZip: string | null; ipAddress: string | null;
   items: OrderItem[]; totalItems: number; paymentMethod: string;
   deliveryNotes: string | null; orderSource: string; status: string; createdAt: string;
+  attribution?: OrderAttribution | null;
 }
+
+const CHANNEL_BADGE: Record<OrderAttribution["channel"], { label: string; bg: string; ring: string; dot: string }> = {
+  "tracked-link": { label: "Tracked link", bg: "bg-emerald-50", ring: "border-emerald-200", dot: "bg-emerald-500" },
+  search:         { label: "Search engine", bg: "bg-blue-50",    ring: "border-blue-200",    dot: "bg-blue-500" },
+  social:         { label: "Social",        bg: "bg-purple-50",  ring: "border-purple-200",  dot: "bg-purple-500" },
+  direct:         { label: "Direct",        bg: "bg-gray-50",    ring: "border-gray-200",    dot: "bg-gray-500" },
+  internal:       { label: "Internal",      bg: "bg-amber-50",   ring: "border-amber-200",   dot: "bg-amber-500" },
+  unknown:        { label: "Unknown",       bg: "bg-gray-50",    ring: "border-gray-200",    dot: "bg-gray-400" },
+};
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", color: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
@@ -258,6 +284,68 @@ export default function OrdersTable() {
                         <p className="text-xs lg:text-sm text-gray-500 mt-0.5">{new Date(order.createdAt).toLocaleTimeString()}</p>
                       </div>
                     </div>
+
+                    {/* Source attribution — auto-traced from sessionId */}
+                    {order.attribution && (
+                      (() => {
+                        const a = order.attribution;
+                        const badge = CHANNEL_BADGE[a.channel] || CHANNEL_BADGE.unknown;
+                        return (
+                          <div className={`rounded-xl p-3 lg:p-4 border ${badge.bg} ${badge.ring}`}>
+                            <div className="flex items-start gap-2.5">
+                              <div className="w-8 h-8 lg:w-9 lg:h-9 rounded-lg bg-white border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                <Compass className="w-4 h-4 text-slate-700" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-xs lg:text-sm font-semibold text-slate-900">Order source</span>
+                                  <span className={`inline-flex items-center gap-1 text-[10px] lg:text-xs px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-700`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                                    {badge.label}
+                                  </span>
+                                  <span className="text-[11px] lg:text-xs font-medium text-slate-700">{a.source}</span>
+                                </div>
+                                <p className="text-xs lg:text-sm text-gray-700 mt-1.5 leading-relaxed">{a.verdict}</p>
+                                {(a.utmSource || a.entryPage) && (
+                                  <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {a.utmSource && (
+                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono">
+                                        utm_source={a.utmSource}
+                                      </span>
+                                    )}
+                                    {a.utmMedium && (
+                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono">
+                                        utm_medium={a.utmMedium}
+                                      </span>
+                                    )}
+                                    {a.utmCampaign && (
+                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono">
+                                        utm_campaign={a.utmCampaign}
+                                      </span>
+                                    )}
+                                    {a.campaignSlug && (
+                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono">
+                                        /r/{a.campaignSlug}
+                                      </span>
+                                    )}
+                                    {a.entryPage && (
+                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono truncate max-w-[260px]">
+                                        landed: {a.entryPage}
+                                      </span>
+                                    )}
+                                    {a.pageViewCount > 0 && (
+                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600">
+                                        {a.pageViewCount} page view{a.pageViewCount === 1 ? "" : "s"}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()
+                    )}
 
                     {/* Items */}
                     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
