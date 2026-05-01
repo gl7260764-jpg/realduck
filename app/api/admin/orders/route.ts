@@ -111,10 +111,29 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // Dedupe: when the same sessionId placed both a CheckoutOrder and an
+    // Order tracking row within ~5 minutes of each other, they are the same
+    // customer journey logged twice (the Fast Order flow creates both
+    // simultaneously). Drop the Order row — CheckoutOrder has full info.
+    const checkoutSessionWindows = new Map<string, number[]>();
+    for (const co of checkoutOrders) {
+      if (!co.sessionId) continue;
+      const list = checkoutSessionWindows.get(co.sessionId) || [];
+      list.push(co.createdAt.getTime());
+      checkoutSessionWindows.set(co.sessionId, list);
+    }
+    const FIVE_MIN_MS = 5 * 60 * 1000;
+    const dedupedFastOrders = fastOrders.filter((fo) => {
+      const times = checkoutSessionWindows.get(fo.sessionId);
+      if (!times) return true;
+      const t = fo.createdAt.getTime();
+      return !times.some((co) => Math.abs(co - t) < FIVE_MIN_MS);
+    });
+
     // Normalize fast orders into the same wire shape as checkout orders so
     // the UI can render both with one component path. Empty/null for fields
     // that don't exist on the Order model (full address, payment, etc).
-    const normalizedFastOrders = fastOrders.map((o) => ({
+    const normalizedFastOrders = dedupedFastOrders.map((o) => ({
       id: o.id,
       orderNumber: `FAST-${o.id.slice(-8).toUpperCase()}`,
       sessionId: o.sessionId,

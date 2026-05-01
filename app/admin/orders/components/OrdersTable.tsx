@@ -26,6 +26,9 @@ interface OrderAttribution {
   refererDomain: string | null;
   pageViewCount: number;
   firstSeenAt: string | null;
+  lastSeenAt: string | null;
+  timeOnSiteSeconds: number;
+  timeOnSiteLabel: string;
   verdict: string;
 }
 
@@ -323,7 +326,29 @@ export default function OrdersTable() {
                                   <span className="text-[11px] lg:text-xs font-medium text-slate-700">{a.source}</span>
                                 </div>
                                 <p className="text-xs lg:text-sm text-gray-700 mt-1.5 leading-relaxed">{a.verdict}</p>
-                                {(a.utmSource || a.entryPage) && (
+
+                                {/* Highlighted: landed page + time on site + page count */}
+                                {(a.entryPage || a.timeOnSiteSeconds > 0 || a.pageViewCount > 0) && (
+                                  <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-1.5 lg:gap-2">
+                                    {a.entryPage && (
+                                      <div className="bg-white rounded-lg border border-gray-200 px-2.5 py-1.5">
+                                        <p className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Landed on</p>
+                                        <p className="text-xs lg:text-sm font-mono text-slate-900 truncate" title={a.entryPage}>{a.entryPage}</p>
+                                      </div>
+                                    )}
+                                    <div className="bg-white rounded-lg border border-gray-200 px-2.5 py-1.5">
+                                      <p className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Time on site</p>
+                                      <p className="text-xs lg:text-sm font-semibold text-slate-900">{a.timeOnSiteLabel}</p>
+                                    </div>
+                                    <div className="bg-white rounded-lg border border-gray-200 px-2.5 py-1.5">
+                                      <p className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">Pages viewed</p>
+                                      <p className="text-xs lg:text-sm font-semibold text-slate-900">{a.pageViewCount}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* UTM + campaign chips (lower-priority info) */}
+                                {(a.utmSource || a.campaignSlug) && (
                                   <div className="mt-2 flex flex-wrap gap-1.5">
                                     {a.utmSource && (
                                       <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono">
@@ -343,16 +368,6 @@ export default function OrdersTable() {
                                     {a.campaignSlug && (
                                       <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono">
                                         /r/{a.campaignSlug}
-                                      </span>
-                                    )}
-                                    {a.entryPage && (
-                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600 font-mono truncate max-w-[260px]">
-                                        landed: {a.entryPage}
-                                      </span>
-                                    )}
-                                    {a.pageViewCount > 0 && (
-                                      <span className="text-[10px] lg:text-xs px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-600">
-                                        {a.pageViewCount} page view{a.pageViewCount === 1 ? "" : "s"}
                                       </span>
                                     )}
                                   </div>

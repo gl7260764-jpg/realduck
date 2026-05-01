@@ -28,7 +28,23 @@ export interface OrderAttribution {
   refererDomain: string | null;
   pageViewCount: number;
   firstSeenAt: string | null;
+  lastSeenAt: string | null;
+  timeOnSiteSeconds: number; // total session duration (last - first PageView)
+  timeOnSiteLabel: string; // "12m 34s", "1h 5m", etc.
   verdict: string; // human-readable summary
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 1) return "< 1s";
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds % 60);
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  }
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
 
 const EMPTY: OrderAttribution = {
@@ -45,6 +61,9 @@ const EMPTY: OrderAttribution = {
   refererDomain: null,
   pageViewCount: 0,
   firstSeenAt: null,
+  lastSeenAt: null,
+  timeOnSiteSeconds: 0,
+  timeOnSiteLabel: "—",
   verdict: "No session data — source can't be determined for this order.",
 };
 
@@ -94,7 +113,7 @@ function extractUtm(url: string | null | undefined): {
 export async function getOrderAttribution(sessionId: string | null): Promise<OrderAttribution> {
   if (!sessionId) return EMPTY;
 
-  const [campaignClick, firstPageView, pageViewCount] = await Promise.all([
+  const [campaignClick, firstPageView, lastPageView, pageViewCount] = await Promise.all([
     prisma.campaignClick.findFirst({
       where: { sessionId },
       orderBy: { createdAt: "asc" },
@@ -104,8 +123,23 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
       where: { sessionId },
       orderBy: { createdAt: "asc" },
     }),
+    prisma.pageView.findFirst({
+      where: { sessionId },
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.pageView.count({ where: { sessionId } }),
   ]);
+
+  // Time on site = duration between first and last recorded PageView
+  let timeOnSiteSeconds = 0;
+  if (firstPageView && lastPageView && firstPageView.id !== lastPageView.id) {
+    timeOnSiteSeconds = Math.max(
+      0,
+      (lastPageView.createdAt.getTime() - firstPageView.createdAt.getTime()) / 1000
+    );
+  }
+  const timeOnSiteLabel = pageViewCount > 0 ? formatDuration(timeOnSiteSeconds) : "—";
+  const lastSeenAt = lastPageView?.createdAt.toISOString() || null;
 
   // Highest-confidence: tracked /r/<slug> click recorded for this session
   if (campaignClick) {
@@ -118,9 +152,9 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
       promoterName ? `your "${promoterName}" promoter` : `the ${c.utmSource}/${c.utmMedium} channel`
     } via the tracked short link /r/${c.slug}. UTM tags: source=${c.utmSource}, medium=${c.utmMedium}${
       c.utmCampaign ? `, campaign=${c.utmCampaign}` : ""
-    }. The visitor was redirected to ${c.destination}, then ordered after ${pageViewCount} page view${
+    }. The visitor was redirected to ${c.destination}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${
       pageViewCount === 1 ? "" : "s"
-    }.`;
+    }, then ordered.`;
     return {
       sessionId,
       source,
@@ -135,6 +169,9 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
       refererDomain: campaignClick.referer || null,
       pageViewCount,
       firstSeenAt: campaignClick.createdAt.toISOString(),
+      lastSeenAt,
+      timeOnSiteSeconds,
+      timeOnSiteLabel,
       verdict,
     };
   }
@@ -167,9 +204,9 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
         promoterName ? `your "${promoterName}" promoter` : `a "${utmSource}" tagged link`
       } (UTM source=${utmSource}${utmMedium ? `, medium=${utmMedium}` : ""}${
         utmCampaign ? `, campaign=${utmCampaign}` : ""
-      }). The visitor landed on ${firstPageView.page}, then ordered after ${pageViewCount} page view${
+      }). The visitor landed on ${firstPageView.page}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${
         pageViewCount === 1 ? "" : "s"
-      }.`;
+      }, then ordered.`;
       return {
         sessionId,
         source,
@@ -184,6 +221,9 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
         refererDomain: firstPageView.refererDomain,
         pageViewCount,
         firstSeenAt: firstPageView.createdAt.toISOString(),
+        lastSeenAt,
+        timeOnSiteSeconds,
+        timeOnSiteLabel,
         verdict,
       };
     }
@@ -192,8 +232,8 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
     const { channel, source } = categorizeRefererDomain(firstPageView.refererDomain);
     const verdict =
       channel === "direct"
-        ? `This order came in directly — no referer was sent (typed URL, bookmark, or in-app browser). Visitor landed on ${firstPageView.page} and ordered after ${pageViewCount} page view${pageViewCount === 1 ? "" : "s"}.`
-        : `This order came from ${source}. Visitor landed on ${firstPageView.page} and ordered after ${pageViewCount} page view${pageViewCount === 1 ? "" : "s"}.`;
+        ? `This order came in directly — no referer was sent (typed URL, bookmark, or in-app browser). Visitor landed on ${firstPageView.page}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${pageViewCount === 1 ? "" : "s"}, then ordered.`
+        : `This order came from ${source}. Visitor landed on ${firstPageView.page}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${pageViewCount === 1 ? "" : "s"}, then ordered.`;
 
     return {
       sessionId,
@@ -208,6 +248,9 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
       entryPage: firstPageView.page,
       refererDomain: firstPageView.refererDomain,
       pageViewCount,
+      lastSeenAt,
+      timeOnSiteSeconds,
+      timeOnSiteLabel,
       firstSeenAt: firstPageView.createdAt.toISOString(),
       verdict,
     };
