@@ -40,17 +40,20 @@ export async function compressVideo(
       const args = [
         "-y",
         "-i", inputPath,
-        // Video: H.264 with CRF 28 (lower = higher quality; 23 default, 28 reasonable for web)
+        // Video: H.264 with CRF 28 + superfast preset (good speed/size balance for web product clips)
         "-c:v", "libx264",
         "-crf", "28",
-        "-preset", "fast",
-        // Cap width at 1280px, keep aspect, ensure even dimensions
-        "-vf", "scale='min(1280,iw)':-2",
-        // Audio: AAC at 96 kbps mono-stereo
+        "-preset", "superfast",
+        // Cap longest side at 960px — plenty for product previews, big speedup vs 1280
+        "-vf", "scale='if(gt(iw,ih),min(960,iw),-2)':'if(gt(iw,ih),-2,min(960,ih))'",
+        // Audio: AAC at 64 kbps mono — fine for product demos, half the bitrate
         "-c:a", "aac",
-        "-b:a", "96k",
+        "-b:a", "64k",
+        "-ac", "1",
         // Faststart so the moov atom is at the start (browser can play before fully downloaded)
         "-movflags", "+faststart",
+        // Multi-thread the encoder
+        "-threads", "0",
         outputPath,
       ];
       const proc = spawn(ffmpegPath as string, args);

@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
 import { putObject, contentTypeFor } from "@/lib/r2";
-import { compressVideo } from "@/lib/videoCompress";
+import { trimVideoToFit } from "@/lib/videoTrim";
 import { randomBytes } from "crypto";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120; // give ffmpeg up to 2 min on large videos
+export const maxDuration = 120;
 
 const HARD_MAX_BYTES = 200 * 1024 * 1024;          // 200 MB intake cap
-const VIDEO_COMPRESS_OVER = 8 * 1024 * 1024;       // re-encode any video over 8 MB
+const VIDEO_TRIM_OVER = 10 * 1024 * 1024;          // trim videos larger than 10 MB
+const VIDEO_TRIM_TARGET = 8 * 1024 * 1024;         // aim for ~8 MB after trim
 const VIDEO_EXT = new Set(["mp4", "mov", "webm", "mkv", "avi", "m4v", "3gp"]);
 
 function isVideoFilename(name: string): boolean {
@@ -45,7 +46,6 @@ export async function POST(req: NextRequest) {
   }
   const filename = file.name || "upload.bin";
 
-  // Slug hint for organizing files in R2
   const slugHint = (formData.get("slug") as string | null) || null;
   const safeSlug = slugHint ? slugHint.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 64) : null;
 
@@ -55,20 +55,24 @@ export async function POST(req: NextRequest) {
   let uploadBuffer: Uint8Array = originalBuffer;
   let uploadFilename = filename;
   let uploadContentType: string;
-  let compressed = false;
-  let originalSize = originalBuffer.length;
+  let trimmed = false;
+  let originalDuration: number | undefined;
+  let trimmedDuration: number | undefined;
+  const originalSize = originalBuffer.length;
 
-  if (originalIsVideo && originalBuffer.length > VIDEO_COMPRESS_OVER) {
+  if (originalIsVideo && originalBuffer.length > VIDEO_TRIM_OVER) {
     try {
-      const result = await compressVideo(originalBuffer, filename);
+      const result = await trimVideoToFit(originalBuffer, filename, VIDEO_TRIM_TARGET);
       uploadBuffer = result.buffer;
       uploadFilename = result.filename;
       uploadContentType = result.contentType;
-      compressed = true;
+      trimmed = true;
+      originalDuration = result.originalDuration;
+      trimmedDuration = result.trimmedDuration;
     } catch (err) {
-      console.error("Video compression failed:", err);
+      console.error("Video trim failed:", err);
       return NextResponse.json(
-        { error: `Compression failed: ${err instanceof Error ? err.message : String(err)}` },
+        { error: `Trim failed: ${err instanceof Error ? err.message : String(err)}` },
         { status: 500 },
       );
     }
@@ -94,12 +98,10 @@ export async function POST(req: NextRequest) {
       key,
       size: uploadBuffer.length,
       contentType: uploadContentType,
-      compressed,
+      trimmed,
       originalSize,
-      compressedSize: compressed ? uploadBuffer.length : undefined,
-      compressionRatio: compressed
-        ? `${((1 - uploadBuffer.length / originalSize) * 100).toFixed(1)}%`
-        : undefined,
+      originalDuration,
+      trimmedDuration,
     });
   } catch (error: unknown) {
     console.error("R2 upload error:", error);
