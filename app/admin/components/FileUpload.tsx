@@ -26,6 +26,7 @@ export default function FileUpload({
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -36,23 +37,58 @@ export default function FileUpload({
     if (!file) return;
     setUploadError(null);
     setUploading(true);
+    setUploadProgress(0);
+
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      if (slug) fd.append("slug", slug);
-      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || `Upload failed (${res.status})`);
+      // 1. Ask our server for a pre-signed PUT URL (small JSON request — fits in Vercel cap).
+      const urlRes = await fetch("/api/admin/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          slug,
+        }),
+      });
+      const urlData = await urlRes.json();
+      if (!urlRes.ok) {
+        throw new Error(urlData.error || `Failed to get upload URL (${urlRes.status})`);
       }
+
+      // 2. PUT the file directly to R2 — Vercel never sees the bytes.
+      //    Using XHR (not fetch) because we need upload progress events.
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", (ev) => {
+          if (ev.lengthComputable) {
+            setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+          }
+        });
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`R2 rejected upload (${xhr.status})`));
+          }
+        });
+        xhr.addEventListener("error", () => reject(new Error("Network error during upload")));
+        xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+        xhr.open("PUT", urlData.uploadUrl);
+        // Must match the Content-Type the pre-signed URL was issued for.
+        xhr.setRequestHeader("Content-Type", urlData.contentType || "application/octet-stream");
+        xhr.send(file);
+      });
+
+      // 3. Hand the public URL back to the form.
       setImageError(false);
       setIsLoading(true);
-      onChange(data.url);
+      onChange(urlData.publicUrl);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
-      // Reset the file input so re-selecting the same file works
+      setUploadProgress(0);
+      // Reset input so re-selecting the same file works.
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
@@ -70,7 +106,6 @@ export default function FileUpload({
         <label className="block text-sm font-medium text-gray-700">{label}</label>
       )}
 
-      {/* Hidden file input — triggered by the upload button */}
       <input
         ref={fileInputRef}
         type="file"
@@ -80,7 +115,7 @@ export default function FileUpload({
       />
 
       {/* Preview when value exists */}
-      {value && (
+      {value && !uploading && (
         <div className={`relative ${compact ? "h-28" : "h-40"} w-full rounded-lg overflow-hidden bg-gray-200 border border-gray-300`}>
           {isVideo ? (
             <video
@@ -126,29 +161,42 @@ export default function FileUpload({
         </div>
       )}
 
-      {/* Upload button when no value */}
-      {!value && (
+      {/* Upload progress */}
+      {uploading && (
+        <div className={`w-full ${compact ? "h-20" : "h-28"} border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 flex flex-col items-center justify-center gap-2 px-4`}>
+          <div className="flex items-center gap-2 text-sm text-slate-700 font-medium">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Uploading… {uploadProgress}%</span>
+          </div>
+          <div className="w-full max-w-xs h-1.5 bg-slate-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-slate-900 transition-all duration-150"
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Upload button when no value and not uploading */}
+      {!value && !uploading && (
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className={`w-full ${compact ? "h-20" : "h-28"} border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors group disabled:opacity-60 disabled:cursor-not-allowed`}
+          className={`w-full ${compact ? "h-20" : "h-28"} border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors group`}
         >
           <div className="flex flex-col items-center justify-center h-full gap-1.5 px-2">
             <div className="p-2 bg-gray-100 rounded-full group-hover:bg-gray-200 transition-colors">
-              {uploading ? (
-                <Loader2 className="w-5 h-5 text-gray-500 animate-spin" />
-              ) : isVideo ? (
+              {isVideo ? (
                 <Video className="w-5 h-5 text-gray-500" />
               ) : (
                 <ImageIcon className="w-5 h-5 text-gray-500" />
               )}
             </div>
             <p className="text-xs font-medium text-gray-600 text-center">
-              {uploading ? "Uploading…" : `Click to upload ${isVideo ? "video" : "image"}`}
+              Click to upload {isVideo ? "video" : "image"}
             </p>
             <p className="text-[10px] text-gray-400">
-              {isVideo ? "MP4, WebM up to 25MB" : "JPG, PNG, WebP up to 25MB"}
+              {isVideo ? "MP4, WebM, MOV — any size" : "JPG, PNG, WebP — any size"}
             </p>
           </div>
         </button>
