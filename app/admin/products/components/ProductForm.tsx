@@ -3,8 +3,40 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { ArrowLeft, X, Pencil } from "lucide-react";
 import FileUpload from "../../components/FileUpload";
+
+// Apply a numeric transform to each line of a multi-line price string.
+// Preserves the "$" prefix and any text after the number ("/HP", "/P", etc.).
+function transformPriceLines(price: string, fn: (n: number) => number): string {
+  if (!price) return "";
+  return price
+    .split("\n")
+    .map((line) => {
+      const m = line.match(/^(\s*\$?)(\d[\d,]*(?:\.\d+)?)(.*)$/);
+      if (!m) return line;
+      const prefix = m[1];
+      const num = parseFloat(m[2].replace(/,/g, ""));
+      const suffix = m[3];
+      if (!Number.isFinite(num)) return line;
+      return `${prefix}${Math.round(fn(num))}${suffix}`;
+    })
+    .join("\n");
+}
+
+// Auto-calculation rules:
+//   • FLOWER:     ship = local + $100
+//   • Non-flower: ship = local × 1.10  (+10%)
+//   • Slashed = active × 1.30 for both local and ship.
+function autoCalcPrices(priceLocal: string, category: string) {
+  const priceShip =
+    category === "FLOWER"
+      ? transformPriceLines(priceLocal, (n) => n + 100)
+      : transformPriceLines(priceLocal, (n) => n * 1.1);
+  const slashedPriceLocal = transformPriceLines(priceLocal, (n) => n * 1.3);
+  const slashedPriceShip = transformPriceLines(priceShip, (n) => n * 1.3);
+  return { priceShip, slashedPriceLocal, slashedPriceShip };
+}
 
 const CATEGORIES = [
   { value: "FLOWER", label: "Flower" },
@@ -48,6 +80,21 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  // Default to auto-calc on new products. For edits, switch on if existing
+  // priceShip / slashed values don't match what auto-calc would produce — so
+  // we don't silently overwrite a custom price.
+  const [manualPricing, setManualPricing] = useState(() => {
+    if (!isEditing || !product) return false;
+    const { priceShip, slashedPriceLocal, slashedPriceShip } = autoCalcPrices(
+      product.priceLocal,
+      product.category,
+    );
+    return (
+      (product.priceShip || "") !== priceShip ||
+      (product.slashedPriceLocal || "") !== slashedPriceLocal ||
+      (product.slashedPriceShip || "") !== slashedPriceShip
+    );
+  });
 
   const [formData, setFormData] = useState({
     title: product?.title || "",
@@ -87,10 +134,16 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
         : "/api/admin/products";
       const method = isEditing ? "PUT" : "POST";
 
+      // When auto-calc is on, derive priceShip and slashed prices from
+      // priceLocal at submit time so the saved data is always consistent.
+      const payload = manualPricing
+        ? formData
+        : { ...formData, ...autoCalcPrices(formData.priceLocal, formData.category) };
+
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -239,90 +292,114 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
 
           {/* Pricing */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Pricing</h2>
-            <p className="text-[11px] text-gray-500 mb-3">
-              These are the prices customers actually pay (the active prices).
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-semibold text-gray-900">Pricing</h2>
+              <button
+                type="button"
+                onClick={() => setManualPricing((v) => !v)}
+                className="text-[11px] text-slate-600 hover:text-slate-900 underline underline-offset-2 inline-flex items-center gap-1"
+              >
+                <Pencil className="w-3 h-3" />
+                {manualPricing ? "Use auto-calculated prices" : "Customise prices manually"}
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
+              {manualPricing ? (
+                <>You&apos;re entering all four prices manually.</>
+              ) : formData.category === "FLOWER" ? (
+                <>Enter the local price only. Shipping = local + <strong>$100</strong>. Slashed prices auto-calculated as <strong>+30%</strong>.</>
+              ) : (
+                <>Enter the local price only. Shipping = local <strong>+10%</strong>. Slashed prices auto-calculated as <strong>+30%</strong>.</>
+              )}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Local Price (Intown) — <span className="text-emerald-600 font-semibold">active</span> *
-                </label>
-                <textarea
-                  name="priceLocal"
-                  value={formData.priceLocal}
-                  onChange={handleChange}
-                  required
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
-                  placeholder="$600/HP&#10;$1100/P"
-                />
-                <p className="text-[10px] text-gray-400 mt-1">The price customers see and pay.</p>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Shipped Price — <span className="text-emerald-600 font-semibold">active</span> *
-                </label>
-                <textarea
-                  name="priceShip"
-                  value={formData.priceShip}
-                  onChange={handleChange}
-                  required
-                  rows={2}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
-                  placeholder="$650/HP&#10;$1200/P"
-                />
-                <p className="text-[10px] text-gray-400 mt-1">The price customers see and pay.</p>
-              </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Local Price (Intown) — <span className="text-emerald-600 font-semibold">active</span> *
+              </label>
+              <textarea
+                name="priceLocal"
+                value={formData.priceLocal}
+                onChange={handleChange}
+                required
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                placeholder="$600/HP&#10;$1100/P"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">
+                Multi-line for tiered pricing (HP / P / etc.) — one tier per line.
+              </p>
             </div>
 
-            {/* Slashed/compare-at prices — optional, leave empty to auto-calc */}
-            <div className="mt-5 pt-5 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-semibold text-gray-900">
-                  Compare-at price <span className="text-gray-400 font-normal">(crossed out)</span>
-                </h3>
-                <span className="text-[10px] text-gray-500">
-                  Empty → auto +30%
-                </span>
+            {!manualPricing && formData.priceLocal.trim().length > 0 && (
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 bg-gray-50 rounded-lg p-3 border border-gray-100">
+                {(() => {
+                  const calc = autoCalcPrices(formData.priceLocal, formData.category);
+                  const cells: { label: string; value: string }[] = [
+                    { label: "Shipped (active)", value: calc.priceShip },
+                    { label: "Slashed local", value: calc.slashedPriceLocal },
+                    { label: "Slashed shipped", value: calc.slashedPriceShip },
+                  ];
+                  return cells.map((c) => (
+                    <div key={c.label}>
+                      <div className="text-[10px] uppercase tracking-wide text-gray-500 font-medium">
+                        {c.label}
+                      </div>
+                      <pre className="mt-1 text-xs font-mono text-gray-900 whitespace-pre-wrap break-words">
+                        {c.value || "—"}
+                      </pre>
+                    </div>
+                  ));
+                })()}
               </div>
-              <p className="text-[11px] text-gray-500 mb-3 leading-relaxed">
-                The <strong>old / higher</strong> price shown <span className="line-through text-rose-600">crossed out</span> next to the active price.
-                Always enter a value <strong>higher than</strong> the active price (or leave empty to auto-calculate as +30%).
-                Same multi-line format as the price above.
-              </p>
-              <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-3 mb-3 text-[11px] text-blue-900 leading-relaxed">
-                <strong>Example:</strong> active price <code className="px-1 py-0.5 bg-white rounded text-blue-700">$400</code> · compare-at <code className="px-1 py-0.5 bg-white rounded text-blue-700">$800</code> displays as <span className="text-rose-600 line-through font-semibold">$800</span> <span className="font-semibold">$400</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            )}
+
+            {manualPricing && (
+              <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Compare-at Local Price <span className="text-gray-400 font-normal">(higher than active)</span>
+                    Shipped Price — <span className="text-emerald-600 font-semibold">active</span> *
                   </label>
                   <textarea
-                    name="slashedPriceLocal"
-                    value={formData.slashedPriceLocal}
+                    name="priceShip"
+                    value={formData.priceShip}
                     onChange={handleChange}
+                    required
                     rows={2}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
-                    placeholder="$1200/HP&#10;$2200/P (higher than active)"
+                    placeholder="$650/HP&#10;$1200/P"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Compare-at Shipped Price <span className="text-gray-400 font-normal">(higher than active)</span>
-                  </label>
-                  <textarea
-                    name="slashedPriceShip"
-                    value={formData.slashedPriceShip}
-                    onChange={handleChange}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
-                    placeholder="$1300/HP&#10;$2400/P (higher than active)"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Slashed Local <span className="text-gray-400 font-normal">(higher than active)</span>
+                    </label>
+                    <textarea
+                      name="slashedPriceLocal"
+                      value={formData.slashedPriceLocal}
+                      onChange={handleChange}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                      placeholder="$780/HP&#10;$1430/P"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      Slashed Shipped <span className="text-gray-400 font-normal">(higher than active)</span>
+                    </label>
+                    <textarea
+                      name="slashedPriceShip"
+                      value={formData.slashedPriceShip}
+                      onChange={handleChange}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                      placeholder="$845/HP&#10;$1560/P"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Media - Combined Image & Video */}

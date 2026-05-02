@@ -22,7 +22,11 @@
       "Bash(npm run *)",
       "Bash(curl -s \"http://localhost:3001/api/admin/products\")",
       "Read(//home/wice2/Desktop/realduck-media/2cb/**)",
-      "Bash(pkill -f \"next dev\")"
+      "Bash(pkill -f \"next dev\")",
+      "WebSearch",
+      "Bash(ffmpeg -version)",
+      "Read(//usr/share/sounds/**)",
+      "Read(//home/wice2/Videos/**)"
     ],
     "additionalDirectories": [
       "/home/chendi/Desktop/New Folder/nobupacks/public/images/payments",

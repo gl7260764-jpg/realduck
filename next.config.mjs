@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Don't bundle the ffmpeg binary — load it from node_modules at runtime.
+    serverComponentsExternalPackages: ["ffmpeg-static"],
+  },
   images: {
     remotePatterns: [
       {
