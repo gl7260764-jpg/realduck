@@ -58,7 +58,7 @@ export default function ProductCard({
   const [fastError, setFastError] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [fastQty, setFastQty] = useState(1);
+  const [fastQty, setFastQty] = useState(category === "DISPOSABLES" ? 50 : 1);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRef = useRef<HTMLAnchorElement>(null);
@@ -138,14 +138,21 @@ export default function ProductCard({
     }
   };
 
+  const isDisposables = category === "DISPOSABLES";
+  const DISPOSABLES_MIN_QTY = 50;
   const FAST_ORDER_MIN = 200;
   const fastUnitPrice = (() => {
     const m = priceShip.split("\n")[0]?.match(/\$?([\d,]+(?:\.\d+)?)/);
     return m ? parseFloat(m[1].replace(",", "")) : 0;
   })();
-  const fastMinQty = fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 1;
+  // For disposables, the "min qty" is fixed at 50 — the $200 dollar floor doesn't apply.
+  const fastMinQty = isDisposables
+    ? DISPOSABLES_MIN_QTY
+    : (fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 1);
   const fastLineTotal = fastUnitPrice * fastQty;
-  const fastBelowMin = fastUnitPrice > 0 && fastLineTotal < FAST_ORDER_MIN;
+  const fastBelowMin = isDisposables
+    ? fastQty < DISPOSABLES_MIN_QTY
+    : (fastUnitPrice > 0 && fastLineTotal < FAST_ORDER_MIN);
 
   const handleFastOrder = async () => {
     const emailTrimmed = customerEmail.trim();
@@ -154,7 +161,11 @@ export default function ProductCard({
       return;
     }
     if (fastBelowMin) {
-      setFastError(`Fast order minimum is $${FAST_ORDER_MIN}. You need at least ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"}.`);
+      setFastError(
+        isDisposables
+          ? `Minimum order for disposables is ${DISPOSABLES_MIN_QTY} units. You currently have ${fastQty}.`
+          : `Fast order minimum is $${FAST_ORDER_MIN}. You need at least ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"}.`,
+      );
       return;
     }
 
@@ -302,13 +313,24 @@ export default function ProductCard({
               {buyStep === "fast-contact" && (
                 <>
                   <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
-                  {fastUnitPrice > 0 && fastUnitPrice < FAST_ORDER_MIN && (
-                    <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
-                      <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                        At ${fastUnitPrice.toFixed(2)} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}.
-                      </p>
-                    </div>
+                  {isDisposables ? (
+                    fastBelowMin && (
+                      <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs font-semibold text-amber-900">Minimum order is {DISPOSABLES_MIN_QTY} units for disposables</p>
+                        <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                          You currently have <strong>{fastQty}</strong> unit{fastQty === 1 ? "" : "s"}. Use the quantity selector below to reach <strong>{DISPOSABLES_MIN_QTY}</strong>.
+                        </p>
+                      </div>
+                    )
+                  ) : (
+                    fastUnitPrice > 0 && fastUnitPrice < FAST_ORDER_MIN && (
+                      <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
+                        <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                          At ${fastUnitPrice.toFixed(2)} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}.
+                        </p>
+                      </div>
+                    )
                   )}
                   <div className="space-y-3">
                     <div>
@@ -326,7 +348,7 @@ export default function ProductCard({
                           <span className="w-10 text-center text-sm font-semibold text-gray-900">{fastQty}</span>
                           <button
                             type="button"
-                            onClick={() => setFastQty((q) => Math.min(99, q + 1))}
+                            onClick={() => setFastQty((q) => Math.min(isDisposables ? 1000 : 99, q + 1))}
                             className="w-9 h-9 flex items-center justify-center text-gray-700 hover:bg-gray-100"
                           >
                             +

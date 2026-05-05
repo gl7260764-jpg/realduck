@@ -47,13 +47,24 @@ export default function CartDrawer() {
   };
 
   const FAST_ORDER_MIN = 200;
+  const DISPOSABLES_MIN_QTY = 50;
   const cartTotalNumeric = items.reduce((sum, item) => {
     const m = getItemPrice(item)?.match(/\$?([\d,]+(?:\.\d+)?)/);
     if (!m) return sum;
     return sum + parseFloat(m[1].replace(",", "")) * item.quantity;
   }, 0);
-  const fastBelowMin = cartTotalNumeric > 0 && cartTotalNumeric < FAST_ORDER_MIN;
-  const fastShortfall = fastBelowMin ? FAST_ORDER_MIN - cartTotalNumeric : 0;
+  // Disposables-aware fast-order eligibility:
+  //   • If the cart contains disposables, the $200 dollar minimum is bypassed
+  //     and only the 50-unit rule applies.
+  //   • Otherwise, the dollar minimum still applies.
+  const disposablesQty = items
+    .filter((it) => it.category === "DISPOSABLES")
+    .reduce((s, it) => s + it.quantity, 0);
+  const cartHasDisposables = disposablesQty > 0;
+  const disposablesBelowMin = cartHasDisposables && disposablesQty < DISPOSABLES_MIN_QTY;
+  const dollarBelowMin = !cartHasDisposables && cartTotalNumeric > 0 && cartTotalNumeric < FAST_ORDER_MIN;
+  const fastBelowMin = disposablesBelowMin || dollarBelowMin;
+  const fastShortfall = dollarBelowMin ? FAST_ORDER_MIN - cartTotalNumeric : 0;
 
   const handleTelegramCheckout = async () => {
     if (items.length === 0) return;
@@ -64,7 +75,11 @@ export default function CartDrawer() {
       return;
     }
     if (fastBelowMin) {
-      setTelegramError(`Fast order minimum is $${FAST_ORDER_MIN}. Add $${fastShortfall.toFixed(2)} more or use Detailed Checkout.`);
+      setTelegramError(
+        disposablesBelowMin
+          ? `Minimum order for disposables is ${DISPOSABLES_MIN_QTY} units. Your cart has ${disposablesQty}.`
+          : `Fast order minimum is $${FAST_ORDER_MIN}. Add $${fastShortfall.toFixed(2)} more or use Detailed Checkout.`,
+      );
       return;
     }
 
@@ -354,10 +369,21 @@ export default function CartDrawer() {
                 <p className="text-xs text-gray-500 text-center">Email is required — phone number is optional</p>
                 {fastBelowMin && (
                   <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
-                    <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                      Your cart is at <strong>${cartTotalNumeric.toFixed(2)}</strong> — add <strong>${fastShortfall.toFixed(2)}</strong> more to qualify, or use the Detailed Checkout above.
-                    </p>
+                    {disposablesBelowMin ? (
+                      <>
+                        <p className="text-xs font-semibold text-amber-900">Minimum order is {DISPOSABLES_MIN_QTY} units for disposables</p>
+                        <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                          Your cart has <strong>{disposablesQty}</strong> disposable unit{disposablesQty === 1 ? "" : "s"}. Increase the quantity to <strong>{DISPOSABLES_MIN_QTY}</strong> to place this order.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
+                        <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                          Your cart is at <strong>${cartTotalNumeric.toFixed(2)}</strong> — add <strong>${fastShortfall.toFixed(2)}</strong> more to qualify, or use the Detailed Checkout above.
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
                 <div>
