@@ -826,8 +826,7 @@ export default function ProductDetailClient({
                           <Link href="/?category=FLOWER" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Flower</Link>,{" "}
                           <Link href="/?category=EDIBLES" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Edibles</Link>,{" "}
                           <Link href="/?category=CONCENTRATES" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Concentrates</Link>,{" "}
-                          <Link href="/?category=VAPES" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Vapes</Link>,{" "}
-                          <Link href="/?category=ROSIN" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Rosin</Link>, and{" "}
+                          <Link href="/?category=DISPOSABLES" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Disposables</Link>, and{" "}
                           <Link href="/?category=PREROLLS" className="text-slate-900 font-medium underline underline-offset-2 hover:text-slate-700">Pre-Rolls</Link>.
                         </p>
                       </div>

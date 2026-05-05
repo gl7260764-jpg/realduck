@@ -244,54 +244,7 @@ The potency of ${name} means that a little goes a long way. A single dab — rou
   };
 }
 
-// ── VAPES ──
-function vapesDescription(product: DescProduct, seed: number): { blocks: DescriptionBlock[]; qualities: string[] } {
-  const name = product.title;
-  const is510 = name.toLowerCase().includes("cart") || name.toLowerCase().includes("510");
 
-  const intros = [
-    `${name} delivers a vaping experience that prioritizes purity and flavor above all else. The oil inside this cartridge is extracted from strain-specific cannabis and refined to remove impurities while retaining the natural terpene profile that gives each strain its unique character. {{LINK:0}} There are no cutting agents, no vitamin E acetate, no PG or VG — just clean cannabis oil that produces smooth, flavorful vapor with every draw. In an industry where transparency about ingredients is still lacking, ${name} stands out by keeping it simple: cannabis oil and cannabis-derived terpenes, nothing more.`,
-
-    `In the crowded vape market, ${name} distinguishes itself through uncompromising quality at every level — from the oil formulation to the hardware it's housed in. {{LINK:0}} The cannabis oil is processed using methods that preserve a broader spectrum of cannabinoids beyond just THC, contributing to a more well-rounded effect profile. The terpenes you taste aren't synthetic replicas added for marketing purposes — they're derived from the actual cannabis plant, capturing authentic strain characteristics that artificial terpenes can only approximate.`,
-
-    `${name} was designed for people who want the convenience of vaping without sacrificing the quality they'd expect from premium flower. The oil formulation starts with carefully selected cannabis that's processed to concentrate the most desirable compounds while filtering out plant material, lipids, and other unwanted elements. {{LINK:0}} The result is a golden, viscous oil that moves slowly in the cartridge — a visual indicator of purity and proper formulation. Each draw delivers consistent vapor production and flavor, from the first puff of a fresh cartridge to the very last.`,
-  ];
-
-  const bodyVariants = [
-    `The hardware matters as much as the oil when it comes to vape quality, and ${name} uses ceramic coil technology that outperforms traditional cotton-wicked cartridges in every measurable way. {{LINK:1}} Ceramic coils heat oil more evenly across a larger surface area, producing smoother vapor without the risk of burnt hits that plague inferior hardware. The ceramic material is also inert — it doesn't interact chemically with the oil at operating temperatures, ensuring that what you inhale is pure cannabis vapor without any off-flavors from the heating element.
-
-Vapor production from ${name} is impressive without being excessive. {{LINK:2}} The airflow is calibrated for a draw resistance that feels natural — not too tight, not too airy. This careful engineering means you get satisfying clouds without needing to take uncomfortably long draws. Battery compatibility is straightforward: any standard 510-thread battery will work, though we recommend using a battery with adjustable voltage set to the 3.3V-3.8V range for optimal performance with this particular oil formulation.`,
-
-    `What happens inside a vape cartridge during each draw is a carefully controlled process: the battery provides power to the heating element, which brings the oil to its vaporization point — hot enough to create vapor but cool enough to preserve terpenes and avoid combustion. {{LINK:1}} ${name} is optimized for this process, with an oil viscosity calibrated to wick properly at the recommended voltage range. This prevents both dry hits (too little oil reaching the coil) and flooding (too much oil overwhelming the coil).
-
-The convenience factor of ${name} is undeniable. No grinding, no rolling, no cleaning — just attach to a battery and go. {{LINK:2}} But convenience doesn't mean compromise. The flavor and effect profile of this cartridge rivals what you'd experience from high-quality flower, just in a more portable and discreet package. Whether you're stepping outside during a social event or unwinding at home, ${name} delivers a consistent experience every time.`,
-  ];
-
-  return {
-    blocks: [
-      { heading: "", content: pick(intros, seed) },
-      { heading: `${name}: Quality Inside & Out`, content: pick(bodyVariants, seed, 1) },
-      { heading: "Getting the Best Experience", content: `For optimal flavor from ${name}, keep your battery voltage between 3.3V and 3.8V. Higher voltages produce more vapor but can burn terpenes, resulting in a harsh, less flavorful hit. {{LINK:3}} Take moderate draws of 2-3 seconds — marathon hits overheat the coil and can degrade the oil. If the cartridge has been sitting unused for a while, take a few gentle primer puffs to re-saturate the coil before taking a full draw. ${is510 ? "Make sure your 510 connection is clean and tightened properly — a loose connection can cause inconsistent heating." : "Follow the device's specific instructions for optimal use."}` },
-      { heading: "Care & Storage", content: `Store ${name} upright in a cool, dry place. Upright storage keeps the oil in contact with the intake ports and prevents air bubbles from forming at the coil. {{LINK:4}} Avoid leaving cartridges in cars, near windows, or anywhere they might be exposed to temperature extremes. Heat thins the oil and can cause leaking, while extreme cold thickens it and restricts flow. If you notice reduced vapor production, the cartridge may simply need to warm to room temperature — hold it in your closed hand for a minute or two.` },
-    ],
-    qualities: pick([
-      [
-        "Pure cannabis oil with no cutting agents or additives",
-        "Ceramic coil technology for smooth, even heating",
-        "Cannabis-derived terpenes for authentic strain flavor",
-        "Consistent vapor production throughout cartridge life",
-        "Independently tested for potency and purity",
-      ],
-      [
-        "Strain-specific formulation capturing unique terpene profiles",
-        "Calibrated airflow for natural, comfortable draw resistance",
-        "No PG, VG, MCT, or vitamin E acetate — ever",
-        "Compatible with all standard 510-thread batteries",
-        "Leak-resistant design with quality hardware construction",
-      ],
-    ], seed, 2),
-  };
-}
 
 // ── PREROLLS ──
 function prerollsDescription(product: DescProduct, seed: number): { blocks: DescriptionBlock[]; qualities: string[] } {
@@ -321,35 +274,7 @@ function prerollsDescription(product: DescProduct, seed: number): { blocks: Desc
   };
 }
 
-// ── ROSIN ──
-function rosinDescription(product: DescProduct, seed: number): { blocks: DescriptionBlock[]; qualities: string[] } {
-  const name = product.title;
-  const intros = [
-    `${name} is solventless perfection — produced using nothing but heat, pressure, and premium starting material. No butane, no propane, no CO2, no ethanol — just the pure, unadulterated essence of the cannabis plant extracted through mechanical means. {{LINK:0}} For health-conscious consumers and flavor purists, rosin represents the pinnacle of cannabis extraction because nothing is introduced to the process that wasn't already in the plant. What you're tasting when you dab ${name} is the true, unaltered flavor of the strain.`,
-
-    `In the hierarchy of cannabis concentrates, solventless rosin sits at the very top — and ${name} exemplifies why. The process seems simple on paper — apply heat and pressure to cannabis material and collect what squeezes out — but the reality requires enormous skill, patience, and high-quality starting material. {{LINK:0}} The temperature, pressure, time, and humidity of the input material all affect the yield, consistency, and terpene profile of the final product. Getting it right is an art form, and ${name} is the work of a skilled artist.`,
-  ];
-
-  return {
-    blocks: [
-      { heading: "", content: pick(intros, seed) },
-      { heading: `The Craft Behind ${name}`, content: `Rosin quality starts with the input material, and ${name} is pressed from premium flower or hash that was specifically selected for extraction. {{LINK:1}} The selection criteria goes beyond just potency — terpene content, trichome morphology, and how the material responds to heat and pressure all factor into the decision. Not every strain presses well, and experienced rosin makers know which cultivars yield the best results.
-
-The pressing process for ${name} uses carefully calibrated temperature and pressure profiles that vary depending on the input material. {{LINK:2}} Lower temperatures preserve more of the delicate monoterpenes responsible for the brightest, most aromatic notes in the flavor profile. Higher pressures increase yield but can push through unwanted plant material. Finding the sweet spot between these variables is what separates craft rosin from commercial product — and ${name} clearly sits in the craft category.` },
-      { heading: "Temperature & Consumption", content: `Solventless concentrates like ${name} deserve low-temperature dabbing. Set your e-rig to 450-520°F, or if using a torch and banger, heat until the bottom just begins to glow, then let it cool for 45-60 seconds before dropping your dab. {{LINK:3}} At these temperatures, you'll experience the full terpene expression — flavors and aromas that get incinerated at higher temps. Use a directional carb cap and swirl it gently to move the rosin around the heated surface for complete vaporization. The vapor should taste smooth and flavorful, not harsh or burnt.` },
-      { heading: "Storage", content: `${name} should be stored in the refrigerator for optimal preservation. Cold storage slows the natural degradation of terpenes and prevents the rosin from "buddering" or changing consistency prematurely. {{LINK:4}} Always let the container reach room temperature before opening — opening cold rosin introduces warm, moist air that condenses on the surface and degrades quality. For daily use, keeping a small portion at room temperature while storing the bulk in the fridge is a practical approach.` },
-    ],
-    qualities: [
-      "100% solventless — extracted with only heat and pressure",
-      "Made from hand-selected premium starting material",
-      "Full-spectrum terpene and cannabinoid preservation",
-      "No chemicals, solvents, or additives of any kind",
-      "Artisan-crafted in small batches for maximum quality",
-    ],
-  };
-}
-
-// ── Generic categories (MUSHROOM, DISPOSABLES, GUMMIES, OTHERS) ──
+// ── Generic categories (MUSHROOM, DISPOSABLES, OTHERS) ──
 function genericDescription(product: DescProduct, seed: number, cat: string): { blocks: DescriptionBlock[]; qualities: string[] } {
   const name = product.title;
 
@@ -367,13 +292,6 @@ function genericDescription(product: DescProduct, seed: number, cat: string): { 
       tips: `Using ${name} couldn't be simpler — remove it from the packaging and take a gentle 2-3 second draw. The device activates automatically. {{LINK:2}} Wait a few minutes between sessions to gauge effects. {{LINK:3}} If vapor decreases temporarily, give the device 30 seconds to re-saturate the wick. Avoid chain-vaping, which overheats the coil and affects flavor. The LED indicator (if equipped) will signal when the device is nearing depletion.`,
       store: `Store ${name} upright at room temperature. {{LINK:4}} Extreme heat can thin the oil and cause leaking, while extreme cold thickens it and restricts airflow. Keep the mouthpiece clean and avoid leaving the device in direct sunlight, hot cars, or humid environments. The device is designed for single use — do not attempt to recharge or refill.`,
       quals: ["Pre-charged and pre-filled for immediate use", "Draw-activated — no buttons or settings to manage", "Premium cannabis oil with natural terpenes", "Battery designed to outlast the oil supply", "Pocket-sized and discreet for any situation"],
-    },
-    GUMMIES: {
-      type: "cannabis-infused gummy",
-      focus: `${name} solves the two biggest problems in the edible market: inconsistent dosing and terrible taste. Each gummy contains a precisely measured amount of cannabinoids, distributed evenly through advanced infusion techniques that eliminate hot spots. {{LINK:0}} The flavor development goes beyond simply masking the cannabis taste — these gummies are formulated to taste genuinely great, using quality ingredients that complement rather than fight the natural extract. {{LINK:1}} Whether you're managing daily wellness routines or looking for a reliable recreational option, ${name} delivers predictable results you can count on.`,
-      tips: `Begin with one gummy from ${name} and wait at least 90 minutes before consuming additional pieces. {{LINK:2}} Edibles process through your digestive system, resulting in slower onset but longer duration compared to inhalation methods. Eating a small meal beforehand can help with more consistent absorption. {{LINK:3}} Effects typically last 4-8 hours, so plan your schedule accordingly. Stay hydrated and keep regular snacks nearby.`,
-      store: `Store ${name} in a cool, dry location — refrigeration is ideal, especially in warm climates. {{LINK:4}} Heat causes gummies to melt, stick together, and potentially lose their individual dosing accuracy. Always store in child-resistant packaging, as these products look and taste identical to regular candy. Check packaging for specific expiration dates.`,
-      quals: ["Precisely dosed for reliable, repeatable effects", "Even cannabinoid distribution — no hot spots", "Gourmet flavor profiles using quality ingredients", "Lab tested for potency, purity, and consistency", "Individually portioned for easy dose management"],
     },
     OTHERS: {
       type: "premium cannabis product",
@@ -407,9 +325,8 @@ export function generateProductDescription(
     FLOWER: flowerDescription,
     EDIBLES: ediblesDescription,
     CONCENTRATES: concentratesDescription,
-    VAPES: vapesDescription,
+    DISPOSABLES: (p, s) => genericDescription(p, s, "DISPOSABLES"),
     PREROLLS: prerollsDescription,
-    ROSIN: rosinDescription,
   };
 
   const gen = generators[product.category] || ((p, s) => genericDescription(p, s, product.category));
@@ -427,29 +344,24 @@ export function generateProductDescription(
       { label: "concentrate selection", cat: "CONCENTRATES" },
     ],
     EDIBLES: [
-      { label: "gummies collection", cat: "GUMMIES" },
       { label: "flower menu", cat: "FLOWER" },
-      { label: "vape cartridges", cat: "VAPES" },
+      { label: "disposables collection", cat: "DISPOSABLES" },
+      { label: "pre-rolls", cat: "PREROLLS" },
     ],
     CONCENTRATES: [
-      { label: "rosin selection", cat: "ROSIN" },
       { label: "flower menu", cat: "FLOWER" },
-      { label: "vape collection", cat: "VAPES" },
+      { label: "disposables collection", cat: "DISPOSABLES" },
+      { label: "pre-rolls", cat: "PREROLLS" },
     ],
-    VAPES: [
-      { label: "disposable vapes", cat: "DISPOSABLES" },
+    DISPOSABLES: [
       { label: "flower menu", cat: "FLOWER" },
       { label: "concentrate selection", cat: "CONCENTRATES" },
+      { label: "pre-rolls", cat: "PREROLLS" },
     ],
     PREROLLS: [
       { label: "flower collection", cat: "FLOWER" },
       { label: "edibles menu", cat: "EDIBLES" },
-      { label: "vape selection", cat: "VAPES" },
-    ],
-    ROSIN: [
-      { label: "concentrate collection", cat: "CONCENTRATES" },
-      { label: "flower menu", cat: "FLOWER" },
-      { label: "edibles selection", cat: "EDIBLES" },
+      { label: "disposables selection", cat: "DISPOSABLES" },
     ],
   };
 

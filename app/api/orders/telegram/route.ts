@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { getAdminConfig } from "@/lib/adminConfig";
 import { getClientIp, getGeoFromRequest } from "@/lib/geo";
+import { validateOrderItems } from "@/lib/orderRules";
 
 interface TelegramOrderItem {
   id: string;
@@ -308,6 +309,12 @@ export async function POST(request: NextRequest) {
 
     if (!body.items || body.items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    }
+
+    // Block disposables orders below the 50-unit minimum.
+    const ruleCheck = validateOrderItems(body.items);
+    if (!ruleCheck.ok) {
+      return NextResponse.json({ error: ruleCheck.error }, { status: 400 });
     }
 
     const emailTrimmed = body.customerEmail?.trim() || "";

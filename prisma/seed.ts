@@ -62,7 +62,7 @@ const products = [
   {
     title: "#A16Y BERRY BLAST VAPE",
     description: "Full spectrum berry flavored cartridge",
-    category: Category.VAPES,
+    category: Category.DISPOSABLES,
     indoor: false,
     rating: "8/10 flavor",
     priceLocal: "$45/cart",

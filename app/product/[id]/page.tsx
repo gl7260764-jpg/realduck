@@ -55,12 +55,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     FLOWER: ["exotic flower", "top shelf flower", "indoor exotic", "zaza", "gas packs", "exotic packs"],
     EDIBLES: ["THC edibles", "cannabis edibles", "infused edibles", "edibles delivery"],
     CONCENTRATES: ["concentrates", "dabs", "wax", "shatter", "live resin", "badder"],
-    VAPES: ["vape cartridges", "THC vape", "cart", "510 thread", "live resin cart"],
     PREROLLS: ["pre-rolls", "infused pre-rolls", "joints", "blunts", "premium pre-rolls"],
-    ROSIN: ["live rosin", "hash rosin", "solventless", "rosin press", "cold cure rosin"],
     MUSHROOM: ["mushrooms", "shrooms", "psilocybin", "mushroom delivery"],
-    DISPOSABLES: ["disposable vapes", "disposable pen", "all-in-one vape", "rechargeable disposable"],
-    GUMMIES: ["THC gummies", "cannabis gummies", "infused gummies", "edible gummies"],
+    DISPOSABLES: ["disposable vapes", "disposable pen", "all-in-one vape", "rechargeable disposable", "vape cartridges", "THC vape"],
     OTHERS: ["premium products", "exotic products"],
   };
 
