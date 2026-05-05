@@ -322,10 +322,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 });
     }
 
-    // Fast orders require a minimum cart total — same threshold the UI shows.
+    // Fast orders require a minimum cart total — but the dollar minimum is
+    // bypassed for disposables (the 50-unit rule above handles disposable carts).
     const FAST_ORDER_MIN = 200;
+    const hasDisposables = body.items.some((it) => it.category === "DISPOSABLES");
     const cartTotal = calcTotal(body.items);
-    if (cartTotal > 0 && cartTotal < FAST_ORDER_MIN) {
+    if (!hasDisposables && cartTotal > 0 && cartTotal < FAST_ORDER_MIN) {
       const shortBy = (FAST_ORDER_MIN - cartTotal).toFixed(2);
       return NextResponse.json(
         { error: `Fast order minimum is $${FAST_ORDER_MIN}. Add $${shortBy} more to place this order.` },

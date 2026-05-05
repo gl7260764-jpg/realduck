@@ -494,7 +494,7 @@ export default function CheckoutPage() {
                   <div className="flex-shrink-0">
                     <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
                       <button type="button" onClick={() => updateQuantity(item.id, item.priceType, item.quantity - 1)}
-                        disabled={isLowPriceItem(item) && item.quantity <= getMinQty(item)}
+                        disabled={item.quantity <= getMinQty(item)}
                         aria-label={`Decrease quantity of ${item.title}`}
                         className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition-all duration-200 active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed">
                         <Minus className="w-3 h-3" />
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
-                    {isLowPriceItem(item) && getMinQty(item) > 1 && (
+                    {(item.category === "DISPOSABLES" || (isLowPriceItem(item) && getMinQty(item) > 1)) && (
                       <p className="text-[9px] text-amber-600 mt-0.5 text-center">Min: {getMinQty(item)}</p>
                     )}
                   </div>

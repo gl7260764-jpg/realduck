@@ -275,7 +275,7 @@ export default function CartDrawer() {
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={() => updateQuantity(item.id, item.priceType, item.quantity - 1)}
-                        disabled={isLowPriceItem(item) && item.quantity <= getMinQty(item)}
+                        disabled={item.quantity <= getMinQty(item)}
                         className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <Minus className="w-3.5 h-3.5" />
@@ -296,7 +296,12 @@ export default function CartDrawer() {
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                    {isLowPriceItem(item) && getMinQty(item) > 1 && item.quantity < getMinQty(item) && (
+                    {item.category === "DISPOSABLES" && item.quantity < getMinQty(item) ? (
+                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Min. order: {getMinQty(item)} units for disposables
+                      </p>
+                    ) : isLowPriceItem(item) && getMinQty(item) > 1 && item.quantity < getMinQty(item) && (
                       <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
                         Min. order: {getMinQty(item)} units for items under $30

@@ -23,6 +23,9 @@ function extractNumericPrice(priceStr: string): number {
 const LOW_PRICE_THRESHOLD = 30;
 const LOW_PRICE_MIN_QTY = 5;
 const CART_TOTAL_BYPASS = 300;
+// Disposables business rule: minimum 50 units, never bypassed.
+const DISPOSABLES_MIN_QTY = 50;
+const isDisposableItem = (cat: string) => cat === "DISPOSABLES";
 
 interface CartContextType {
   items: CartItem[];
@@ -86,7 +89,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (items.some((item) => item.id === newItem.id)) {
       return false; // Already in cart
     }
-    // Check if this is a low-price item - start with min qty of 5
+    // Disposables ALWAYS start at 50 — business rule, no bypass.
+    if (isDisposableItem(newItem.category)) {
+      setItems((prev) => [...prev, { ...newItem, quantity: DISPOSABLES_MIN_QTY }]);
+      return true;
+    }
+    // Otherwise: low-price items start at 5 (unless cart total already bypasses), else 1.
     const priceString = newItem.priceType === "local" ? newItem.priceLocal : newItem.priceShip;
     const priceFormatted = formatPrice(priceString).split("\n")[0] || priceString;
     const numericPrice = extractNumericPrice(priceFormatted);
@@ -152,8 +160,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return sum + price * item.quantity;
   }, 0);
 
-  // Get minimum quantity for an item (5 if under $30, 1 otherwise)
+  // Get minimum quantity for an item.
+  // Disposables: always 50 (no bypass).
+  // Low-price items (<$30): 5 unless cart already over $300 bypass.
+  // Everything else: 1.
   const getMinQty = (item: CartItem): number => {
+    if (isDisposableItem(item.category)) return DISPOSABLES_MIN_QTY;
     if (!isLowPriceItem(item)) return 1;
     // If cart total (excluding this item) already >= $300, allow qty 1
     const otherTotal = items.reduce((sum, i) => {

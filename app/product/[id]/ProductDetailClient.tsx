@@ -65,7 +65,7 @@ export default function ProductDetailClient({
 }: ProductDetailClientProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(product.category === "DISPOSABLES" ? 50 : 1);
   const [activeTab, setActiveTab] = useState<"description" | "shipping">("description");
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStep, setBuyStep] = useState<"choose" | "fast-contact" | "success">("choose");
@@ -119,17 +119,29 @@ export default function ProductDetailClient({
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const incrementQuantity = () => setQuantity((prev) => Math.min(prev + 1, 10));
-  const decrementQuantity = () => setQuantity((prev) => Math.max(prev - 1, 1));
+  // Disposables have their own minimum: 50 units, regardless of dollar value.
+  const isDisposables = product.category === "DISPOSABLES";
+  const DISPOSABLES_MIN_QTY = 50;
+  const QTY_FLOOR = isDisposables ? DISPOSABLES_MIN_QTY : 1;
+  const QTY_CEIL = isDisposables ? 1000 : 10;
+
+  const incrementQuantity = () => setQuantity((prev) => Math.min(prev + 1, QTY_CEIL));
+  const decrementQuantity = () => setQuantity((prev) => Math.max(prev - 1, QTY_FLOOR));
 
   const FAST_ORDER_MIN = 200;
   const fastUnitPrice = (() => {
     const m = priceShipLines[0]?.match(/\$?([\d,]+(?:\.\d+)?)/);
     return m ? parseFloat(m[1].replace(",", "")) : 0;
   })();
-  const fastMinQty = fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 0;
+  // For disposables, "min qty" is fixed at 50 units regardless of price.
+  // For everything else, it's calculated from the $200 dollar minimum.
+  const fastMinQty = isDisposables
+    ? DISPOSABLES_MIN_QTY
+    : (fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 0);
   const fastLineTotal = fastUnitPrice * quantity;
-  const fastBelowMin = fastUnitPrice > 0 && fastLineTotal < FAST_ORDER_MIN;
+  const fastBelowMin = isDisposables
+    ? quantity < DISPOSABLES_MIN_QTY
+    : (fastUnitPrice > 0 && fastLineTotal < FAST_ORDER_MIN);
 
   const handleFastOrder = async () => {
     const emailTrimmed = customerEmail.trim();
@@ -138,7 +150,11 @@ export default function ProductDetailClient({
       return;
     }
     if (fastBelowMin) {
-      setFastError(`Fast order minimum is $${FAST_ORDER_MIN}. You need at least ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"}.`);
+      setFastError(
+        isDisposables
+          ? `Minimum order for disposables is ${DISPOSABLES_MIN_QTY} units. You currently have ${quantity}.`
+          : `Fast order minimum is $${FAST_ORDER_MIN}. You need at least ${fastMinQty} unit${fastMinQty === 1 ? "" : "s"}.`,
+      );
       return;
     }
 
@@ -313,10 +329,21 @@ export default function ProductDetailClient({
                   <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
                   {fastBelowMin && (
                     <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
-                      <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                        At {fastUnitPrice ? `$${fastUnitPrice.toFixed(2)}` : "this price"} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}. Use the quantity selector below to bump it up, or switch to Detailed Order.
-                      </p>
+                      {isDisposables ? (
+                        <>
+                          <p className="text-xs font-semibold text-amber-900">Minimum order is {DISPOSABLES_MIN_QTY} units for disposables</p>
+                          <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                            You currently have <strong>{quantity}</strong> unit{quantity === 1 ? "" : "s"}. Use the quantity selector below to reach <strong>{DISPOSABLES_MIN_QTY}</strong>.
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
+                          <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
+                            At {fastUnitPrice ? `$${fastUnitPrice.toFixed(2)}` : "this price"} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}. Use the quantity selector below to bump it up, or switch to Detailed Order.
+                          </p>
+                        </>
+                      )}
                     </div>
                   )}
                   <div className="space-y-3">
@@ -661,7 +688,7 @@ export default function ProductDetailClient({
                   <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden hover:border-gray-300 transition-colors duration-200">
                     <button
                       onClick={decrementQuantity}
-                      disabled={quantity <= 1}
+                      disabled={quantity <= QTY_FLOOR}
                       aria-label="Decrease quantity"
                       className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-90 transition-all duration-150 disabled:opacity-40 disabled:hover:bg-transparent"
                     >
@@ -672,7 +699,7 @@ export default function ProductDetailClient({
                     </span>
                     <button
                       onClick={incrementQuantity}
-                      disabled={quantity >= 10}
+                      disabled={quantity >= QTY_CEIL}
                       aria-label="Increase quantity"
                       className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-90 transition-all duration-150 disabled:opacity-40 disabled:hover:bg-transparent"
                     >
