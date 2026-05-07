@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full h-11 px-4 bg-white/5 border border-white/10 text-white text-sm rounded-lg outline-none transition-colors duration-200 placeholder:text-white/30 focus:border-white/30"
+                className="w-full h-11 px-4 bg-white/5 border border-white/10 text-white text-sm rounded-lg outline-none transition-colors duration-200 placeholder:text-white/50 focus:border-white/30"
                 placeholder="Enter username"
                 required
               />
@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-11 px-4 bg-white/5 border border-white/10 text-white text-sm rounded-lg outline-none transition-colors duration-200 placeholder:text-white/30 focus:border-white/30"
+                className="w-full h-11 px-4 bg-white/5 border border-white/10 text-white text-sm rounded-lg outline-none transition-colors duration-200 placeholder:text-white/50 focus:border-white/30"
                 placeholder="Enter password"
                 required
               />
@@ -109,7 +109,7 @@ export default function AdminLoginPage() {
           </form>
         </div>
 
-        <p className="text-white/30 text-xs text-center mt-6">
+        <p className="text-white/60 text-xs text-center mt-6">
           Real Duck Distro Admin Dashboard
         </p>
       </div>

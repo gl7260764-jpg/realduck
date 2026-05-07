@@ -165,21 +165,26 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Resource hints — open early TCP/TLS to image and analytics origins so first paint is faster */}
-        <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        {/* Resource hints — open early TCP/TLS to the R2 image origin
+            (where every product photo and blog hero now lives). Cloudinary
+            preconnect removed since we migrated off. */}
+        <link rel="preconnect" href="https://pub-29aa6546799743b7a432165711f33223.r2.dev" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://pub-29aa6546799743b7a432165711f33223.r2.dev" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://analytics.ahrefs.com" />
+        {/* Tracking scripts deferred until after the page is idle.
+            Saves several seconds of Total Blocking Time on mobile.
+            Trade: GA event timing is ~300ms-1s late on first paint. */}
         <Script
           src="https://analytics.ahrefs.com/analytics.js"
           data-key="awWcY/FuVfVDJgvn2CIiiw"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-RH5BCFNM1L"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}

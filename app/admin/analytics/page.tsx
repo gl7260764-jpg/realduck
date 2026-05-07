@@ -635,21 +635,21 @@ export default function AnalyticsPage() {
           </div>
           <div className="flex items-center gap-4 sm:gap-6 text-sm">
             <div className="text-center">
-              <p className="text-white/40 text-[10px] uppercase tracking-wider font-medium">Today</p>
+              <p className="text-white/70 text-[10px] uppercase tracking-wider font-medium">Today</p>
               <p className="text-white font-bold tabular-nums">
                 <AnimatedNumber value={data.overview.todayPageViews} />
               </p>
             </div>
             <div className="w-px h-8 bg-white/10" />
             <div className="text-center">
-              <p className="text-white/40 text-[10px] uppercase tracking-wider font-medium">Yesterday</p>
+              <p className="text-white/70 text-[10px] uppercase tracking-wider font-medium">Yesterday</p>
               <p className="text-white font-bold tabular-nums">
                 <AnimatedNumber value={data.overview.yesterdayPageViews} />
               </p>
             </div>
             <div className="w-px h-8 bg-white/10 hidden sm:block" />
             <div className="text-center hidden sm:block">
-              <p className="text-white/40 text-[10px] uppercase tracking-wider font-medium">All Time</p>
+              <p className="text-white/70 text-[10px] uppercase tracking-wider font-medium">All Time</p>
               <p className="text-white font-bold tabular-nums">
                 <AnimatedNumber value={data.overview.totalPageViews} />
               </p>

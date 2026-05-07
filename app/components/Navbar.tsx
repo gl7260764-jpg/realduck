@@ -295,9 +295,9 @@ export default function Navbar() {
               <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
                 Real Duck Distro
               </h2>
-              <p className="text-white/30 text-[10px] font-semibold tracking-wider">HQ: LA, USA | SYDNEY, AUS</p>
-              <p className="text-white/20 text-[10px] font-semibold tracking-wider">PRIORITY: KY · MI · FL · MS</p>
-              <p className="text-white/20 text-[10px] font-semibold tracking-wider">USA | AUS | WORLDWIDE</p>
+              <p className="text-white/60 text-[10px] font-semibold tracking-wider">HQ: LA, USA | SYDNEY, AUS</p>
+              <p className="text-white/60 text-[10px] font-semibold tracking-wider">PRIORITY: KY · MI · FL · MS</p>
+              <p className="text-white/60 text-[10px] font-semibold tracking-wider">USA | AUS | WORLDWIDE</p>
             </div>
           </div>
 
@@ -426,7 +426,7 @@ export default function Navbar() {
                 </div>
                 <span className="text-white text-xs font-medium tracking-wide">REAL DUCK DISTRO</span>
               </div>
-              <span className="text-white/30 text-xs">LA</span>
+              <span className="text-white/60 text-xs">LA</span>
             </div>
           </div>
         </div>

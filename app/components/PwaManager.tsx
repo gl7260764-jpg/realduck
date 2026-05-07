@@ -529,7 +529,7 @@ export default function PwaManager() {
                   e.stopPropagation();
                   setForegroundNotif(null);
                 }}
-                className="text-white/30 hover:text-white/60 p-1 flex-shrink-0"
+                className="text-white/60 hover:text-white/60 p-1 flex-shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -706,7 +706,7 @@ export default function PwaManager() {
                   Get instant notifications for new drops, exclusive offers &amp; announcements — just like a message.
                 </p>
               </div>
-              <button onClick={dismissNotifBanner} className="text-white/30 hover:text-white/60 p-1">
+              <button onClick={dismissNotifBanner} aria-label="Dismiss notification banner" className="text-white/60 hover:text-white/80 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -717,7 +717,7 @@ export default function PwaManager() {
               >
                 <Bell className="w-3.5 h-3.5" /> Enable Notifications
               </button>
-              <button onClick={dismissNotifBanner} className="px-4 py-2.5 text-white/40 text-sm font-medium rounded-xl">
+              <button onClick={dismissNotifBanner} className="px-4 py-2.5 text-white/70 text-sm font-medium rounded-xl">
                 Later
               </button>
             </div>
@@ -739,7 +739,7 @@ export default function PwaManager() {
                   Add Real Duck Distro to your home screen and get 10% off your next order.
                 </p>
               </div>
-              <button onClick={dismissInstallBanner} className="text-white/30 hover:text-white/60 p-1">
+              <button onClick={dismissInstallBanner} aria-label="Dismiss install banner" className="text-white/60 hover:text-white/80 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -750,7 +750,7 @@ export default function PwaManager() {
               >
                 <Download className="w-3.5 h-3.5" /> Install App
               </button>
-              <button onClick={dismissInstallBanner} className="px-4 py-2.5 text-white/40 text-sm font-medium rounded-xl">
+              <button onClick={dismissInstallBanner} className="px-4 py-2.5 text-white/70 text-sm font-medium rounded-xl">
                 Not Now
               </button>
             </div>
@@ -773,7 +773,7 @@ export default function PwaManager() {
                   Add to Home Screen to get push notifications + 10% off
                 </p>
               </div>
-              <button onClick={dismissInstallBanner} className="text-white/30 hover:text-white/60 p-1 ml-auto">
+              <button onClick={dismissInstallBanner} aria-label="Dismiss install banner" className="text-white/60 hover:text-white/80 p-1 ml-auto">
                 <X className="w-4 h-4" />
               </button>
             </div>

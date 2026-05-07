@@ -131,7 +131,7 @@ export default function AdminSidebar() {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-white font-bold text-sm tracking-tight truncate">Real Duck Distro</h1>
-              <p className="text-white/40 text-[11px] font-medium tracking-wide uppercase flex items-center gap-1">
+              <p className="text-white/70 text-[11px] font-medium tracking-wide uppercase flex items-center gap-1">
                 <Sparkles className="w-2.5 h-2.5" />
                 Admin Panel
               </p>
@@ -143,7 +143,7 @@ export default function AdminSidebar() {
         <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto admin-scrollbar">
           {navGroups.map((group) => (
             <div key={group.label}>
-              <p className="px-3 mb-2 text-[10px] font-bold text-white/30 uppercase tracking-[0.14em]">
+              <p className="px-3 mb-2 text-[10px] font-bold text-white/60 uppercase tracking-[0.14em]">
                 {group.label}
               </p>
               <div className="space-y-1">

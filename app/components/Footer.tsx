@@ -45,10 +45,10 @@ export default function Footer() {
               <span className="text-lg sm:text-xl font-bold tracking-wide">REAL DUCK DISTRO</span>
             </div>
 
-            <p className="text-sm sm:text-base text-white/40 text-center lg:text-left max-w-xs">
+            <p className="text-sm sm:text-base text-white/70 text-center lg:text-left max-w-xs">
               The world&apos;s leading premium cannabis lifestyle brand.
             </p>
-            <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm font-semibold text-white/30 tracking-wider">
+            <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm font-semibold text-white/60 tracking-wider">
               <span>HQ: LA, USA</span>
               <span className="text-white/15">|</span>
               <span>SYDNEY, AUS</span>
@@ -63,7 +63,7 @@ export default function Footer() {
               <span className="text-white/10">·</span>
               <span>MISSISSIPPI</span>
             </div>
-            <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm font-semibold text-white/20 tracking-wider">
+            <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm font-semibold text-white/60 tracking-wider">
               <span>USA</span>
               <span className="text-white/10">|</span>
               <span>AUS</span>

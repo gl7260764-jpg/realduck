@@ -81,7 +81,7 @@ function BlogCard({ post, index }: { post: BlogPost; index: number }) {
               />
             ) : (
               <div className={`w-full h-full bg-gradient-to-br ${cat.color} flex items-center justify-center`}>
-                <cat.icon className="w-12 h-12 text-white/30" />
+                <cat.icon className="w-12 h-12 text-white/60" />
               </div>
             )}
             <div className="absolute top-3 left-3">
@@ -216,13 +216,13 @@ export default function BlogClient({ posts }: BlogClientProps) {
               Education, guides, health insights, and everything you need to know — backed by research and real experience.
             </p>
             <div className="relative max-w-md mx-auto">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search articles..."
-                className="w-full pl-12 pr-4 py-3.5 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/30 focus:bg-white/15 focus:border-white/20 focus:outline-none backdrop-blur-sm transition-all"
+                className="w-full pl-12 pr-4 py-3.5 bg-white/10 border border-white/10 rounded-xl text-sm text-white placeholder:text-white/50 focus:bg-white/15 focus:border-white/20 focus:outline-none backdrop-blur-sm transition-all"
               />
             </div>
           </div>

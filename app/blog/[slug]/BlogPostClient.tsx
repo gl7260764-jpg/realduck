@@ -178,7 +178,7 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
             </span>
             <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-white leading-tight max-w-3xl">{post.title}</h1>
             {post.subtitle && <p className="text-sm lg:text-xl text-white/50 mt-2 max-w-2xl">{post.subtitle}</p>}
-            <div className="flex items-center gap-4 mt-3 text-xs lg:text-sm text-white/40">
+            <div className="flex items-center gap-4 mt-3 text-xs lg:text-sm text-white/70">
               <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{post.author}</span>
               <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{fmtDate(post.createdAt)}</span>
             </div>
@@ -320,9 +320,9 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
                     className="flex items-center justify-between p-2.5 bg-white/5 rounded-xl hover:bg-white/10 transition-colors group">
                     <div>
                       <p className="text-xs lg:text-sm font-medium text-white group-hover:text-blue-300 transition-colors">{link.name}</p>
-                      <p className="text-[10px] lg:text-[11px] text-white/30">{link.desc}</p>
+                      <p className="text-[10px] lg:text-[11px] text-white/60">{link.desc}</p>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/50 transition-colors" />
+                    <ExternalLink className="w-3.5 h-3.5 text-white/60 group-hover:text-white/50 transition-colors" />
                   </a>
                 ))}
               </div>
