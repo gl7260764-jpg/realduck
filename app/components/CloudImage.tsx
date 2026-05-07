@@ -3,17 +3,17 @@
 import Image, { ImageProps } from "next/image";
 
 /**
- * Image wrapper for the catalog. Routes through Next.js's /_next/image
- * proxy so every R2-hosted source is delivered as AVIF/WebP at the
- * exact size the viewport needs. This is the single biggest performance
- * lever — pixel-perfect, format-optimized images cut LCP by multiple
- * seconds vs serving raw JPEGs.
+ * Image wrapper for the catalog. We bypass the /_next/image proxy because
+ * (1) the catalog has 700+ image references on the homepage and Vercel's
+ * Hobby-tier optimizer chokes when asked to convert that many cold,
+ * (2) without a guaranteed width/height on every CloudImage call site,
+ * routing through the optimizer caused CLS to balloon (Lighthouse went
+ * 0.006 → 0.321), and (3) we host on R2 with sensible source sizes.
  *
- * Caveat: Vercel Hobby includes 1000 unique image transformations per
- * month. With 167 products × ~4 viewport widths × 2 formats, the first
- * cache fill is ~1300 transformations. After that, cached delivery is
- * effectively unlimited. Cache misses fall back to the original image.
+ * Long-term path to AVIF/WebP: Cloudflare Image Resizing on R2 ($5/mo,
+ * unlimited transformations) — that delivers next-gen formats without
+ * the Vercel-optimizer bottleneck.
  */
 export default function CloudImage(props: ImageProps) {
-  return <Image {...props} />;
+  return <Image {...props} unoptimized />;
 }
