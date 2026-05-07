@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "../../context/CartContext";
 import { useSettings } from "../../context/SettingsContext";
 import { optimizeImage, blurUrl } from "@/lib/cloudinary";
+import { recordRecentlyViewed } from "@/app/components/RecentlyViewed";
 import { formatPrice } from "@/lib/formatPrice";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { slashedPrice, nthLine } from "@/lib/slashedPrice";
@@ -88,6 +89,16 @@ export default function ProductDetailClient({
   useEffect(() => {
     if (tracked.current || !product.id) return;
     tracked.current = true;
+    // Record this view in the recently-viewed localStorage list
+    if (product.slug) {
+      recordRecentlyViewed({
+        slug: product.slug,
+        title: product.title,
+        imageUrl: product.imageUrl,
+        category: product.category,
+        priceShip: product.priceShip,
+      });
+    }
     const sessionId = typeof window !== "undefined"
       ? sessionStorage.getItem("analytics_session_id") || ""
       : "";

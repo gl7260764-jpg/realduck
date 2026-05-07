@@ -8,6 +8,7 @@ import Footer from "@/app/components/Footer";
 import { Category } from "@prisma/client";
 import Script from "next/script";
 import { PRODUCT_FAQS } from "@/lib/productFAQs";
+import RecentlyViewed from "@/app/components/RecentlyViewed";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -369,6 +370,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </div>
           </section>
         )}
+        <RecentlyViewed excludeSlug={product.slug ?? undefined} />
       </main>
       <Footer />
     </div>

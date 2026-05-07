@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import CatalogClient from "./components/CatalogClient";
 import Footer from "./components/Footer";
 import SEOBlock from "./components/SEOBlock";
+import RecentlyViewed from "./components/RecentlyViewed";
 import prisma from "@/lib/prisma";
 import Script from "next/script";
 import { dailyShuffle } from "@/lib/dailyShuffle";
@@ -172,6 +173,7 @@ export default async function Home() {
         <Suspense fallback={<div className="min-h-[60vh]" />}>
           <CatalogClient initialProducts={products} />
         </Suspense>
+        <RecentlyViewed limit={6} />
         <SEOBlock
           heading="The World's Leading Premium Cannabis Lifestyle Brand"
           content="Real Duck Distro is a world leading premium cannabis lifestyle brand, trusted by thousands of customers across the United States, Australia, and worldwide. Headquartered in Los Angeles, USA and Sydney, Australia — with priority delivery to Kentucky, Michigan, Florida and Mississippi — we deliver across the entire USA and Australia with fast, discreet worldwide shipping. From designer cannabis packs and exotic top-shelf flower to lab-tested edibles, concentrates, vapes, rosin, pre-rolls and disposables, Real Duck Distro sets the standard. Browse our collection and experience what it means to shop with the best."

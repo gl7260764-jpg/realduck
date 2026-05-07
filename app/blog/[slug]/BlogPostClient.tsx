@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Clock, User, Tag, ArrowRight, Share2, Check, ExternalLink, BookOpen } from "lucide-react";
+import { readingTimeMinutes } from "@/lib/readingTime";
 
 interface BlogPost {
   id: string;
@@ -134,6 +135,7 @@ function fmtDate(d: string) {
 /* ── Component ── */
 export default function BlogPostClient({ post, relatedPosts, products }: { post: BlogPost; relatedPosts: RelatedPost[]; products: Product[] }) {
   const [copied, setCopied] = useState(false);
+  const readingMin = readingTimeMinutes(post.content);
 
   const share = async () => {
     const url = window.location.href;
@@ -160,9 +162,10 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
               {post.subtitle && (
                 <p className="text-sm sm:text-base lg:text-xl text-white/60 mt-2 lg:mt-3 max-w-2xl">{post.subtitle}</p>
               )}
-              <div className="flex items-center gap-4 mt-3 lg:mt-5 text-xs lg:text-sm text-white/50">
+              <div className="flex items-center gap-4 mt-3 lg:mt-5 text-xs lg:text-sm text-white/50 flex-wrap">
                 <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{post.author}</span>
                 <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{fmtDate(post.createdAt)}</span>
+                <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{readingMin} min read</span>
               </div>
             </div>
           </div>
@@ -178,9 +181,10 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
             </span>
             <h1 className="text-xl sm:text-3xl lg:text-5xl font-bold text-white leading-tight max-w-3xl">{post.title}</h1>
             {post.subtitle && <p className="text-sm lg:text-xl text-white/50 mt-2 max-w-2xl">{post.subtitle}</p>}
-            <div className="flex items-center gap-4 mt-3 text-xs lg:text-sm text-white/70">
+            <div className="flex items-center gap-4 mt-3 text-xs lg:text-sm text-white/70 flex-wrap">
               <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{post.author}</span>
               <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{fmtDate(post.createdAt)}</span>
+              <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{readingMin} min read</span>
             </div>
           </div>
         </div>
@@ -255,6 +259,42 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
             <div className="mt-6 pt-4 text-xs lg:text-sm text-gray-400 italic">
               This content is for educational purposes only. Always consume cannabis responsibly and in accordance with local laws.
             </div>
+
+            {/* ── Read Next — bottom CTA cards (full-width, visually rich) ── */}
+            {relatedPosts.length > 0 && (
+              <div className="mt-12 pt-10 border-t border-gray-100">
+                <div className="flex items-end justify-between mb-5">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Read Next</p>
+                    <h2 className="text-xl lg:text-2xl font-bold text-gray-900">Keep going — we picked these for you</h2>
+                  </div>
+                  <Link href="/blog" className="hidden sm:inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                    All articles <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {relatedPosts.slice(0, 3).map((rp) => (
+                    <Link key={rp.id} href={`/blog/${rp.slug}`} className="group flex flex-col bg-white border border-gray-200 rounded-2xl overflow-hidden hover:border-slate-300 hover:shadow-md transition-all">
+                      {rp.imageUrl && (
+                        <div className="aspect-[16/10] bg-gray-100 overflow-hidden">
+                          <img src={rp.imageUrl} alt={rp.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        </div>
+                      )}
+                      <div className="p-4 flex-1 flex flex-col">
+                        <span className={`inline-block self-start px-2.5 py-0.5 rounded-full text-[10px] font-bold mb-2 ${CAT_COLOR[rp.category] || "bg-gray-100 text-gray-600"}`}>
+                          {CAT_LABEL[rp.category] || rp.category}
+                        </span>
+                        <p className="text-sm lg:text-base font-bold text-gray-900 line-clamp-2 group-hover:text-slate-700 transition-colors leading-snug">{rp.title}</p>
+                        {rp.excerpt && <p className="text-xs lg:text-sm text-gray-500 line-clamp-2 mt-2 leading-relaxed flex-1">{rp.excerpt}</p>}
+                        <p className="text-[11px] text-gray-400 mt-3 inline-flex items-center gap-1 group-hover:text-slate-600 transition-colors">
+                          Read article <ArrowRight className="w-3 h-3" />
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </article>
 
           {/* ── Sidebar ── */}
