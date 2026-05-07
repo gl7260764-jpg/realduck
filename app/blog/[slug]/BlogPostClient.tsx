@@ -230,8 +230,29 @@ export default function BlogPostClient({ post, relatedPosts, products }: { post:
               </div>
             )}
 
+            {/* Author bio — E-E-A-T signal for Google's YMYL evaluation */}
+            <div className="mt-10 pt-8 border-t border-gray-100">
+              <div className="bg-slate-50 rounded-2xl p-5 lg:p-6 border border-slate-100">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-full bg-slate-200 flex-shrink-0 flex items-center justify-center text-slate-700 font-semibold text-lg">
+                    RDD
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold mb-1">Written by</p>
+                    <p className="text-base lg:text-lg font-bold text-slate-900">Real Duck Distro Editorial Team</p>
+                    <p className="text-xs lg:text-sm text-slate-600 mt-2 leading-relaxed">
+                      Cultivators, extract chemists, and cannabis writers based in Los Angeles, California — collectively 25+ years in the California cannabis industry. Every product we write about is one we've handled, tested, and stocked. Honest reviews, practical guides, real experience.
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-3">
+                      Specialties: California cultivation · Extract chemistry · Strain genetics · Disposable hardware · Harm reduction · Edibles dosing
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Disclaimer */}
-            <div className="mt-8 pt-6 border-t border-gray-100 text-xs lg:text-sm text-gray-400 italic">
+            <div className="mt-6 pt-4 text-xs lg:text-sm text-gray-400 italic">
               This content is for educational purposes only. Always consume cannabis responsibly and in accordance with local laws.
             </div>
           </article>

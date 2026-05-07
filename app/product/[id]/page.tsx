@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import Link from "next/link";
 import prisma from "@/lib/prisma";
 import ProductDetailClient from "./ProductDetailClient";
 import Navbar from "@/app/components/Navbar";
@@ -39,6 +40,63 @@ async function getRelatedProducts(category: Category, currentId: string) {
     take: 4,
   });
   return products;
+}
+
+async function getRelatedBlogs(productSlug: string | null, productTitle: string, category: Category) {
+  // Find blog posts that mention this product's category, name tokens, or are
+  // semantically related (e.g., a strain review + a strain — internal linking
+  // boosts topical authority for both pages).
+  const slugTokens = (productSlug || "").split("-").filter((t) => t.length > 3);
+  const titleTokens = productTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length > 3);
+
+  const candidates = await prisma.blogPost.findMany({
+    where: {
+      published: true,
+      OR: [
+        // Slug contains a token from the product
+        ...slugTokens.map((t) => ({ slug: { contains: t } })),
+        // Title contains a token from the product
+        ...titleTokens.map((t) => ({ title: { contains: t, mode: "insensitive" as const } })),
+        // Tags include any product token
+        { tags: { hasSome: [...slugTokens, ...titleTokens] } },
+      ],
+    },
+    select: { slug: true, title: true, excerpt: true, imageUrl: true, category: true },
+    orderBy: { createdAt: "desc" },
+    take: 6,
+  });
+
+  // De-dupe and prefer the most recent / topical
+  const seen = new Set<string>();
+  const out: typeof candidates = [];
+  for (const c of candidates) {
+    if (!seen.has(c.slug)) { seen.add(c.slug); out.push(c); }
+    if (out.length >= 3) break;
+  }
+
+  // Fallback: if nothing matched, grab category-relevant guides
+  if (out.length === 0) {
+    const categoryFallback: Record<string, string[]> = {
+      DISPOSABLES: ["how-to-choose-right-vape", "what-are-terpenes-complete-guide"],
+      FLOWER: ["how-to-roll-perfect-joint", "how-to-store-cannabis-properly", "what-are-terpenes-complete-guide"],
+      EDIBLES: ["cannabis-edibles-dosing-guide"],
+      MUSHROOM: ["polkadot-mushroom-gummies-review-amanita-blend-guide"],
+      PILLS: ["real-vs-pressed-xanax-percs-counterfeit-pills-guide"],
+    };
+    const slugs = categoryFallback[category] || ["beginners-guide-to-cannabis-consumption-methods"];
+    const fallback = await prisma.blogPost.findMany({
+      where: { slug: { in: slugs }, published: true },
+      select: { slug: true, title: true, excerpt: true, imageUrl: true, category: true },
+      take: 3,
+    });
+    return fallback;
+  }
+
+  return out;
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -127,6 +185,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const relatedProducts = await getRelatedProducts(product.category, product.id);
+  const relatedBlogs = await getRelatedBlogs(product.slug, product.title, product.category);
 
   const productSchema = {
     "@context": "https://schema.org",
@@ -248,6 +307,52 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <Navbar />
       <main>
         <ProductDetailClient product={product} relatedProducts={relatedProducts} />
+
+        {/* Related reads — internal linking boost (topical silo + dwell time) */}
+        {relatedBlogs.length > 0 && (
+          <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 border-t border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-900">Related Reads</h2>
+                <p className="text-sm text-gray-500 mt-1">From the Real Duck Distro cannabis blog.</p>
+              </div>
+              <Link href="/blog" className="text-sm text-slate-900 font-medium hover:text-slate-600 transition-colors">
+                See all →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {relatedBlogs.map((b) => (
+                <Link
+                  key={b.slug}
+                  href={`/blog/${b.slug}`}
+                  className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-gray-300 hover:shadow-md transition-all"
+                >
+                  <div className="aspect-[16/10] bg-gray-100 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={b.imageUrl}
+                      alt={`${b.title} — Real Duck Distro cannabis blog`}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <span className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold">
+                      {b.category.replace(/_/g, " ").toLowerCase()}
+                    </span>
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mt-1.5 leading-snug line-clamp-2 group-hover:text-slate-700 transition-colors">
+                      {b.title}
+                    </h3>
+                    {b.excerpt && (
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">{b.excerpt}</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {faqEntries && (
           <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-gray-100">
             <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Frequently Asked Questions</h2>

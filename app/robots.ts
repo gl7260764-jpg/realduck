@@ -31,8 +31,6 @@ export default function robots(): MetadataRoute.Robots {
           "/*?*gclid=*",
           "/*?*ref=*",
           "/*?*session*",
-          "/*?*sort=*",
-          "/*?*page=*",
         ],
       },
       // Explicit allowlist for Google/Bing — ensures critical crawlers

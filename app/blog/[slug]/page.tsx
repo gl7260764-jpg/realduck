@@ -160,9 +160,17 @@ export default async function BlogPostPage({
     keywords: (post.tags || []).join(", ") || undefined,
     wordCount: wordCount || undefined,
     author: {
-      "@type": "Person",
-      name: post.author,
-      url: "https://www.realduckdistro.com",
+      "@type": "Organization",
+      name: "Real Duck Distro Editorial Team",
+      url: "https://www.realduckdistro.com/about",
+      knowsAbout: [
+        "California cannabis cultivation",
+        "Cannabis extracts and concentrates",
+        "Strain genetics and terpene chemistry",
+        "Disposable vape hardware",
+        "Cannabis harm reduction",
+        "Cannabis edibles and dosing",
+      ],
     },
     publisher: {
       "@type": "Organization",
