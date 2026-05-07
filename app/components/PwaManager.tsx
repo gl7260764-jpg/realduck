@@ -713,7 +713,7 @@ export default function PwaManager() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={handleEnableNotifications}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-colors"
               >
                 <Bell className="w-3.5 h-3.5" /> Enable Notifications
               </button>
@@ -746,7 +746,7 @@ export default function PwaManager() {
             <div className="flex gap-2 mt-3">
               <button
                 onClick={handleInstall}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-xl transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold rounded-xl transition-colors"
               >
                 <Download className="w-3.5 h-3.5" /> Install App
               </button>

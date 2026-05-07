@@ -75,7 +75,7 @@ export default function Footer() {
           {/* Links */}
           <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-center sm:text-left">
             <div>
-              <h4 className="text-sm sm:text-base font-bold text-white mb-3">Explore</h4>
+              <h3 className="text-sm sm:text-base font-bold text-white mb-3">Explore</h3>
               <ul className="space-y-2">
                 <li>
                   <Link href="/" className="text-sm sm:text-base text-white/50 hover:text-white transition-colors">
@@ -95,7 +95,7 @@ export default function Footer() {
               </ul>
             </div>
             <div>
-              <h4 className="text-sm sm:text-base font-bold text-white mb-3">Connect</h4>
+              <h3 className="text-sm sm:text-base font-bold text-white mb-3">Connect</h3>
               <ul className="space-y-2">
                 {settings.phoneNumber && (
                   <li>
