@@ -281,7 +281,7 @@ export default function ProductDetailClient({
             <div className="p-4">
               <div className="flex gap-3 mb-4">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                  <CloudImage src={optimizeImage(product.imageUrl, "thumbnail")} alt={`${product.title} - ${product.category.toLowerCase()}`} fill sizes="64px" className="object-cover" />
+                  <CloudImage src={optimizeImage(product.imageUrl, "thumbnail")} alt={`Buy ${product.title} ${product.category.toLowerCase()} online from Real Duck Distro Los Angeles`} fill sizes="64px" className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-gray-900 text-sm line-clamp-2">{product.title}</h4>
@@ -480,7 +480,7 @@ export default function ProductDetailClient({
               <div className="relative aspect-[5/4] sm:aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden shadow-lg group">
                 <CloudImage
                   src={optimizeImage(images[currentImageIndex], "detail")}
-                  alt={`${product.title} - premium ${product.category.toLowerCase()} from Real Duck Distro`}
+                  alt={`${product.title} — premium ${product.category.toLowerCase()} from Real Duck Distro Los Angeles, buy online with nationwide cannabis shipping`}
                   title={`${product.title} | Real Duck Distro`}
                   fill
                   className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
@@ -556,7 +556,7 @@ export default function ProductDetailClient({
                     >
                       <CloudImage
                         src={optimizeImage(img, "thumbnail")}
-                        alt={`${product.title} - photo ${idx + 1}`}
+                        alt={`${product.title} — gallery photo ${idx + 1} of ${product.category.toLowerCase()} from Real Duck Distro`}
                         fill
                         loading="lazy"
                         className="object-cover"
@@ -916,7 +916,7 @@ export default function ProductDetailClient({
                     <div className="relative aspect-square overflow-hidden bg-gray-50">
                       <CloudImage
                         src={optimizeImage(item.imageUrl, "card")}
-                        alt={`${item.title} - ${item.category.toLowerCase()} from Real Duck Distro`}
+                        alt={`${item.title} — related ${item.category.toLowerCase()} from Real Duck Distro Los Angeles`}
                         title={`${item.title} | Real Duck Distro`}
                         fill
                         loading="lazy"

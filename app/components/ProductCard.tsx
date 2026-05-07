@@ -265,7 +265,7 @@ export default function ProductCard({
             <div className="p-4">
               <div className="flex gap-3 mb-4">
                 <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                  <CloudImage src={optimizeImage(imageUrl, "thumbnail")} alt={`${title} - ${category.toLowerCase()}`} fill sizes="64px" className="object-cover" />
+                  <CloudImage src={optimizeImage(imageUrl, "thumbnail")} alt={`Buy ${title} ${category.toLowerCase()} online from Real Duck Distro Los Angeles`} fill sizes="64px" className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-gray-900 text-sm line-clamp-2">{title}</h4>
@@ -468,7 +468,7 @@ export default function ProductCard({
         >
           <CloudImage
             src={optimizeImage(imageUrl, "card")}
-            alt={`${title} - ${category.toLowerCase()} from Real Duck Distro`}
+            alt={`${title} — premium ${category.toLowerCase()} from Real Duck Distro Los Angeles, nationwide cannabis shipping`}
             title={`${title} | Real Duck Distro`}
             fill
             loading="lazy"

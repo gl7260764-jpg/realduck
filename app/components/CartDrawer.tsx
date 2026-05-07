@@ -262,7 +262,7 @@ export default function CartDrawer() {
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
                     <CloudImage
                       src={optimizeImage(item.imageUrl, "thumbnail")}
-                      alt={`${item.title} - ${item.category} Real Duck Distro`}
+                      alt={`${item.title} — ${item.category.toLowerCase()} from Real Duck Distro Los Angeles, in shopping cart`}
                       fill
                       sizes="80px"
                       className="object-cover"

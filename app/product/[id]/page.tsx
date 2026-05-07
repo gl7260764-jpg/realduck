@@ -6,6 +6,7 @@ import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { Category } from "@prisma/client";
 import Script from "next/script";
+import { PRODUCT_FAQS } from "@/lib/productFAQs";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -185,6 +186,21 @@ export default async function ProductPage({ params }: ProductPageProps) {
     },
   };
 
+  // FAQ schema — only for the 20 priority products with curated FAQ data.
+  // FAQPage rich snippets are one of the highest-impact rich-result types.
+  const faqEntries = product.slug ? PRODUCT_FAQS[product.slug] : undefined;
+  const faqSchema = faqEntries
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqEntries.map((f) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
+      }
+    : null;
+
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -222,9 +238,32 @@ export default async function ProductPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
+      {faqSchema && (
+        <Script
+          id={`faq-schema-${product.id}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
       <Navbar />
       <main>
         <ProductDetailClient product={product} relatedProducts={relatedProducts} />
+        {faqEntries && (
+          <section className="max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-gray-100">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Frequently Asked Questions</h2>
+            <div className="space-y-5">
+              {faqEntries.map((f, i) => (
+                <details key={i} className="group border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+                  <summary className="cursor-pointer font-medium text-sm sm:text-base text-gray-900 list-none flex justify-between items-start gap-2">
+                    <span>{f.question}</span>
+                    <span className="text-gray-400 text-xs flex-shrink-0 mt-0.5 group-open:rotate-180 transition-transform">▾</span>
+                  </summary>
+                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{f.answer}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
       <Footer />
     </div>
