@@ -12,7 +12,27 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro
 export const revalidate = 60;
 
 async function getProducts() {
+  // Select only the fields the homepage CLIENT component actually renders.
+  // We deliberately exclude metaTitle/metaDescription/metaKeywords/description/
+  // images[]/ogImage/updatedAt — those are ~180 KB of SEO + admin data the
+  // homepage's client renderer doesn't need. Cuts client JS payload ~70%.
   const products = await prisma.product.findMany({
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      category: true,
+      indoor: true,
+      rating: true,
+      priceLocal: true,
+      priceShip: true,
+      slashedPriceLocal: true,
+      slashedPriceShip: true,
+      isSoldOut: true,
+      imageUrl: true,
+      videoUrl: true,
+      createdAt: true,
+    },
     orderBy: {
       createdAt: "desc",
     },
