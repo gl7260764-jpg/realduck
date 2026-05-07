@@ -72,6 +72,10 @@ export async function POST(request: NextRequest) {
         published: body.published ?? false,
         featured: body.featured ?? false,
         tags: body.tags || [],
+        metaTitle: body.metaTitle?.trim() || null,
+        metaDescription: body.metaDescription?.trim() || null,
+        metaKeywords: body.metaKeywords?.trim() || null,
+        ogImage: body.ogImage?.trim() || null,
       },
     });
 

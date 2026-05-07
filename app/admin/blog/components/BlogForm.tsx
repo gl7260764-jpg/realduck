@@ -17,6 +17,10 @@ interface BlogFormData {
   published: boolean;
   featured: boolean;
   tags: string[];
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+  ogImage: string;
 }
 
 interface BlogFormProps {
@@ -48,8 +52,13 @@ export default function BlogForm({ initialData, isEdit }: BlogFormProps) {
     published: initialData?.published ?? false,
     featured: initialData?.featured ?? false,
     tags: initialData?.tags || [],
+    metaTitle: initialData?.metaTitle || "",
+    metaDescription: initialData?.metaDescription || "",
+    metaKeywords: initialData?.metaKeywords || "",
+    ogImage: initialData?.ogImage || "",
   });
   const [imageInput, setImageInput] = useState("");
+  const [seoOpen, setSeoOpen] = useState(false);
 
   const updateField = (field: keyof BlogFormData, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -289,6 +298,82 @@ export default function BlogForm({ initialData, isEdit }: BlogFormProps) {
                   </button>
                 </span>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* SEO — collapsible */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5">
+          <button
+            type="button"
+            onClick={() => setSeoOpen((v) => !v)}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">SEO</h3>
+              <p className="text-[11px] text-gray-500 mt-0.5">
+                Optional — overrides meta title, description, keywords, and social card. Leave blank to use auto-generated values.
+              </p>
+            </div>
+            <span className="text-xs font-medium text-slate-600 hover:text-slate-900">
+              {seoOpen ? "Hide" : "Show"} ▾
+            </span>
+          </button>
+          {seoOpen && (
+            <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Meta Title <span className="text-gray-400 font-normal">(50–60 chars ideal)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.metaTitle}
+                  onChange={(e) => updateField("metaTitle", e.target.value)}
+                  maxLength={120}
+                  className={inputCls}
+                  placeholder="Leave blank to use post title"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">{form.metaTitle.length} / 60 characters</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Meta Description <span className="text-gray-400 font-normal">(150–160 chars ideal)</span>
+                </label>
+                <textarea
+                  value={form.metaDescription}
+                  onChange={(e) => updateField("metaDescription", e.target.value)}
+                  rows={2}
+                  maxLength={300}
+                  className={`${inputCls} resize-none`}
+                  placeholder="Leave blank to use the excerpt"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">{form.metaDescription.length} / 160 characters</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Meta Keywords <span className="text-gray-400 font-normal">(comma-separated)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.metaKeywords}
+                  onChange={(e) => updateField("metaKeywords", e.target.value)}
+                  className={inputCls}
+                  placeholder="cannabis blog, indica vs sativa, education"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Open Graph Image URL <span className="text-gray-400 font-normal">(social-card image)</span>
+                </label>
+                <input
+                  type="url"
+                  value={form.ogImage}
+                  onChange={(e) => updateField("ogImage", e.target.value)}
+                  className={inputCls}
+                  placeholder="Leave blank to reuse the hero image"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Optional. 1200×630 px works best for socials.</p>
+              </div>
             </div>
           )}
         </div>

@@ -66,6 +66,10 @@ interface Product {
   imageUrl: string;
   images?: string[];
   videoUrl?: string | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
+  metaKeywords?: string | null;
+  ogImage?: string | null;
 }
 
 interface ProductFormProps {
@@ -107,7 +111,13 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
     imageUrl: product?.imageUrl || "",
     images: product?.images || [] as string[],
     videoUrl: product?.videoUrl || "",
+    metaTitle: product?.metaTitle || "",
+    metaDescription: product?.metaDescription || "",
+    metaKeywords: product?.metaKeywords || "",
+    ogImage: product?.ogImage || "",
   });
+
+  const [seoOpen, setSeoOpen] = useState(false);
 
   const addAdditionalImage = (url: string) => {
     setFormData((prev) => ({ ...prev, images: [...prev.images, url] }));
@@ -394,6 +404,92 @@ export default function ProductForm({ product, isEditing = false }: ProductFormP
                       placeholder="$845/HP&#10;$1560/P"
                     />
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SEO — collapsed by default; per-product overrides for meta tags */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <button
+              type="button"
+              onClick={() => setSeoOpen((v) => !v)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">SEO</h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  Optional — overrides for search-engine title, description, and social card. Leave blank to use auto-generated values.
+                </p>
+              </div>
+              <span className="text-xs font-medium text-slate-600 hover:text-slate-900">
+                {seoOpen ? "Hide" : "Show"} ▾
+              </span>
+            </button>
+
+            {seoOpen && (
+              <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Meta Title <span className="text-gray-400 font-normal">(50–60 chars ideal)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="metaTitle"
+                    value={formData.metaTitle}
+                    onChange={handleChange}
+                    maxLength={120}
+                    className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors"
+                    placeholder="Leave blank to use product title"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">{formData.metaTitle.length} / 60 characters</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Meta Description <span className="text-gray-400 font-normal">(150–160 chars ideal)</span>
+                  </label>
+                  <textarea
+                    name="metaDescription"
+                    value={formData.metaDescription}
+                    onChange={handleChange}
+                    rows={2}
+                    maxLength={300}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors resize-none"
+                    placeholder="Leave blank to use the product description"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">{formData.metaDescription.length} / 160 characters</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Meta Keywords <span className="text-gray-400 font-normal">(comma-separated)</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="metaKeywords"
+                    value={formData.metaKeywords}
+                    onChange={handleChange}
+                    className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors"
+                    placeholder="exotic flower, indoor exotic, top shelf"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Open Graph Image URL <span className="text-gray-400 font-normal">(social-card image)</span>
+                  </label>
+                  <input
+                    type="url"
+                    name="ogImage"
+                    value={formData.ogImage}
+                    onChange={handleChange}
+                    className="w-full h-9 px-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-gray-400 transition-colors"
+                    placeholder="Leave blank to reuse the main product image"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Optional. 1200×630 px works best for Facebook / Twitter / LinkedIn.
+                  </p>
                 </div>
               </div>
             )}

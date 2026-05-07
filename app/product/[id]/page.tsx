@@ -64,22 +64,39 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   const catLower = product.category.toLowerCase();
   const catSpecificKeywords = categoryKeywords[product.category] || [];
   const catDisplay = catLower.charAt(0).toUpperCase() + catLower.slice(1);
-  const title = `${product.title} | ${catDisplay} - Real Duck Distro`;
-  const description = product.description
-    ? product.description.slice(0, 160)
-    : `${product.title} - premium ${catLower} from Real Duck Distro. Delivering across the USA, Australia & worldwide — priority service to Kentucky, Michigan, Florida & Mississippi. HQ in LA & Sydney. ${product.isSoldOut ? "Currently sold out." : "In stock - order now."}`;
+
+  // Title: explicit metaTitle wins; else auto-built from product title + category.
+  const title =
+    product.metaTitle?.trim() ||
+    `${product.title} | ${catDisplay} - Real Duck Distro`;
+
+  // Description: explicit metaDescription wins; else truncated description; else boilerplate.
+  const description =
+    product.metaDescription?.trim() ||
+    (product.description
+      ? product.description.slice(0, 160)
+      : `${product.title} - premium ${catLower} from Real Duck Distro. Delivering across the USA, Australia & worldwide — priority service to Kentucky, Michigan, Florida & Mississippi. HQ in LA & Sydney. ${product.isSoldOut ? "Currently sold out." : "In stock - order now."}`);
+
+  // Keywords: explicit override; else fall back to category keywords.
+  const keywords =
+    product.metaKeywords?.trim() ||
+    catSpecificKeywords.join(", ");
+
+  // OG image: explicit ogImage wins; else main product image.
+  const ogImage = product.ogImage?.trim() || product.imageUrl;
 
   return {
     title,
     description,
+    keywords,
     openGraph: {
-      title: `${product.title} | Real Duck Distro`,
+      title: product.metaTitle?.trim() || `${product.title} | Real Duck Distro`,
       description,
       url: `${SITE_URL}/product/${product.slug || product.id}`,
       siteName: "Real Duck Distro",
       images: [
         {
-          url: product.imageUrl,
+          url: ogImage,
           width: 800,
           height: 800,
           alt: product.title,
@@ -90,9 +107,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     },
     twitter: {
       card: "summary_large_image",
-      title: `${product.title} | Real Duck Distro`,
+      title: product.metaTitle?.trim() || `${product.title} | Real Duck Distro`,
       description,
-      images: [product.imageUrl],
+      images: [ogImage],
     },
     alternates: {
       canonical: `${SITE_URL}/product/${product.slug || product.id}`,

@@ -54,6 +54,10 @@ export async function POST(request: NextRequest) {
       imageUrl,
       images,
       videoUrl,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      ogImage,
     } = body;
 
     // Validate required fields
@@ -98,6 +102,10 @@ export async function POST(request: NextRequest) {
         imageUrl,
         images: Array.isArray(images) ? images : [],
         videoUrl: videoUrl || null,
+        metaTitle: metaTitle?.trim() || null,
+        metaDescription: metaDescription?.trim() || null,
+        metaKeywords: metaKeywords?.trim() || null,
+        ogImage: ogImage?.trim() || null,
       },
     });
 

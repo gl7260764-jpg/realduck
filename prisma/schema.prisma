@@ -41,6 +41,11 @@ model BlogPost {
   published   Boolean      @default(false)
   featured    Boolean      @default(false)
   tags        String[]     @default([])
+  // SEO overrides — when null, page falls back to auto-generated values.
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?  // comma-separated
+  ogImage         String?  // separate social-card image; falls back to imageUrl
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -69,12 +74,31 @@ model Product {
   imageUrl    String
   images      String[] @default([])
   videoUrl    String?
+  // SEO overrides — when null, page falls back to auto-generated values.
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?  // comma-separated
+  ogImage         String?  // separate social-card image; falls back to imageUrl
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   views       ProductView[]
 
   @@index([slug])
+}
+
+// Slugs of permanently-deleted Products / BlogPosts / Announcements.
+// Middleware reads this list and returns HTTP 410 Gone for matching URLs,
+// telling Google to drop them from the index permanently.
+model DeletedSlug {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  kind      String   // "product" | "blog" | "announcement"
+  title     String?  // Original title — useful for audits
+  deletedAt DateTime @default(now())
+
+  @@index([slug])
+  @@index([kind])
 }
 
 model PageView {

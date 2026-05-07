@@ -67,6 +67,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       imageUrl,
       images,
       videoUrl,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      ogImage,
     } = body;
 
     // Check if product exists
@@ -123,6 +127,11 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         ...(imageUrl && { imageUrl }),
         ...(images !== undefined && { images: Array.isArray(images) ? images : [] }),
         ...(videoUrl !== undefined && { videoUrl: videoUrl || null }),
+        // SEO overrides — empty string clears the override (back to auto-generated).
+        ...(metaTitle !== undefined && { metaTitle: metaTitle?.trim() || null }),
+        ...(metaDescription !== undefined && { metaDescription: metaDescription?.trim() || null }),
+        ...(metaKeywords !== undefined && { metaKeywords: metaKeywords?.trim() || null }),
+        ...(ogImage !== undefined && { ogImage: ogImage?.trim() || null }),
       },
     });
 
@@ -174,6 +183,16 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     await prisma.product.delete({
       where: { id },
     });
+
+    // Record the slug for permanent 410 Gone responses on future requests.
+    // (The middleware reads the build-time JSON; redeploy refreshes that file.)
+    if (existingProduct.slug) {
+      await prisma.deletedSlug.upsert({
+        where: { slug: existingProduct.slug },
+        create: { slug: existingProduct.slug, kind: "product", title: existingProduct.title },
+        update: {},
+      }).catch(() => {});
+    }
 
     revalidatePath("/");
     if (existingProduct.slug) {

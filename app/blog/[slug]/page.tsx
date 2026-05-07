@@ -67,23 +67,31 @@ export async function generateMetadata({
     return { title: "Post Not Found | Real Duck Distro" };
   }
 
-  const desc = post.excerpt || post.content.substring(0, 160);
-  const kw = [
-    "cannabis blog",
-    "cannabis guide",
-    "cannabis education",
-    post.category.toLowerCase().replace(/_/g, " "),
-    ...(post.tags || []),
-    "Real Duck Distro",
-  ];
+  // SEO overrides (admin-set) win over auto-generated values.
+  const title = post.metaTitle?.trim() || `${post.title} | Real Duck Distro Blog`;
+  const desc =
+    post.metaDescription?.trim() ||
+    post.excerpt ||
+    post.content.substring(0, 160);
+  const kw = post.metaKeywords?.trim()
+    ? post.metaKeywords.split(",").map((k) => k.trim()).filter(Boolean)
+    : [
+        "cannabis blog",
+        "cannabis guide",
+        "cannabis education",
+        post.category.toLowerCase().replace(/_/g, " "),
+        ...(post.tags || []),
+        "Real Duck Distro",
+      ];
+  const ogImage = post.ogImage?.trim() || post.imageUrl;
 
   return {
-    title: `${post.title} | Real Duck Distro Blog`,
+    title,
     description: desc,
     keywords: kw,
     authors: [{ name: post.author }],
     openGraph: {
-      title: post.title,
+      title: post.metaTitle?.trim() || post.title,
       description: desc,
       type: "article",
       url: `https://www.realduckdistro.com/blog/${post.slug}`,
@@ -93,13 +101,13 @@ export async function generateMetadata({
       authors: [post.author],
       section: post.category.toLowerCase().replace(/_/g, " "),
       tags: post.tags || [],
-      images: post.imageUrl ? [{ url: post.imageUrl, alt: post.title }] : [],
+      images: ogImage ? [{ url: ogImage, alt: post.title }] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
+      title: post.metaTitle?.trim() || post.title,
       description: desc,
-      images: post.imageUrl ? [post.imageUrl] : [],
+      images: ogImage ? [ogImage] : [],
     },
     alternates: {
       canonical: `https://www.realduckdistro.com/blog/${post.slug}`,

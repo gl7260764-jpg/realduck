@@ -57,6 +57,11 @@ export async function PUT(
         published: body.published,
         featured: body.featured,
         tags: body.tags || [],
+        // SEO overrides — empty string clears the override.
+        ...(body.metaTitle !== undefined && { metaTitle: body.metaTitle?.trim() || null }),
+        ...(body.metaDescription !== undefined && { metaDescription: body.metaDescription?.trim() || null }),
+        ...(body.metaKeywords !== undefined && { metaKeywords: body.metaKeywords?.trim() || null }),
+        ...(body.ogImage !== undefined && { ogImage: body.ogImage?.trim() || null }),
       },
     });
 
@@ -90,8 +95,16 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    const existing = await prisma.blogPost.findUnique({ where: { id }, select: { slug: true } });
+    const existing = await prisma.blogPost.findUnique({ where: { id }, select: { slug: true, title: true } });
     await prisma.blogPost.delete({ where: { id } });
+    if (existing?.slug) {
+      // Track for permanent 410 Gone responses (middleware reads this list).
+      await prisma.deletedSlug.upsert({
+        where: { slug: existing.slug },
+        create: { slug: existing.slug, kind: "blog", title: existing.title },
+        update: {},
+      }).catch(() => {});
+    }
     revalidatePath("/blog");
     if (existing?.slug) revalidatePath(`/blog/${existing.slug}`);
     return NextResponse.json({ success: true });

@@ -49,6 +49,10 @@ export default function EditBlogPostPage() {
         published: post.published as boolean,
         featured: post.featured as boolean,
         tags: (post.tags as string[]) || [],
+        metaTitle: (post.metaTitle as string) || "",
+        metaDescription: (post.metaDescription as string) || "",
+        metaKeywords: (post.metaKeywords as string) || "",
+        ogImage: (post.ogImage as string) || "",
       }}
     />
   );
