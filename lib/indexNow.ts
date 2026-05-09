@@ -17,25 +17,35 @@
  */
 
 const KEY = "0a83dcea9b8e48ce895b77e3a75f2f0f";
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
-function host(): string {
+// CRITICAL: must match the canonical host where the key file actually returns
+// HTTP 200. realduckdistro.com (apex) 307s to www — if we submit "host: apex"
+// Bing tries to verify the key at apex, follows the redirect, and silently
+// rejects the entire batch. Force www regardless of what .env says.
+const CANONICAL_HOST = "www.realduckdistro.com";
+const CANONICAL_ORIGIN = `https://${CANONICAL_HOST}`;
+
+/** Rewrite any URL to the canonical host so the host field always matches. */
+function canonicalize(url: string): string {
   try {
-    return new URL(SITE_URL).host;
+    const u = new URL(url);
+    u.host = CANONICAL_HOST;
+    u.protocol = "https:";
+    return u.toString();
   } catch {
-    return "realduckdistro.com";
+    return url;
   }
 }
 
 export async function pingIndexNow(urls: string | string[]): Promise<boolean> {
-  const list = (Array.isArray(urls) ? urls : [urls]).filter(Boolean);
+  const list = (Array.isArray(urls) ? urls : [urls]).filter(Boolean).map(canonicalize);
   if (list.length === 0) return true;
 
   try {
     const body = {
-      host: host(),
+      host: CANONICAL_HOST,
       key: KEY,
-      keyLocation: `${SITE_URL}/${KEY}.txt`,
+      keyLocation: `${CANONICAL_ORIGIN}/${KEY}.txt`,
       urlList: list.slice(0, 10000), // IndexNow max per request
     };
     const res = await fetch("https://api.indexnow.org/indexnow", {
