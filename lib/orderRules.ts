@@ -4,7 +4,7 @@
  * so a customer can't bypass the rules by switching paths.
  */
 
-export const DISPOSABLES_MIN_QUANTITY = 50;
+export const DISPOSABLES_MIN_QUANTITY = 25;
 
 interface MinimalOrderItem {
   category: string;
@@ -23,7 +23,7 @@ export interface OrderRuleOk {
 /**
  * Enforces business rules on the items in a single order.
  * Currently: any order containing one or more DISPOSABLES products must
- * have at least 50 disposables in total (summed across all disposable
+ * have at least 25 disposables in total (summed across all disposable
  * line items in the order).
  */
 export function validateOrderItems(

@@ -66,7 +66,7 @@ export default function ProductDetailClient({
 }: ProductDetailClientProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const [quantity, setQuantity] = useState(product.category === "DISPOSABLES" ? 50 : 1);
+  const [quantity, setQuantity] = useState(product.category === "DISPOSABLES" ? 25 : 1);
   const [activeTab, setActiveTab] = useState<"description" | "shipping">("description");
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStep, setBuyStep] = useState<"choose" | "fast-contact" | "success">("choose");
@@ -130,9 +130,9 @@ export default function ProductDetailClient({
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  // Disposables have their own minimum: 50 units, regardless of dollar value.
+  // Disposables have their own minimum: 25 units, regardless of dollar value.
   const isDisposables = product.category === "DISPOSABLES";
-  const DISPOSABLES_MIN_QTY = 50;
+  const DISPOSABLES_MIN_QTY = 25;
   const QTY_FLOOR = isDisposables ? DISPOSABLES_MIN_QTY : 1;
   const QTY_CEIL = isDisposables ? 1000 : 10;
 
@@ -144,7 +144,7 @@ export default function ProductDetailClient({
     const m = priceShipLines[0]?.match(/\$?([\d,]+(?:\.\d+)?)/);
     return m ? parseFloat(m[1].replace(",", "")) : 0;
   })();
-  // For disposables, "min qty" is fixed at 50 units regardless of price.
+  // For disposables, "min qty" is fixed at 25 units regardless of price.
   // For everything else, it's calculated from the $200 dollar minimum.
   const fastMinQty = isDisposables
     ? DISPOSABLES_MIN_QTY

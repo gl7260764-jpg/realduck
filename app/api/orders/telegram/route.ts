@@ -311,7 +311,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    // Block disposables orders below the 50-unit minimum.
+    // Block disposables orders below the 25-unit minimum.
     const ruleCheck = validateOrderItems(body.items);
     if (!ruleCheck.ok) {
       return NextResponse.json({ error: ruleCheck.error }, { status: 400 });
@@ -323,7 +323,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fast orders require a minimum cart total — but the dollar minimum is
-    // bypassed for disposables (the 50-unit rule above handles disposable carts).
+    // bypassed for disposables (the 25-unit rule above handles disposable carts).
     const FAST_ORDER_MIN = 200;
     const hasDisposables = body.items.some((it) => it.category === "DISPOSABLES");
     const cartTotal = calcTotal(body.items);
