@@ -58,7 +58,7 @@ export default function ProductCard({
   const [fastError, setFastError] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [fastQty, setFastQty] = useState(category === "DISPOSABLES" ? 25 : 1);
+  const [fastQty, setFastQty] = useState(category === "DISPOSABLES" ? 50 : 1);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRef = useRef<HTMLAnchorElement>(null);
@@ -139,13 +139,13 @@ export default function ProductCard({
   };
 
   const isDisposables = category === "DISPOSABLES";
-  const DISPOSABLES_MIN_QTY = 25;
+  const DISPOSABLES_MIN_QTY = 50;
   const FAST_ORDER_MIN = 200;
   const fastUnitPrice = (() => {
     const m = priceShip.split("\n")[0]?.match(/\$?([\d,]+(?:\.\d+)?)/);
     return m ? parseFloat(m[1].replace(",", "")) : 0;
   })();
-  // For disposables, the "min qty" is fixed at 25 — the $200 dollar floor doesn't apply.
+  // For disposables, the "min qty" is fixed at 50 — the $200 dollar floor doesn't apply.
   const fastMinQty = isDisposables
     ? DISPOSABLES_MIN_QTY
     : (fastUnitPrice > 0 ? Math.ceil(FAST_ORDER_MIN / fastUnitPrice) : 1);

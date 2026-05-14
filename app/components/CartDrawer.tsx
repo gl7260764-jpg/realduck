@@ -47,7 +47,7 @@ export default function CartDrawer() {
   };
 
   const FAST_ORDER_MIN = 200;
-  const DISPOSABLES_MIN_QTY = 25;
+  const DISPOSABLES_MIN_QTY = 50;
   const cartTotalNumeric = items.reduce((sum, item) => {
     const m = getItemPrice(item)?.match(/\$?([\d,]+(?:\.\d+)?)/);
     if (!m) return sum;
@@ -55,7 +55,7 @@ export default function CartDrawer() {
   }, 0);
   // Disposables-aware fast-order eligibility:
   //   • If the cart contains disposables, the $200 dollar minimum is bypassed
-  //     and only the 25-unit rule applies.
+  //     and only the 50-unit rule applies.
   //   • Otherwise, the dollar minimum still applies.
   const disposablesQty = items
     .filter((it) => it.category === "DISPOSABLES")

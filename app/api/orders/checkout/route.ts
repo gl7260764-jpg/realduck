@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
 
-    // Block disposables orders below the 25-unit minimum.
+    // Block disposables orders below the 50-unit minimum.
     const ruleCheck = validateOrderItems(body.items);
     if (!ruleCheck.ok) {
       return NextResponse.json({ error: ruleCheck.error }, { status: 400 });
