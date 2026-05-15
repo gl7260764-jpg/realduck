@@ -359,7 +359,7 @@ export default function CartDrawer() {
               className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors"
             >
               <Mail className="w-5 h-5" />
-              Checkout
+              Fast Order
             </button>
             {telegramError && (
               <p className="text-xs text-red-600 text-center bg-red-50 p-2 rounded-lg">{telegramError}</p>
@@ -447,7 +447,7 @@ export default function CartDrawer() {
                 className="w-full flex items-center justify-center gap-2 bg-[#29B6F6] hover:bg-[#0288D1] disabled:bg-sky-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors"
               >
                 <TelegramIcon className="w-5 h-5" />
-                Fast Order
+                Detailed Order
               </button>
             )}
           </div>

@@ -289,7 +289,7 @@ export default function ProductCard({
                         <Zap className="w-5 h-5 text-amber-600" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-gray-900 text-sm">Fast Order</p>
+                        <p className="font-medium text-gray-900 text-sm">Detailed Order</p>
                         <p className="text-xs text-gray-500">Just your contact info & done</p>
                       </div>
                     </button>
@@ -301,7 +301,7 @@ export default function ProductCard({
                         <ClipboardList className="w-5 h-5 text-slate-700" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-gray-900 text-sm">Detailed Order</p>
+                        <p className="font-medium text-gray-900 text-sm">Fast Order</p>
                         <p className="text-xs text-gray-500">Full checkout with address & payment</p>
                       </div>
                     </button>
