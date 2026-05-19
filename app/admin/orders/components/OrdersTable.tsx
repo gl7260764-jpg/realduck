@@ -15,7 +15,7 @@ interface OrderItem {
 
 interface OrderAttribution {
   source: string;
-  channel: "tracked-link" | "search" | "social" | "direct" | "internal" | "unknown";
+  channel: "tracked-link" | "email" | "search" | "social" | "direct" | "internal" | "unknown";
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
@@ -45,7 +45,8 @@ interface Order {
 }
 
 const CHANNEL_BADGE: Record<OrderAttribution["channel"], { label: string; bg: string; ring: string; dot: string }> = {
-  "tracked-link": { label: "Tracked link", bg: "bg-emerald-50", ring: "border-emerald-200", dot: "bg-emerald-500" },
+  email:          { label: "Newsletter",    bg: "bg-rose-50",    ring: "border-rose-200",    dot: "bg-rose-500" },
+  "tracked-link": { label: "Tracked link",  bg: "bg-emerald-50", ring: "border-emerald-200", dot: "bg-emerald-500" },
   search:         { label: "Search engine", bg: "bg-blue-50",    ring: "border-blue-200",    dot: "bg-blue-500" },
   social:         { label: "Social",        bg: "bg-purple-50",  ring: "border-purple-200",  dot: "bg-purple-500" },
   direct:         { label: "Direct",        bg: "bg-gray-50",    ring: "border-gray-200",    dot: "bg-gray-500" },
@@ -98,6 +99,7 @@ export default function OrdersTable() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [channelFilter, setChannelFilter] = useState<"all" | OrderAttribution["channel"]>("all");
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -130,8 +132,22 @@ export default function OrdersTable() {
   const filtered = orders.filter((o) => {
     const q = search.toLowerCase();
     const match = !q || o.orderNumber.toLowerCase().includes(q) || `${o.firstName} ${o.lastName}`.toLowerCase().includes(q) || o.email.toLowerCase().includes(q) || o.city.toLowerCase().includes(q) || o.country.toLowerCase().includes(q);
-    return match && (statusFilter === "all" || o.status === statusFilter);
+    const statusOk = statusFilter === "all" || o.status === statusFilter;
+    const channelOk = channelFilter === "all" || o.attribution?.channel === channelFilter;
+    return match && statusOk && channelOk;
   });
+
+  // Per-channel counts (computed from all orders, ignoring current channel filter)
+  const channelCounts: Record<OrderAttribution["channel"] | "all", number> = {
+    all: orders.length,
+    email: orders.filter((o) => o.attribution?.channel === "email").length,
+    "tracked-link": orders.filter((o) => o.attribution?.channel === "tracked-link").length,
+    search: orders.filter((o) => o.attribution?.channel === "search").length,
+    social: orders.filter((o) => o.attribution?.channel === "social").length,
+    direct: orders.filter((o) => o.attribution?.channel === "direct").length,
+    internal: orders.filter((o) => o.attribution?.channel === "internal").length,
+    unknown: orders.filter((o) => o.attribution?.channel === "unknown").length,
+  };
 
   const totalPages = Math.ceil(filtered.length / PER_PAGE);
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
@@ -165,6 +181,31 @@ export default function OrdersTable() {
           >
             <p className="text-lg sm:text-xl lg:text-2xl font-bold">{s.val}</p>
             <p className="text-xs sm:text-sm font-medium opacity-80 mt-0.5">{s.label}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Source/channel filter — clearly differentiates Newsletter clients */}
+      <div className="flex flex-wrap items-center gap-1.5 mb-3 lg:mb-4">
+        <span className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold mr-1">Source:</span>
+        {([
+          ["all", "All", "bg-slate-900 text-white", "border-slate-900"],
+          ["email", `Newsletter${channelCounts.email ? ` · ${channelCounts.email}` : ""}`, "bg-rose-50 text-rose-700", "border-rose-200"],
+          ["tracked-link", `Tracked${channelCounts["tracked-link"] ? ` · ${channelCounts["tracked-link"]}` : ""}`, "bg-emerald-50 text-emerald-700", "border-emerald-200"],
+          ["social", `Social${channelCounts.social ? ` · ${channelCounts.social}` : ""}`, "bg-purple-50 text-purple-700", "border-purple-200"],
+          ["search", `Search${channelCounts.search ? ` · ${channelCounts.search}` : ""}`, "bg-blue-50 text-blue-700", "border-blue-200"],
+          ["direct", `Direct${channelCounts.direct ? ` · ${channelCounts.direct}` : ""}`, "bg-gray-100 text-gray-700", "border-gray-300"],
+        ] as Array<[typeof channelFilter, string, string, string]>).map(([key, label, activeCls, ringCls]) => (
+          <button
+            key={key}
+            onClick={() => { setChannelFilter(key); setPage(1); }}
+            className={`text-[11px] lg:text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
+              channelFilter === key
+                ? `${activeCls} ${ringCls} shadow-sm`
+                : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+            }`}
+          >
+            {label}
           </button>
         ))}
       </div>

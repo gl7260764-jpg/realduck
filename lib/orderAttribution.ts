@@ -17,7 +17,7 @@ import prisma from "./prisma";
 export interface OrderAttribution {
   sessionId: string | null;
   source: string; // "Motion (tracked link)", "Google Search", "Direct", etc.
-  channel: "tracked-link" | "search" | "social" | "direct" | "internal" | "unknown";
+  channel: "tracked-link" | "email" | "search" | "social" | "direct" | "internal" | "unknown";
   utmSource: string | null;
   utmMedium: string | null;
   utmCampaign: string | null;
@@ -145,20 +145,27 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
   if (campaignClick) {
     const c = campaignClick.campaign;
     const promoterName = c.promoter?.name || null;
-    const source = promoterName
-      ? `${promoterName} (tracked link /r/${c.slug})`
-      : `${c.utmSource}/${c.utmMedium} (tracked link /r/${c.slug})`;
-    const verdict = `This order came from ${
-      promoterName ? `your "${promoterName}" promoter` : `the ${c.utmSource}/${c.utmMedium} channel`
-    } via the tracked short link /r/${c.slug}. UTM tags: source=${c.utmSource}, medium=${c.utmMedium}${
-      c.utmCampaign ? `, campaign=${c.utmCampaign}` : ""
-    }. The visitor was redirected to ${c.destination}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${
-      pageViewCount === 1 ? "" : "s"
-    }, then ordered.`;
+    const isEmail =
+      c.utmMedium?.toLowerCase() === "email" ||
+      c.utmSource?.toLowerCase() === "newsletter";
+    const source = isEmail
+      ? `Newsletter: ${c.name}`
+      : promoterName
+        ? `${promoterName} (tracked link /r/${c.slug})`
+        : `${c.utmSource}/${c.utmMedium} (tracked link /r/${c.slug})`;
+    const verdict = isEmail
+      ? `This order came from your email newsletter — campaign "${c.name}". The recipient clicked through, landed on ${c.destination}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${pageViewCount === 1 ? "" : "s"}, then ordered.`
+      : `This order came from ${
+          promoterName ? `your "${promoterName}" promoter` : `the ${c.utmSource}/${c.utmMedium} channel`
+        } via the tracked short link /r/${c.slug}. UTM tags: source=${c.utmSource}, medium=${c.utmMedium}${
+          c.utmCampaign ? `, campaign=${c.utmCampaign}` : ""
+        }. The visitor was redirected to ${c.destination}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${
+          pageViewCount === 1 ? "" : "s"
+        }, then ordered.`;
     return {
       sessionId,
       source,
-      channel: "tracked-link",
+      channel: isEmail ? "email" : "tracked-link",
       utmSource: c.utmSource,
       utmMedium: c.utmMedium,
       utmCampaign: c.utmCampaign,
@@ -197,20 +204,44 @@ export async function getOrderAttribution(sessionId: string | null): Promise<Ord
         include: { promoter: true },
       });
       const promoterName = campaign?.promoter?.name || null;
-      const source = promoterName
-        ? `${promoterName} (UTM: ${utmSource}/${utmMedium || "?"})`
-        : `UTM-tagged: ${utmSource}/${utmMedium || "?"}`;
-      const verdict = `This order came from ${
-        promoterName ? `your "${promoterName}" promoter` : `a "${utmSource}" tagged link`
-      } (UTM source=${utmSource}${utmMedium ? `, medium=${utmMedium}` : ""}${
-        utmCampaign ? `, campaign=${utmCampaign}` : ""
-      }). The visitor landed on ${firstPageView.page}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${
-        pageViewCount === 1 ? "" : "s"
-      }, then ordered.`;
+
+      // Email/newsletter is its own channel — visually distinct in the admin
+      // table from referral or tracked-link traffic. Triggers when either
+      // utm_medium=email OR utm_source=newsletter.
+      const isEmailChannel =
+        utmMedium?.toLowerCase() === "email" ||
+        utmSource?.toLowerCase() === "newsletter";
+
+      let source: string;
+      let channel: OrderAttribution["channel"];
+      if (isEmailChannel) {
+        channel = "email";
+        source = campaign?.name
+          ? `Newsletter: ${campaign.name}`
+          : utmCampaign
+            ? `Newsletter (${utmCampaign})`
+            : "Newsletter / email blast";
+      } else {
+        channel = "tracked-link";
+        source = promoterName
+          ? `${promoterName} (UTM: ${utmSource}/${utmMedium || "?"})`
+          : `UTM-tagged: ${utmSource}/${utmMedium || "?"}`;
+      }
+
+      const verdict = isEmailChannel
+        ? `This order came from your email newsletter${campaign?.name ? ` — campaign "${campaign.name}"` : utmCampaign ? ` — campaign "${utmCampaign}"` : ""}. The recipient clicked through and landed on ${firstPageView.page}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${pageViewCount === 1 ? "" : "s"}, then ordered. UTM tags: source=${utmSource}${utmMedium ? `, medium=${utmMedium}` : ""}${utmCampaign ? `, campaign=${utmCampaign}` : ""}.`
+        : `This order came from ${
+            promoterName ? `your "${promoterName}" promoter` : `a "${utmSource}" tagged link`
+          } (UTM source=${utmSource}${utmMedium ? `, medium=${utmMedium}` : ""}${
+            utmCampaign ? `, campaign=${utmCampaign}` : ""
+          }). The visitor landed on ${firstPageView.page}, browsed for ${timeOnSiteLabel} across ${pageViewCount} page view${
+            pageViewCount === 1 ? "" : "s"
+          }, then ordered.`;
+
       return {
         sessionId,
         source,
-        channel: "tracked-link",
+        channel,
         utmSource,
         utmMedium,
         utmCampaign,
