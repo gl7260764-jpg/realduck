@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import ProductsTable from "./components/ProductsTable";
 import FlowerDescriptionToggle from "./components/FlowerDescriptionToggle";
+import CategoryVisibilityToggle from "./components/CategoryVisibilityToggle";
 
 async function getProducts() {
   return prisma.product.findMany({
@@ -43,6 +44,9 @@ export default async function ProductsPage() {
           </Link>
         </div>
       </div>
+
+      {/* Category visibility — compact one-line toggle row */}
+      <CategoryVisibilityToggle />
 
       {/* Flower price-range description toggle */}
       <FlowerDescriptionToggle />

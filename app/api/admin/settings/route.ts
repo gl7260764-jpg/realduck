@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { ALL_CATEGORIES, invalidateHiddenCategoriesCache } from "@/lib/categoryVisibility";
 
 export async function GET() {
   const authenticated = await isAuthenticated();
@@ -70,32 +69,9 @@ export async function PUT(req: NextRequest) {
       }
     }
 
-    // Hidden categories — accepted as array of enum names; stored as CSV.
-    // Invalid entries silently dropped. Empty list → delete the row.
-    let hiddenCategoriesTouched = false;
-    if (Array.isArray(body.hiddenCategories)) {
-      hiddenCategoriesTouched = true;
-      const valid = body.hiddenCategories
-        .filter((v: unknown): v is string => typeof v === "string")
-        .filter((v: string) => (ALL_CATEGORIES as readonly string[]).includes(v));
-      const csv = Array.from(new Set(valid)).join(",");
-      if (csv) {
-        operations.push(
-          prisma.siteSetting.upsert({
-            where: { key: "hiddenCategories" },
-            update: { value: csv },
-            create: { key: "hiddenCategories", value: csv },
-          })
-        );
-      } else {
-        operations.push(prisma.siteSetting.deleteMany({ where: { key: "hiddenCategories" } }));
-      }
-    }
-
     if (operations.length > 0) {
       await prisma.$transaction(operations);
     }
-    if (hiddenCategoriesTouched) invalidateHiddenCategoriesCache();
 
     return NextResponse.json({ success: true });
   } catch (error) {
