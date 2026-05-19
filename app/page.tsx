@@ -7,6 +7,7 @@ import RecentlyViewed from "./components/RecentlyViewed";
 import prisma from "@/lib/prisma";
 import Script from "next/script";
 import { dailyShuffle } from "@/lib/dailyShuffle";
+import { getHiddenCategories } from "@/lib/categoryVisibility";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -17,7 +18,9 @@ async function getProducts() {
   // We deliberately exclude metaTitle/metaDescription/metaKeywords/description/
   // images[]/ogImage/updatedAt — those are ~180 KB of SEO + admin data the
   // homepage's client renderer doesn't need. Cuts client JS payload ~70%.
+  const hidden = await getHiddenCategories();
   const products = await prisma.product.findMany({
+    where: hidden.length ? { NOT: { category: { in: hidden as never } } } : undefined,
     select: {
       id: true,
       slug: true,

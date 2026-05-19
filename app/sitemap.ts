@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 import { PRODUCT_FAQS } from "@/lib/productFAQs";
+import { getHiddenCategories } from "@/lib/categoryVisibility";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -28,8 +29,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
+  const hidden = await getHiddenCategories();
   const [products, blogPosts, announcements] = await Promise.all([
     prisma.product.findMany({
+      where: hidden.length ? { NOT: { category: { in: hidden as never } } } : undefined,
       select: {
         id: true, slug: true, title: true, imageUrl: true, images: true,
         updatedAt: true, category: true, isSoldOut: true,

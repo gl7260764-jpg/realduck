@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Send, MessageSquare, CheckCircle, AlertCircle, Loader2, ExternalLink, Bot, Mail, Server, Shield, Eye, EyeOff, Music, Phone, MessageCircle, Settings as SettingsIcon, Link2 } from "lucide-react";
+import { Save, Send, MessageSquare, CheckCircle, AlertCircle, Loader2, ExternalLink, Bot, Mail, Server, Shield, Eye, EyeOff, Music, Phone, MessageCircle, Settings as SettingsIcon, Link2, Layers } from "lucide-react";
+import { ALL_CATEGORIES } from "@/lib/categoryVisibility";
+
+const CATEGORY_LABELS: Record<string, string> = {
+  FLOWER: "Flower",
+  TOP_SHELF: "Top Shelf",
+  EDIBLES: "Edibles",
+  CONCENTRATES: "Concentrates",
+  PREROLLS: "Pre-Rolls",
+  MUSHROOM: "Mushroom",
+  DISPOSABLES: "Disposables",
+  PILLS: "Pills",
+  COKE: "Coke",
+  OTHERS: "Others",
+};
 
 // Telegram Icon
 const TelegramIcon = ({ className }: { className?: string }) => (
@@ -36,12 +50,13 @@ interface Settings {
   companyEmail: string;
 }
 
-type SectionKey = "social" | "telegram" | "email";
+type SectionKey = "social" | "telegram" | "email" | "categories";
 
 const SECTIONS: Array<{ key: SectionKey; label: string; description: string; icon: typeof Link2 }> = [
   { key: "social", label: "Social & contact links", description: "Public-facing channels — shown in navbar, footer, and order success pages.", icon: Link2 },
   { key: "telegram", label: "Telegram bot", description: "Bot credentials for receiving live order notifications.", icon: Bot },
   { key: "email", label: "Email & SMTP", description: "Outbound email server config + admin notification address.", icon: Mail },
+  { key: "categories", label: "Category visibility", description: "Toggle entire product categories on or off across the website.", icon: Layers },
 ];
 
 export default function SettingsPage() {
@@ -63,6 +78,7 @@ export default function SettingsPage() {
     smtpPassword: "",
     companyEmail: "",
   });
+  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -86,6 +102,14 @@ export default function SettingsPage() {
           }
           return updated;
         });
+        // Hidden categories arrive as a CSV string from the API
+        if (typeof data.hiddenCategories === "string" && data.hiddenCategories.trim()) {
+          setHiddenCategories(
+            data.hiddenCategories.split(",").map((s: string) => s.trim()).filter(Boolean)
+          );
+        } else {
+          setHiddenCategories([]);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -98,7 +122,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: JSON.stringify({ ...settings, hiddenCategories }),
       });
       if (res.status === 401) {
         router.push("/admin/login");
@@ -478,6 +502,88 @@ export default function SettingsPage() {
                   />
                 </FieldCard>
               ))}
+            </div>
+          </section>
+          )}
+
+          {/* CATEGORIES */}
+          {activeSection === "categories" && (
+          <section className="admin-fade-in">
+            <SectionHeader
+              title="Category visibility"
+              description="Turn categories OFF to instantly hide every product in that category across the website, sitemap, and direct URLs. Products are not deleted — flip a category back ON to restore them. Changes take effect within ~60 seconds."
+            />
+            <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {ALL_CATEGORIES.length - hiddenCategories.length} of {ALL_CATEGORIES.length} visible
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {hiddenCategories.length === 0
+                      ? "All categories live"
+                      : `${hiddenCategories.length} hidden: ${hiddenCategories.map((c) => CATEGORY_LABELS[c] || c).join(", ")}`}
+                  </p>
+                </div>
+                {hiddenCategories.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setHiddenCategories([])}
+                    className="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                  >
+                    Show all
+                  </button>
+                )}
+              </div>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {ALL_CATEGORIES.map((cat) => {
+                  const isHidden = hiddenCategories.includes(cat);
+                  const isVisible = !isHidden;
+                  return (
+                    <li key={cat}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHiddenCategories((prev) =>
+                            prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+                          );
+                        }}
+                        className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg border transition-all ${
+                          isVisible
+                            ? "bg-emerald-50/40 border-emerald-200 hover:bg-emerald-50"
+                            : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2.5 min-w-0">
+                          <span className={`flex items-center justify-center w-7 h-7 rounded-md flex-shrink-0 ${
+                            isVisible ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"
+                          }`}>
+                            {isVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                          </span>
+                          <span className="text-sm font-medium text-slate-900 truncate">
+                            {CATEGORY_LABELS[cat] || cat}
+                          </span>
+                        </span>
+                        <span
+                          className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
+                            isVisible ? "bg-emerald-500" : "bg-slate-300"
+                          }`}
+                          aria-hidden="true"
+                        >
+                          <span
+                            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                              isVisible ? "translate-x-[18px]" : "translate-x-[2px]"
+                            }`}
+                          />
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p className="text-[11px] text-slate-500 mt-4 leading-relaxed">
+                Hidden categories also disappear from the sitemap and 404 when accessed by direct URL — so search engines stop ranking them too. Inventory in the admin panel is unaffected; you can still upload, edit, and view hidden-category products here.
+              </p>
             </div>
           </section>
           )}

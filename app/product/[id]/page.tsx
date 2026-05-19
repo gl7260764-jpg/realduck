@@ -9,6 +9,7 @@ import { Category } from "@prisma/client";
 import Script from "next/script";
 import { PRODUCT_FAQS } from "@/lib/productFAQs";
 import RecentlyViewed from "@/app/components/RecentlyViewed";
+import { getHiddenCategories } from "@/lib/categoryVisibility";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -182,6 +183,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await getProduct(id);
 
   if (!product) {
+    notFound();
+  }
+
+  // Honor admin's per-category visibility toggle: hidden-category products
+  // 404 even when accessed by direct URL (and stay out of related lists).
+  const hidden = await getHiddenCategories();
+  if ((hidden as readonly string[]).includes(product.category)) {
     notFound();
   }
 
