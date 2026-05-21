@@ -26,7 +26,8 @@
       "WebSearch",
       "Bash(ffmpeg -version)",
       "Read(//usr/share/sounds/**)",
-      "Read(//home/wice2/Videos/**)"
+      "Read(//home/wice2/Videos/**)",
+      "Bash(git commit -m ' *)"
     ],
     "additionalDirectories": [
       "/home/chendi/Desktop/New Folder/nobupacks/public/images/payments",

@@ -4,6 +4,7 @@ import CatalogClient from "./components/CatalogClient";
 import Footer from "./components/Footer";
 import SEOBlock from "./components/SEOBlock";
 import RecentlyViewed from "./components/RecentlyViewed";
+import CartRecoveryBanner from "./components/CartRecoveryBanner";
 import prisma from "@/lib/prisma";
 import Script from "next/script";
 import { dailyShuffle } from "@/lib/dailyShuffle";
@@ -169,6 +170,7 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Navbar />
+      <CartRecoveryBanner />
       <main role="main">
         <h1 className="sr-only">
           Real Duck Distro — The World&apos;s Leading Premium Cannabis Lifestyle Brand | USA &amp; Australia | Priority Delivery to Kentucky, Michigan, Florida &amp; Mississippi | Worldwide Shipping
