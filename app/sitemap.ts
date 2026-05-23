@@ -76,8 +76,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.65,
   }));
 
-  // Priority products = those with curated FAQ data (top SEO targets).
-  const priorityProductSlugs = new Set(Object.keys(PRODUCT_FAQS));
+  // Priority products = curated FAQ slugs + top commercial winners we want
+  // Google to crawl most frequently. Both tiers get sitemap priority 0.95
+  // so Bing/Google bots refresh them on every crawl cycle.
+  const priorityProductSlugs = new Set([
+    ...Object.keys(PRODUCT_FAQS),
+    // Top-shelf flower (highest margin)
+    "apple-fritter", "pink-bubblegum", "wake-bake", "super-dope",
+    "bounty-snowcaps", "terphogz-2g-buckets",
+    // Top disposables (highest velocity)
+    "heaters-disposables",
+    // Premium concentrates
+    "hash-rosin-90-150u-head-stash", "terp-mansion-rosin", "whole-melts-havana",
+    // Featured smalls
+    "sour-slurpee-exotic-sm",
+  ]);
   const productPages: MetadataRoute.Sitemap = products.map((product) => {
     const slug = product.slug || product.id;
     const isPriority = product.slug ? priorityProductSlugs.has(product.slug) : false;
