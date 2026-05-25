@@ -124,6 +124,9 @@ export const metadata: Metadata = {
       "en-AU": SITE_URL,
       "x-default": SITE_URL,
     },
+    types: {
+      "application/rss+xml": `${SITE_URL}/feed.xml`,
+    },
   },
   verification: {
     google: [
@@ -145,12 +148,20 @@ async function getSettings() {
     for (const row of rows) map[row.key] = row.value;
     return {
       telegramChannel: map.telegramChannel || "https://t.me/realduckdistrola",
+      telegramOrder: map.telegramOrder || "",
       snapchatLink: map.snapchatLink || "https://snapchat.com/t/QVHfSVoo",
+      signalLink: map.signalLink || "",
+      tiktokLink: map.tiktokLink || "",
+      potatoChat: map.potatoChat || "",
     };
   } catch {
     return {
       telegramChannel: "https://t.me/realduckdistrola",
+      telegramOrder: "",
       snapchatLink: "https://snapchat.com/t/QVHfSVoo",
+      signalLink: "",
+      tiktokLink: "",
+      potatoChat: "",
     };
   }
 }
@@ -213,7 +224,14 @@ export default async function RootLayout({
               image: `${SITE_URL}/images/hero.webp?v=2`,
               description:
                 "Real Duck Distro — premium cannabis online. Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies, shipped discreetly across the USA (with priority service to Kentucky, Michigan, Florida and Mississippi), Australia and worldwide.",
-              sameAs: [settings.telegramChannel, settings.snapchatLink],
+              sameAs: [
+                settings.telegramChannel,
+                settings.telegramOrder,
+                settings.snapchatLink,
+                settings.signalLink,
+                settings.tiktokLink,
+                settings.potatoChat,
+              ].filter(Boolean),
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
@@ -300,7 +318,14 @@ export default async function RootLayout({
                   { "@type": "OfferCatalog", name: "Mushrooms" },
                 ],
               },
-              sameAs: [settings.telegramChannel, settings.snapchatLink],
+              sameAs: [
+                settings.telegramChannel,
+                settings.telegramOrder,
+                settings.snapchatLink,
+                settings.signalLink,
+                settings.tiktokLink,
+                settings.potatoChat,
+              ].filter(Boolean),
               contactPoint: {
                 "@type": "ContactPoint",
                 contactType: "customer service",
