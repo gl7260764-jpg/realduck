@@ -73,6 +73,11 @@ function categorizeRefererDomain(d: string | null | undefined): {
 } {
   if (!d || d === "") return { channel: "direct", source: "Direct (typed URL or bookmark)" };
   const lower = d.toLowerCase();
+  // PWA launches — visitor tapped the installed app icon from their home screen
+  if (lower.startsWith("(pwa-")) {
+    const mode = lower.replace("(pwa-", "").replace(")", "");
+    return { channel: "direct", source: `PWA launch (${mode}) — installed-app icon tap` };
+  }
   if (lower.includes("realduckdistro")) return { channel: "internal", source: "Internal navigation" };
   if (lower.includes("google.")) return { channel: "search", source: "Google Search" };
   if (lower.includes("bing.")) return { channel: "search", source: "Bing Search" };

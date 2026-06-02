@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, page, productId, sessionId } = body;
+    const { type, page, productId, sessionId, clientReferer, displayMode } = body;
 
     // Skip admin page tracking
     if (page && page.startsWith("/admin")) {
@@ -60,8 +60,29 @@ export async function POST(request: NextRequest) {
     }
 
     const userAgent = request.headers.get("user-agent") || undefined;
-    const referer = request.headers.get("referer") || undefined;
-    const refererDomain = extractDomain(referer);
+
+    // CRITICAL: do NOT use request.headers.get("referer") — that's the URL
+    // of the page that triggered the tracker fetch (always realduckdistro.com).
+    // Use the client-supplied document.referrer captured at first-touch, which
+    // is the ACTUAL external source (google.com, t.me, etc) or empty.
+    let referer: string | undefined;
+    let refererDomain: string | undefined;
+
+    const isPwa = displayMode && displayMode !== "browser";
+    if (isPwa) {
+      // Visitor launched from PWA icon on home screen. By definition, there
+      // was no referring page — they tapped the app icon. Flag this distinctly
+      // so analytics don't lump PWA users in with "direct/typed URL" traffic.
+      referer = `pwa://${displayMode}`;
+      refererDomain = `(pwa-${displayMode})`;
+    } else if (typeof clientReferer === "string" && clientReferer.trim().length > 0) {
+      referer = clientReferer;
+      refererDomain = extractDomain(clientReferer);
+    } else {
+      // Truly direct: typed URL, bookmark, or dark social (DM share that strips referer)
+      referer = undefined;
+      refererDomain = undefined;
+    }
 
     const parsed = userAgent ? parseUserAgent(userAgent) : { device: undefined, browser: undefined, os: undefined };
 
