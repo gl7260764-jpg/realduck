@@ -8,22 +8,24 @@ import { Mail, CheckCircle2, Loader2, Sparkles } from "lucide-react";
  * Newsletter subscription popup.
  *
  * Triggers (first to fire wins):
- *   - 15 seconds after first paint
+ *   - 10 seconds after first paint
  *   - exit-intent on desktop (cursor leaves top of viewport)
  *   - scroll past 55% of the page
  *
- * After dismissal without subscribing, re-opens with escalating gaps
- * (15s, 60s, 180s) for up to MAX_PROMPTS prompts per session, then
- * snoozes for DISMISS_DAYS. On successful subscribe, snoozes for
- * SUBSCRIBED_DAYS. State persists in localStorage.
+ * If dismissed without subscribing, it re-opens on the REOPEN_GAPS_MS schedule:
+ * the first 3 re-prompts come every 10 seconds, then it backs off (60s, 180s)
+ * for up to MAX_PROMPTS prompts per session, after which it snoozes for
+ * DISMISS_DAYS. On successful subscribe it snoozes for SUBSCRIBED_DAYS so
+ * subscribers are never bothered again. State persists in localStorage.
  */
 
 const LS_KEY = "rdd_newsletter_popup_v1";
 const SUBSCRIBED_DAYS = 30;
 const DISMISS_DAYS = 1;
-const SHOW_DELAY_MS = 15_000;
-const REOPEN_GAPS_MS = [60_000, 180_000];
-const MAX_PROMPTS = 3;
+const SHOW_DELAY_MS = 10_000;
+// First 3 re-prompts every 10s, then back off to 60s and 180s (old method).
+const REOPEN_GAPS_MS = [10_000, 10_000, 10_000, 60_000, 180_000];
+const MAX_PROMPTS = REOPEN_GAPS_MS.length + 1; // snooze after the schedule is exhausted
 const SCROLL_THRESHOLD = 0.55;
 
 function getSessionId(): string {
@@ -134,7 +136,7 @@ export default function NewsletterPopup() {
   function handleDismiss() {
     setOpen(false);
     if (status === "success") return;
-    // Cap how many times we re-prompt per session so we don't bully the user.
+    // First 3 re-prompts at 10s, then 60s/180s, then snooze for DISMISS_DAYS.
     if (promptCount.current >= MAX_PROMPTS) {
       writeSnooze(DISMISS_DAYS);
       return;
