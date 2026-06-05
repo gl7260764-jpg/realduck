@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import https from "https";
 import prisma from "@/lib/prisma";
-import nodemailer from "nodemailer";
 import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 import { getAdminConfig } from "@/lib/adminConfig";
+import { sendMail } from "@/lib/email";
 import { validateOrderItems } from "@/lib/orderRules";
 
 interface CheckoutItem {
@@ -478,57 +478,39 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // 2. Send emails (customer + admin) — awaited via Promise.allSettled,
-    //    exactly like the fast-order route.
-    const smtpHost = config.smtpHost;
-    const smtpUser = config.smtpUser;
-    const smtpPass = config.smtpPassword;
-    const salesEmail = config.adminEmail;
-
-    if (smtpHost && smtpUser && smtpPass) {
-      try {
-        const port = Number(config.smtpPort) || 465;
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port,
-          secure: port === 465,
-          auth: { user: smtpUser, pass: smtpPass },
-        });
-        const fromAddress = process.env.SMTP_FROM || ("Real Duck Distro <" + smtpUser + ">");
-
-        const emailPromises: Promise<unknown>[] = [];
-
-        // Admin email — always send
-        emailPromises.push(
-          transporter.sendMail({
-            from: fromAddress,
-            to: salesEmail || smtpUser,
+    // 2. Send emails (customer + admin) via the unified sender (Brevo → SMTP).
+    const salesEmail = config.adminEmail || config.smtpUser;
+    try {
+      const emailPromises: Promise<unknown>[] = [
+        // Admin email — reply-to the customer for easy follow-up.
+        sendMail(
+          {
+            to: salesEmail,
+            replyTo: body.email,
             subject: "New Order #" + orderNumber + " - " + body.firstName + " " + body.lastName,
             html: buildAdminEmailHtml(orderNumber, body),
-          })
-        );
-
-        // Customer email — always send (email is required for detail order)
-        emailPromises.push(
-          transporter.sendMail({
-            from: fromAddress,
+            tags: ["order-admin"],
+          },
+          config,
+        ).then((res) => {
+          if (!res.ok) console.error("Checkout admin email failed for " + orderNumber + ":", res.error);
+        }),
+        // Customer email — always send (email is required for detail order).
+        sendMail(
+          {
             to: body.email,
             subject: "Thank you for your order #" + orderNumber + " - Real Duck Distro",
             html: buildCustomerEmailHtml(orderNumber, body),
-          })
-        );
-
-        const results = await Promise.allSettled(emailPromises);
-        for (const result of results) {
-          if (result.status === "rejected") {
-            console.error("Checkout email failed for " + orderNumber + ":", result.reason?.message || "Unknown error");
-          }
-        }
-      } catch (emailErr) {
-        console.error("Checkout email setup error for " + orderNumber + ":", emailErr);
-      }
-    } else {
-      console.error("Checkout email not sent for " + orderNumber + ": SMTP config missing (host/user/password)");
+            tags: ["order-customer"],
+          },
+          config,
+        ).then((res) => {
+          if (!res.ok) console.error("Checkout customer email failed for " + orderNumber + ":", res.error);
+        }),
+      ];
+      await Promise.allSettled(emailPromises);
+    } catch (emailErr) {
+      console.error("Checkout email setup error for " + orderNumber + ":", emailErr);
     }
 
     return NextResponse.json({ success: true, orderNumber: orderNumber });

@@ -34,14 +34,18 @@ interface Settings {
   smtpUser: string;
   smtpPassword: string;
   companyEmail: string;
+  brevoApiKey: string;
+  brevoSenderEmail: string;
+  brevoSenderName: string;
 }
 
-type SectionKey = "social" | "telegram" | "email";
+type SectionKey = "social" | "telegram" | "email" | "brevo";
 
 const SECTIONS: Array<{ key: SectionKey; label: string; description: string; icon: typeof Link2 }> = [
   { key: "social", label: "Social & contact links", description: "Public-facing channels — shown in navbar, footer, and order success pages.", icon: Link2 },
   { key: "telegram", label: "Telegram bot", description: "Bot credentials for receiving live order notifications.", icon: Bot },
   { key: "email", label: "Email & SMTP", description: "Outbound email server config + admin notification address.", icon: Mail },
+  { key: "brevo", label: "Brevo (email delivery)", description: "Route outbound mail + newsletter campaigns through Brevo for better deliverability.", icon: Send },
 ];
 
 export default function SettingsPage() {
@@ -62,6 +66,9 @@ export default function SettingsPage() {
     smtpUser: "",
     smtpPassword: "",
     companyEmail: "",
+    brevoApiKey: "",
+    brevoSenderEmail: "contact@realduckdistro.com",
+    brevoSenderName: "Real Duck Distro",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -266,6 +273,34 @@ export default function SettingsPage() {
     },
   ];
 
+  const brevoFields: Array<{
+    key: keyof Settings; label: string; description: string;
+    icon: React.ReactNode; placeholder: string; secret?: boolean;
+  }> = [
+    {
+      key: "brevoApiKey",
+      label: "Brevo API Key",
+      description: "v3 API key from Brevo → SMTP & API → API Keys. Enables Brevo delivery + campaigns.",
+      icon: <Shield className="w-4 h-4 text-rose-500" />,
+      placeholder: "xkeysib-…",
+      secret: true,
+    },
+    {
+      key: "brevoSenderEmail",
+      label: "Sender Email",
+      description: "Verified Brevo sender. Replies still land in your Hostinger inbox.",
+      icon: <Mail className="w-4 h-4 text-slate-600" />,
+      placeholder: "contact@realduckdistro.com",
+    },
+    {
+      key: "brevoSenderName",
+      label: "Sender Name",
+      description: "Display name shown to recipients.",
+      icon: <Send className="w-4 h-4 text-slate-600" />,
+      placeholder: "Real Duck Distro",
+    },
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -462,6 +497,43 @@ export default function SettingsPage() {
             />
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               {emailFields.map((field) => (
+                <FieldCard
+                  key={field.key}
+                  icon={field.icon}
+                  label={field.label}
+                  description={field.description}
+                >
+                  <SecretInput
+                    value={settings[field.key]}
+                    placeholder={field.placeholder}
+                    onChange={(v) => setSettings((prev) => ({ ...prev, [field.key]: v }))}
+                    isSecret={!!field.secret}
+                    show={!!showSecrets[field.key]}
+                    onToggle={() => toggleSecret(field.key)}
+                  />
+                </FieldCard>
+              ))}
+            </div>
+          </section>
+          )}
+
+          {/* BREVO */}
+          {activeSection === "brevo" && (
+          <section className="admin-fade-in">
+            <SectionHeader
+              title="Brevo (email delivery)"
+              description="Route outbound mail through Brevo's trusted relay for high deliverability (fixes blocked Hostinger sends), and power newsletter campaigns. When the API key is set, all app email sends via Brevo with automatic fallback to SMTP. Receiving stays on Hostinger."
+              badge="Sensitive"
+            />
+            <div className="mb-4 p-3 rounded-lg bg-blue-50/60 border border-blue-100 flex items-start gap-2">
+              <SettingsIcon className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] text-blue-800/90 leading-relaxed">
+                New to Brevo? Follow <span className="font-semibold">BREVO_SETUP.md</span> in the repo to create the account,
+                authenticate your domain (SPF/DKIM/DMARC), and get the API key. Then paste it below and save.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+              {brevoFields.map((field) => (
                 <FieldCard
                   key={field.key}
                   icon={field.icon}

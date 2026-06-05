@@ -9,6 +9,9 @@ export interface AdminConfig {
   smtpUser: string;
   smtpPassword: string;
   companyEmail: string;
+  brevoApiKey: string;
+  brevoSenderEmail: string;
+  brevoSenderName: string;
 }
 
 const ENV_DEFAULTS: Record<string, string> = {
@@ -20,6 +23,9 @@ const ENV_DEFAULTS: Record<string, string> = {
   smtpUser: process.env.SMTP_USER || "",
   smtpPassword: process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "",
   companyEmail: "contact@realduckdistro.com",
+  brevoApiKey: process.env.BREVO_API_KEY || "",
+  brevoSenderEmail: process.env.BREVO_SENDER_EMAIL || "contact@realduckdistro.com",
+  brevoSenderName: process.env.BREVO_SENDER_NAME || "Real Duck Distro",
 };
 
 export async function getAdminConfig(): Promise<AdminConfig> {

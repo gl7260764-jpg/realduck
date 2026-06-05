@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import https from "https";
 import prisma from "@/lib/prisma";
-import nodemailer from "nodemailer";
 import { getAdminConfig } from "@/lib/adminConfig";
+import { sendMail } from "@/lib/email";
 import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 import { validateOrderItems } from "@/lib/orderRules";
 
@@ -381,74 +381,64 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 3. Send emails (non-blocking — don't fail the order if email fails)
-    const smtpHost = config.smtpHost;
-    const smtpUser = config.smtpUser;
-    const smtpPass = config.smtpPassword;
-    const salesEmail = config.adminEmail;
+    // 3. Send emails via the unified sender (Brevo → SMTP), non-blocking —
+    //    don't fail the order if email fails.
+    const salesEmail = config.adminEmail || config.smtpUser;
+    try {
+      const contactMethod = body.customerEmail?.trim() ? "email" : "phone";
+      const emailPromises: Promise<unknown>[] = [];
 
-    if (!smtpHost || !smtpUser || !smtpPass) {
-      console.error(
-        `Fast order email skipped for ${orderNumber}: SMTP config missing — ` +
-        `host=${smtpHost ? "set" : "MISSING"} user=${smtpUser ? "set" : "MISSING"} pass=${smtpPass ? "set" : "MISSING"}`
-      );
-    }
-    if (smtpHost && smtpUser && smtpPass) {
-      try {
-        const port = Number(config.smtpPort) || 465;
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port,
-          secure: port === 465,
-          auth: { user: smtpUser, pass: smtpPass },
-        });
-
-        const fromAddress = process.env.SMTP_FROM || `Real Duck Distro <${smtpUser}>`;
-        const contactMethod = body.customerEmail?.trim() ? "email" : "phone";
-
-        const emailPromises = [];
-
-        // Admin email — always send
-        emailPromises.push(
-          transporter.sendMail({
-            from: fromAddress,
-            to: salesEmail || smtpUser,
+      // Admin email — always send.
+      emailPromises.push(
+        sendMail(
+          {
+            to: salesEmail,
+            replyTo: body.customerEmail?.trim() || undefined,
             subject: `New Fast Order #${orderNumber}` + (body.customerPhone ? ` — ${body.customerPhone}` : ""),
             html: buildAdminFastOrderHtml(orderNumber, body.items, body.customerPhone, body.customerEmail),
-          })
-        );
+            tags: ["fast-order-admin"],
+          },
+          config,
+        ).then((res) => {
+          if (!res.ok) console.error("Fast order admin email failed:", res.error);
+        }),
+      );
 
-        // Customer email — only if they provided one
-        if (body.customerEmail?.trim()) {
-          const customerTo = body.customerEmail.trim();
-          emailPromises.push(
-            transporter.sendMail({
-              from: fromAddress,
+      // Customer emails — only if they provided one.
+      if (body.customerEmail?.trim()) {
+        const customerTo = body.customerEmail.trim();
+        emailPromises.push(
+          sendMail(
+            {
               to: customerTo,
               subject: `Your order #${orderNumber} — Real Duck Distro`,
               html: buildCustomerFastOrderHtml(orderNumber, body.items, contactMethod),
-            })
-          );
-          // Follow-up email with the missing details we still need from them.
-          emailPromises.push(
-            transporter.sendMail({
-              from: fromAddress,
+              tags: ["fast-order-customer"],
+            },
+            config,
+          ).then((res) => {
+            if (!res.ok) console.error("Fast order customer email failed:", res.error);
+          }),
+        );
+        // Follow-up email with the missing details we still need from them.
+        emailPromises.push(
+          sendMail(
+            {
               to: customerTo,
               subject: `Action needed for order #${orderNumber} — a few details to ship it`,
               html: buildCustomerFastOrderFollowUpHtml(orderNumber, body.items),
-            })
-          );
-        }
-
-        const results = await Promise.allSettled(emailPromises);
-        for (const result of results) {
-          if (result.status === "rejected") {
-            console.error("Fast order email failed:", result.reason?.message || "Unknown error");
-          }
-        }
-      } catch (emailErr) {
-        console.error("Fast order email setup error:", emailErr);
+              tags: ["fast-order-followup"],
+            },
+            config,
+          ).then((res) => {
+            if (!res.ok) console.error("Fast order follow-up email failed:", res.error);
+          }),
+        );
       }
+
+      await Promise.allSettled(emailPromises);
+    } catch (emailErr) {
+      console.error("Fast order email setup error:", emailErr);
     }
 
     return NextResponse.json({ success: true, orderNumber });

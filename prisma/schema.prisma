@@ -153,6 +153,23 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 }
 
+// Newsletter campaigns sent through Brevo from the admin panel.
+model EmailCampaign {
+  id              String    @id @default(cuid())
+  subject         String
+  htmlContent     String
+  status          String    @default("draft") // draft | sent | scheduled | failed
+  brevoCampaignId Int?
+  recipientCount  Int       @default(0)
+  error           String?
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model Order {
   id          String      @id @default(cuid())
   sessionId   String

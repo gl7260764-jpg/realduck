@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import prisma from "@/lib/prisma";
 import { getClientIp, getGeoInfo } from "@/lib/geo";
 import { getAdminConfig } from "@/lib/adminConfig";
+import { sendMail } from "@/lib/email";
+import { brevoEnabled, getNewsletterListId, upsertContact } from "@/lib/brevo";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 const LOGO_URL = SITE_URL + "/images/logo.jpg";
@@ -193,31 +194,38 @@ export async function POST(request: NextRequest) {
 
     // Await the welcome email before responding — in Vercel serverless,
     // fire-and-forget promises are killed when the response is returned.
-    // Same pattern as /api/orders/telegram.
+    // Same pattern as /api/orders/telegram. Mail now routes through Brevo
+    // (with Hostinger SMTP fallback) via the unified sender.
     try {
       const config = await getAdminConfig();
-      if (config.smtpHost && config.smtpUser && config.smtpPassword) {
-        const port = Number(config.smtpPort) || 465;
-        const transporter = nodemailer.createTransport({
-          host: config.smtpHost,
-          port,
-          secure: port === 465,
-          auth: { user: config.smtpUser, pass: config.smtpPassword },
-        });
-        const fromAddress = process.env.SMTP_FROM || `Real Duck Distro <${config.smtpUser}>`;
-        const adminRecipient = config.adminEmail || config.companyEmail;
-        const sends: Array<Promise<unknown>> = [
-          transporter.sendMail({
-            from: fromAddress,
+      const adminRecipient = config.adminEmail || config.companyEmail;
+
+      const tasks: Array<Promise<unknown>> = [
+        // Welcome email to the subscriber.
+        sendMail(
+          {
             to: rawEmail,
             subject: "Welcome to Real Duck Distro — you're in 🎉",
             html: buildWelcomeEmailHtml(rawEmail),
-          }),
-        ];
-        if (adminRecipient) {
-          sends.push(
-            transporter.sendMail({
-              from: fromAddress,
+            tags: ["newsletter-welcome"],
+          },
+          config,
+        ).then(async (res) => {
+          if (res.ok) {
+            await prisma.newsletterSubscriber
+              .update({ where: { id: subscriber.id }, data: { confirmedAt: new Date() } })
+              .catch(() => {});
+          } else {
+            console.error("Newsletter welcome email failed:", res.error);
+          }
+        }),
+      ];
+
+      // Admin notification — reply-to the subscriber so replies reach them.
+      if (adminRecipient) {
+        tasks.push(
+          sendMail(
+            {
               to: adminRecipient,
               subject: `📬 New newsletter subscriber: ${rawEmail}`,
               replyTo: rawEmail,
@@ -232,21 +240,31 @@ export async function POST(request: NextRequest) {
                 alreadySubscribed: Boolean(existing),
                 subscribedAt: new Date(),
               }),
-            })
-          );
-        }
-        const results = await Promise.allSettled(sends);
-        if (results[0].status === "fulfilled") {
-          await prisma.newsletterSubscriber
-            .update({ where: { id: subscriber.id }, data: { confirmedAt: new Date() } })
-            .catch(() => {});
-        } else {
-          console.error("Newsletter welcome email failed:", results[0].reason?.message || results[0].reason);
-        }
-        if (results[1] && results[1].status === "rejected") {
-          console.error("Newsletter admin notification failed:", results[1].reason?.message || results[1].reason);
-        }
+            },
+            config,
+          ).then((res) => {
+            if (!res.ok) console.error("Newsletter admin notification failed:", res.error);
+          }),
+        );
       }
+
+      // Sync the contact into the Brevo newsletter list (best-effort).
+      if (brevoEnabled(config.brevoApiKey)) {
+        tasks.push(
+          (async () => {
+            const listId = await getNewsletterListId(config.brevoApiKey);
+            const res = await upsertContact(
+              rawEmail,
+              { SOURCE: source, COUNTRY: geo?.country || "" },
+              listId ? [listId] : [],
+              config.brevoApiKey,
+            );
+            if (!res.ok) console.error("Brevo contact sync failed:", res.error);
+          })(),
+        );
+      }
+
+      await Promise.allSettled(tasks);
     } catch (err) {
       console.error("Newsletter welcome email setup error:", (err as Error).message);
     }

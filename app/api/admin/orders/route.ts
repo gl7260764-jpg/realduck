@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import nodemailer from "nodemailer";
 import { isAuthenticated } from "@/lib/auth";
 import { getAdminConfig } from "@/lib/adminConfig";
+import { sendMail } from "@/lib/email";
 import { getOrderAttribution } from "@/lib/orderAttribution";
 
 // ── Status labels and email content ──
@@ -226,37 +226,23 @@ export async function PATCH(request: NextRequest) {
       data: { status },
     });
 
-    // Send status update email to customer (non-blocking)
+    // Send status update email to customer (non-blocking) via Brevo → SMTP.
     if (STATUS_INFO[status] && order.email && !order.email.includes("telegram@")) {
       const config = await getAdminConfig();
-      const smtpHost = config.smtpHost;
-      const smtpUser = config.smtpUser;
-      const smtpPass = config.smtpPassword;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+      const trackUrl = `${siteUrl}/orders`;
 
-      if (smtpHost && smtpUser && smtpPass) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
-        const trackUrl = `${siteUrl}/orders`;
-
-        try {
-          const port = Number(config.smtpPort) || 465;
-          const transporter = nodemailer.createTransport({
-            host: smtpHost,
-            port,
-            secure: port === 465,
-            auth: { user: smtpUser, pass: smtpPass },
-          });
-
-          const fromAddress = process.env.SMTP_FROM || `Real Duck Distro <${smtpUser}>`;
-
-          await transporter.sendMail({
-            from: fromAddress,
-            to: order.email,
-            subject: `${STATUS_INFO[status].emoji} Order #${order.orderNumber} — ${STATUS_INFO[status].label}`,
-            html: buildStatusEmailHtml(order.orderNumber, order.firstName, status, trackUrl),
-          });
-        } catch (emailErr) {
-          console.error("Status email failed for order " + order.orderNumber + ":", emailErr);
-        }
+      const res = await sendMail(
+        {
+          to: order.email,
+          subject: `${STATUS_INFO[status].emoji} Order #${order.orderNumber} — ${STATUS_INFO[status].label}`,
+          html: buildStatusEmailHtml(order.orderNumber, order.firstName, status, trackUrl),
+          tags: ["order-status"],
+        },
+        config,
+      );
+      if (!res.ok) {
+        console.error("Status email failed for order " + order.orderNumber + ":", res.error);
       }
     }
 

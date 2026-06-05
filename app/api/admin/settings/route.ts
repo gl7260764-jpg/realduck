@@ -45,6 +45,9 @@ export async function PUT(req: NextRequest) {
       "smtpUser",
       "smtpPassword",
       "companyEmail",
+      "brevoApiKey",
+      "brevoSenderEmail",
+      "brevoSenderName",
     ];
 
     // Build upserts and deletes in a single transaction
