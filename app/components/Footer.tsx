@@ -187,7 +187,66 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Developer signature */}
+        <div className="mt-6 flex justify-start sm:justify-end">
+          <a
+            href="mailto:kenj52974@gmail.com"
+            aria-label="Contact the developer, W!CE"
+            className="dev-credit group inline-flex items-baseline gap-1.5"
+          >
+            <span className="dev-credit-label">Developed by</span>
+            <span className="dev-credit-name">W!CE</span>
+          </a>
+        </div>
+
       </div>
+
+      <style jsx>{`
+        .dev-credit-label {
+          font-size: 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.4em;
+          font-weight: 500;
+          color: rgba(255, 255, 255, 0.3);
+          transition: color 0.3s ease;
+        }
+        .dev-credit:hover .dev-credit-label {
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .dev-credit-name {
+          font-size: 15px;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          background: linear-gradient(
+            100deg,
+            #9ca3af 0%,
+            #9ca3af 35%,
+            #ffffff 50%,
+            #9ca3af 65%,
+            #9ca3af 100%
+          );
+          background-size: 200% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          color: transparent;
+          animation: dev-sheen 6s linear infinite;
+        }
+        @keyframes dev-sheen {
+          0% {
+            background-position: 200% 0;
+          }
+          100% {
+            background-position: -200% 0;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dev-credit-name {
+            animation: none;
+            background-position: 50% 0;
+          }
+        }
+      `}</style>
     </footer>
   );
 }
