@@ -254,7 +254,7 @@ async function handle(request: NextRequest) {
         category: topic.category,
         content: post.content_markdown,
         excerpt: post.excerpt.slice(0, 300),
-        imageUrl: topic.imageUrl || "/images/hero.webp?v=2",
+        imageUrl: topic.imageUrl || "/images/hero.webp?v=3",
         images: [],
         author: "Real Duck Distro",
         published: true,

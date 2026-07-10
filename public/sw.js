@@ -1,4 +1,4 @@
-var CACHE_NAME = "nobu-v7";
+var CACHE_NAME = "nobu-v8";
 
 self.addEventListener("install", function () {
   self.skipWaiting();

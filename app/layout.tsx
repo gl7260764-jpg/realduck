@@ -91,7 +91,7 @@ export const metadata: Metadata = {
       "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Fast, discreet cannabis shipping across the USA, Australia & worldwide. Priority delivery to Kentucky, Michigan, Florida & Mississippi.",
     images: [
       {
-        url: "/images/hero.webp?v=2",
+        url: "/images/hero.webp?v=3",
         width: 1200,
         height: 630,
         alt: "Real Duck Distro — premium cannabis online, exotic flower and designer packs",
@@ -104,7 +104,7 @@ export const metadata: Metadata = {
     title: "Real Duck Distro — Buy Premium Cannabis Online | Exotic Flower, Edibles & Vapes",
     description:
       "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Discreet shipping — USA (incl. KY/MI/FL/MS), Australia & worldwide.",
-    images: ["/images/hero.webp?v=2"],
+    images: ["/images/hero.webp?v=3"],
   },
   robots: {
     index: true,
@@ -221,7 +221,7 @@ export default async function RootLayout({
                 height: 874,
                 caption: "Real Duck Distro logo",
               },
-              image: `${SITE_URL}/images/hero.webp?v=2`,
+              image: `${SITE_URL}/images/hero.webp?v=3`,
               description:
                 "Real Duck Distro — premium cannabis online. Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies, shipped discreetly across the USA (with priority service to Kentucky, Michigan, Florida and Mississippi), Australia and worldwide.",
               sameAs: [
@@ -255,7 +255,7 @@ export default async function RootLayout({
                 "The world's leading premium cannabis lifestyle brand. HQ in Los Angeles USA & Sydney Australia, with priority delivery across Kentucky, Michigan, Florida and Mississippi. Designer cannabis packs, exotic flower, edibles, concentrates, vapes, rosin, pre-rolls & disposables. Delivering across the USA, Australia & worldwide.",
               url: SITE_URL,
               logo: `${SITE_URL}/images/logo.jpg`,
-              image: `${SITE_URL}/images/hero.webp?v=2`,
+              image: `${SITE_URL}/images/hero.webp?v=3`,
               address: [
                 {
                   "@type": "PostalAddress",

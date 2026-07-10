@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: `${SITE_URL}/images/hero.webp`,
+        url: `${SITE_URL}/images/hero.webp?v=3`,
         width: 1200,
         height: 630,
         alt: "Real Duck Distro Announcements",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Announcements | Real Duck Distro",
     description: "Stay updated with the latest news, exclusive drops, offers, and announcements from Real Duck Distro.",
-    images: [`${SITE_URL}/images/hero.webp`],
+    images: [`${SITE_URL}/images/hero.webp?v=3`],
   },
 };
 
