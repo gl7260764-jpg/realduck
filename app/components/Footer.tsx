@@ -191,11 +191,11 @@ export default function Footer() {
         <div className="mt-6 flex justify-start sm:justify-end">
           <a
             href="mailto:kenj52974@gmail.com"
-            aria-label="Contact the developer, W!CE"
+            aria-label="Contact the developer, Wun GATA"
             className="dev-credit group inline-flex items-baseline gap-1.5"
           >
-            <span className="dev-credit-label">Developed by</span>
-            <span className="dev-credit-name">W!CE</span>
+            <span className="dev-credit-label">Crafted By</span>
+            <span className="dev-credit-name">Wun GATA</span>
           </a>
         </div>
 
