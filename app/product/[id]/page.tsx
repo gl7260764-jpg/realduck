@@ -38,6 +38,7 @@ async function getRelatedProducts(category: Category, currentId: string) {
     where: {
       category,
       id: { not: currentId },
+      isSoldOut: false,
     },
     take: 4,
   });

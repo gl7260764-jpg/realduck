@@ -21,7 +21,13 @@ async function getProducts() {
   // homepage's client renderer doesn't need. Cuts client JS payload ~70%.
   const hidden = await getHiddenCategories();
   const products = await prisma.product.findMany({
-    where: hidden.length ? { NOT: { category: { in: hidden as never } } } : undefined,
+    // Sold-out products are hidden from the catalog entirely — their own
+    // /product/[slug] page still resolves (so existing backlinks and indexed
+    // results don't 404), but they never surface in any listing.
+    where: {
+      isSoldOut: false,
+      ...(hidden.length ? { NOT: { category: { in: hidden as never } } } : {}),
+    },
     select: {
       id: true,
       slug: true,
@@ -70,7 +76,22 @@ async function getProducts() {
   const restFlower = flowerProducts.slice(6);
   const remaining = dailyShuffle([...restFlower, ...otherProducts]);
 
-  return [...pinned, ...videoFeatured, ...featuredFlower, ...remaining];
+  const ordered = [...pinned, ...videoFeatured, ...featuredFlower, ...remaining];
+
+  // The grid is 4-up on desktop, so the top row is the first 4 cards. Those must
+  // always be FLOWER — pull the next flower product forward into any non-flower
+  // slot in that row, pushing the displaced card down. If there aren't 4 flower
+  // products available, we fill what we can and leave the rest as-is.
+  const TOP_ROW = 4;
+  for (let i = 0; i < Math.min(TOP_ROW, ordered.length); i++) {
+    if (ordered[i].category === "FLOWER") continue;
+    const swapIndex = ordered.findIndex((p, j) => j > i && p.category === "FLOWER");
+    if (swapIndex === -1) break; // no flower left to promote
+    const [flower] = ordered.splice(swapIndex, 1);
+    ordered.splice(i, 0, flower);
+  }
+
+  return ordered;
 }
 
 export default async function Home() {

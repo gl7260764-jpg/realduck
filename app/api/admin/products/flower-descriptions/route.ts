@@ -91,21 +91,28 @@ export async function POST(req: NextRequest) {
 
     for (const p of soldOut) {
       const cur = p.description ?? "";
+      // The isSoldOut flag is the single source of truth — a product flagged
+      // sold out is hidden from every listing on the site. Keep the red text
+      // marker and the flag in lockstep so the two can't disagree.
       if (action === "apply") {
         const next = withMarker(cur, SOLD_OUT_HTML);
-        const needsBadgeClear = p.isSoldOut === true;
-        if (next !== cur || needsBadgeClear) {
+        if (next !== cur || !p.isSoldOut) {
           ops.push(
             prisma.product.update({
               where: { id: p.id },
-              data: { description: next, ...(needsBadgeClear ? { isSoldOut: false } : {}) },
+              data: { description: next, isSoldOut: true },
             }),
           );
         }
       } else {
         const next = withoutMarker(cur, SOLD_OUT_HTML);
-        if (next !== cur) {
-          ops.push(prisma.product.update({ where: { id: p.id }, data: { description: next } }));
+        if (next !== cur || p.isSoldOut) {
+          ops.push(
+            prisma.product.update({
+              where: { id: p.id },
+              data: { description: next, isSoldOut: false },
+            }),
+          );
         }
       }
     }

@@ -44,13 +44,43 @@ export default function RecentlyViewed({ excludeSlug, limit = 6 }: { excludeSlug
   const [items, setItems] = useState<ViewedProduct[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
+    let stored: ViewedProduct[] = [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      const list: ViewedProduct[] = raw ? JSON.parse(raw) : [];
-      setItems(list.filter((x) => x.slug !== excludeSlug).slice(0, limit));
+      stored = raw ? JSON.parse(raw) : [];
     } catch {
       setItems([]);
+      return;
     }
+
+    const candidates = stored.filter((x) => x.slug !== excludeSlug);
+    if (candidates.length === 0) {
+      setItems([]);
+      return;
+    }
+
+    // Entries are cached locally, so a product may have sold out (or had its
+    // category hidden) since it was viewed. Drop those before rendering.
+    (async () => {
+      try {
+        const res = await fetch("/api/products/available-slugs");
+        if (!res.ok) throw new Error("unavailable");
+        const { slugs } = (await res.json()) as { slugs: string[] };
+        const available = new Set(slugs);
+        if (!cancelled) {
+          setItems(candidates.filter((x) => available.has(x.slug)).slice(0, limit));
+        }
+      } catch {
+        // Availability check failed — show nothing rather than risk surfacing
+        // a sold-out product.
+        if (!cancelled) setItems([]);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [excludeSlug, limit]);
 
   if (items.length === 0) return null;

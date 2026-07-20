@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
 
     const where = {
+      // Sold-out products never surface in any public listing.
+      isSoldOut: false,
       ...(category && category !== "all" ? { category: category as any } : {}),
       ...(search
         ? {
@@ -35,6 +37,7 @@ export async function GET(request: NextRequest) {
       const featuredFlower = flowerProducts.slice(0, 6);
       const restFlower = flowerProducts.slice(6);
       const remaining = dailyShuffle([...restFlower, ...otherProducts]);
+      // featuredFlower already leads, so the top row is FLOWER by construction.
       return NextResponse.json([...featuredFlower, ...remaining]);
     }
 

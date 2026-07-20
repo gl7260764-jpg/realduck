@@ -32,7 +32,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const hidden = await getHiddenCategories();
   const [products, blogPosts, announcements] = await Promise.all([
     prisma.product.findMany({
-      where: hidden.length ? { NOT: { category: { in: hidden as never } } } : undefined,
+      // Sold-out products are hidden from the catalog, so don't submit them for
+      // indexing either — their pages still resolve for existing backlinks.
+      where: {
+        isSoldOut: false,
+        ...(hidden.length ? { NOT: { category: { in: hidden as never } } } : {}),
+      },
       select: {
         id: true, slug: true, title: true, imageUrl: true, images: true,
         updatedAt: true, category: true, isSoldOut: true,
