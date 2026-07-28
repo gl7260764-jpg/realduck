@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getClientIp, getGeoInfo } from "@/lib/geo";
 import { getAdminConfig } from "@/lib/adminConfig";
 import { sendMail } from "@/lib/email";
+import { sendNtfy } from "@/lib/ntfy";
 import { brevoEnabled, getNewsletterListId, upsertContact } from "@/lib/brevo";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
@@ -244,6 +245,28 @@ export async function POST(request: NextRequest) {
             config,
           ).then((res) => {
             if (!res.ok) console.error("Newsletter admin notification failed:", res.error);
+          }),
+        );
+      }
+
+      // ntfy push — new subscriber alert. Tapping opens the admin subscribers page.
+      if (config.ntfyTopic) {
+        tasks.push(
+          sendNtfy(
+            {
+              title: "📬 New Subscriber",
+              message:
+                rawEmail +
+                "\nSource: " + source +
+                (geo?.country ? "\nCountry: " + geo.country : "") +
+                (existing ? "\n(re-subscribed)" : ""),
+              clickUrl: SITE_URL + "/admin/newsletter",
+              tags: ["mailbox_with_mail"],
+              priority: 3,
+            },
+            config,
+          ).then((res) => {
+            if (!res.ok) console.error("Newsletter ntfy failed:", res.error);
           }),
         );
       }

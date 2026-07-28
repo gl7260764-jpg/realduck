@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import https from "https";
 import prisma from "@/lib/prisma";
 import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 import { getAdminConfig } from "@/lib/adminConfig";
 import { sendMail } from "@/lib/email";
+import { sendNtfy } from "@/lib/ntfy";
 import { validateOrderItems } from "@/lib/orderRules";
 
 interface CheckoutItem {
@@ -360,59 +360,38 @@ export async function POST(request: NextRequest) {
     // Track notification outcomes so the response can flag "order saved but
     // alerts failed" instead of silently returning success. The order itself
     // is already persisted, so we never fail the request over notifications.
-    let telegramOk: boolean | null = null; // null = not configured / skipped
+    let pushOk: boolean | null = null; // null = not configured / skipped
     let emailOk: boolean | null = null;
 
-    // 1. Send Telegram first (matches fast-order ordering)
-    if (config.telegramBotToken && config.telegramChatId) {
-      const sanitize = (t: string) => t.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, "");
-      const tgTotal = calcTotal(body.items);
-
-      let tgMsg = "🛒 NEW EMAIL ORDER\n\n";
-      tgMsg += "📋 Order: " + orderNumber + "\n";
-      tgMsg += "👤 " + sanitize(body.firstName) + " " + sanitize(body.lastName) + "\n";
-      tgMsg += "📧 " + sanitize(body.email) + "\n";
-      tgMsg += "📱 " + sanitize(body.phone) + "\n";
-      tgMsg += "📍 " + sanitize(body.city) + ", " + sanitize(body.state) + " " + sanitize(body.zipCode) + ", " + sanitize(body.country) + "\n";
-      tgMsg += "💳 " + getPaymentLabel(body.paymentMethod) + "\n";
-      if (isShipped && body.shippingMethod) {
-        tgMsg += "🚚 " + getShippingLabel(body.shippingMethod) + "\n";
-      }
-      tgMsg += "\n";
-      tgMsg += "📦 Items:\n";
+    // 1. Send ntfy push (replaces Telegram) — client name, contact, items,
+    //    quantities, prices and total. Tapping it opens the admin orders page.
+    if (config.ntfyTopic) {
+      const total = calcTotal(body.items);
+      let msg = "👤 " + body.firstName + " " + body.lastName + "\n";
+      msg += "📧 " + body.email + "\n";
+      msg += "📱 " + body.phone + "\n";
+      msg += "📍 " + body.city + ", " + body.state + " " + body.zipCode + ", " + body.country + "\n";
+      msg += "💳 " + getPaymentLabel(body.paymentMethod) + "\n";
+      if (isShipped && body.shippingMethod) msg += "🚚 " + getShippingLabel(body.shippingMethod) + "\n";
+      msg += "\n📦 Items:\n";
       body.items.forEach((item, i) => {
-        tgMsg += (i + 1) + ". " + sanitize(item.title) + " x" + item.quantity + " — " + sanitize(item.price) + "\n";
+        msg += (i + 1) + ". " + item.title + " x" + item.quantity + " — " + item.price + "\n";
       });
-      tgMsg += "\n💰 Total: " + fmt(tgTotal);
-      if (body.deliveryNotes) tgMsg += "\n📝 Notes: " + sanitize(body.deliveryNotes);
+      msg += "\n💰 Total: " + fmt(total);
+      if (body.deliveryNotes) msg += "\n📝 Notes: " + body.deliveryNotes;
 
-      const tgData = JSON.stringify({ chat_id: config.telegramChatId, text: tgMsg });
-
-      await new Promise<void>((resolve) => {
-        const tgReq = https.request(
-          {
-            hostname: "api.telegram.org",
-            path: "/bot" + config.telegramBotToken + "/sendMessage",
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(tgData) },
-            family: 4,
-            timeout: 10000,
-          },
-          (res) => {
-            let data = "";
-            res.on("data", (chunk) => (data += chunk));
-            res.on("end", () => {
-              telegramOk = res.statusCode === 200;
-              if (res.statusCode !== 200) console.error("Telegram error for " + orderNumber + ":", data);
-              resolve();
-            });
-          }
-        );
-        tgReq.on("error", (err) => { telegramOk = false; console.error("Telegram error for " + orderNumber + ":", err.message); resolve(); });
-        tgReq.on("timeout", () => { telegramOk = false; tgReq.destroy(); resolve(); });
-        tgReq.write(tgData);
-        tgReq.end();
-      });
+      const res = await sendNtfy(
+        {
+          title: "🛒 New Order " + orderNumber,
+          message: msg,
+          clickUrl: SITE_URL + "/admin/orders",
+          tags: ["shopping_cart"],
+          priority: 4,
+        },
+        config,
+      );
+      pushOk = res.ok;
+      if (!res.ok) console.error("Checkout ntfy failed for " + orderNumber + ":", res.error);
     }
 
     // 2. Send emails (customer + admin) via the unified sender (Brevo → SMTP).
@@ -458,8 +437,8 @@ export async function POST(request: NextRequest) {
     // Order is saved regardless; flag notification problems so the client and
     // admin dashboard can show "order received, but we couldn't send alerts"
     // rather than a clean success that hides a silent delivery failure.
-    const notifications = { telegram: telegramOk, email: emailOk };
-    const notificationsOk = telegramOk !== false && emailOk !== false;
+    const notifications = { push: pushOk, email: emailOk };
+    const notificationsOk = pushOk !== false && emailOk !== false;
     return NextResponse.json({
       success: true,
       orderNumber: orderNumber,

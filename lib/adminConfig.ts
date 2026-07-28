@@ -12,6 +12,9 @@ export interface AdminConfig {
   brevoApiKey: string;
   brevoSenderEmail: string;
   brevoSenderName: string;
+  ntfyServer: string;
+  ntfyTopic: string;
+  ntfyToken: string;
 }
 
 const ENV_DEFAULTS: Record<string, string> = {
@@ -26,6 +29,12 @@ const ENV_DEFAULTS: Record<string, string> = {
   brevoApiKey: process.env.BREVO_API_KEY || "",
   brevoSenderEmail: process.env.BREVO_SENDER_EMAIL || "contact@realduckdistro.com",
   brevoSenderName: process.env.BREVO_SENDER_NAME || "Real Duck Distro",
+  // ntfy push notifications (order alerts + new subscribers). Server defaults to
+  // the public ntfy.sh; topic is the "channel" you subscribe to in the ntfy app.
+  // ntfyToken (optional) is a Bearer access token that keeps the topic private.
+  ntfyServer: process.env.NTFY_SERVER || "https://ntfy.sh",
+  ntfyTopic: process.env.NTFY_TOPIC || "",
+  ntfyToken: process.env.NTFY_TOKEN || "",
 };
 
 export async function getAdminConfig(): Promise<AdminConfig> {

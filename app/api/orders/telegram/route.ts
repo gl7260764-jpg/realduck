@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import https from "https";
 import prisma from "@/lib/prisma";
 import { getAdminConfig } from "@/lib/adminConfig";
 import { sendMail } from "@/lib/email";
+import { sendNtfy } from "@/lib/ntfy";
 import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 import { validateOrderItems } from "@/lib/orderRules";
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
 interface TelegramOrderItem {
   id: string;
@@ -33,10 +35,6 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-function escapeMarkdown(text: string): string {
-  return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, "\\$1");
-}
-
 function calcTotal(items: TelegramOrderItem[]): number {
   let total = 0;
   for (const item of items) {
@@ -48,80 +46,6 @@ function calcTotal(items: TelegramOrderItem[]): number {
 
 function fmt(n: number): string {
   return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-// ── Telegram message (MarkdownV2) ──
-
-function buildTelegramMessage(orderNumber: string, items: TelegramOrderItem[], customerPhone?: string, customerEmail?: string): string {
-  let message = `🛒 *NEW FAST ORDER*\n`;
-  message += `📋 Order: \`${orderNumber}\`\n`;
-  if (customerEmail) {
-    message += `📧 Email: ${escapeMarkdown(customerEmail)}\n`;
-  }
-  if (customerPhone) {
-    message += `📞 Phone: ${escapeMarkdown(customerPhone)}\n`;
-  }
-  message += `\n📦 *Items:*\n`;
-  message += `─────────────────\n`;
-
-  let totalPrice = 0;
-  items.forEach((item, index) => {
-    const priceMatch = item.price.match(/\$?([\d,]+(?:\.\d+)?)/);
-    const unitPrice = priceMatch ? parseFloat(priceMatch[1].replace(",", "")) : 0;
-    const lineTotal = unitPrice * item.quantity;
-    totalPrice += lineTotal;
-
-    message += `*${index + 1}\\. ${escapeMarkdown(item.title)}*\n`;
-    message += `   ${escapeMarkdown(item.price)} x ${item.quantity}`;
-    if (item.quantity > 1 && unitPrice > 0) {
-      message += ` \\= $${escapeMarkdown(lineTotal.toFixed(2))}`;
-    }
-    message += `\n\n`;
-  });
-
-  message += `─────────────────\n`;
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  message += `📊 *Total Items:* ${totalItems}\n`;
-  if (totalPrice > 0) {
-    message += `💰 *Total Price: $${escapeMarkdown(totalPrice.toFixed(2))}*\n`;
-  }
-  message += `\n💬 _Reply to this message to coordinate with the customer\\._`;
-  return message;
-}
-
-// ── Send Telegram ──
-
-function sendTelegramMessage(text: string, botToken: string, chatId: string): Promise<boolean> {
-  const postData = JSON.stringify({ chat_id: chatId, text, parse_mode: "MarkdownV2" });
-
-  return new Promise((resolve) => {
-    const req = https.request(
-      {
-        hostname: "api.telegram.org",
-        path: `/bot${botToken}/sendMessage`,
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(postData) },
-        family: 4,
-        timeout: 10000,
-      },
-      (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          if (res.statusCode === 200) {
-            resolve(true);
-          } else {
-            console.error("Telegram API error:", data);
-            resolve(false);
-          }
-        });
-      }
-    );
-    req.on("error", (err) => { console.error("Telegram request error:", err.message); resolve(false); });
-    req.on("timeout", () => { req.destroy(); console.error("Telegram request timed out"); resolve(false); });
-    req.write(postData);
-    req.end();
-  });
 }
 
 // ── Email HTML builders for fast orders ──
@@ -338,21 +262,9 @@ export async function POST(request: NextRequest) {
     const orderNumber = generateOrderNumber();
     const config = await getAdminConfig();
 
-    // 1. Send to Telegram
-    let telegramSent = false;
-    if (config.telegramBotToken && config.telegramChatId) {
-      const message = buildTelegramMessage(orderNumber, body.items, body.customerPhone, body.customerEmail);
-      telegramSent = await sendTelegramMessage(message, config.telegramBotToken, config.telegramChatId);
-    }
-
-    if (!telegramSent) {
-      return NextResponse.json(
-        { error: "Failed to send order to Telegram. Please try again." },
-        { status: 500 }
-      );
-    }
-
-    // 2. Save to database
+    // 1. Save to database first — the order must never be lost because a push
+    //    notification fails (the old Telegram flow hard-failed the whole order
+    //    here, so any Telegram outage silently dropped real fast orders).
     const ip = getClientIp(request);
     const geo = await getGeoFromRequest(request);
 
@@ -380,6 +292,34 @@ export async function POST(request: NextRequest) {
         orderSource: "telegram",
       },
     });
+
+    // 2. Send ntfy push (replaces Telegram) — non-blocking. Includes contact,
+    //    items, quantities, prices and total; tapping opens the admin orders page.
+    let pushOk: boolean | null = null;
+    if (config.ntfyTopic) {
+      const total = calcTotal(body.items);
+      let msg = "";
+      if (body.customerEmail?.trim()) msg += "📧 " + body.customerEmail.trim() + "\n";
+      if (body.customerPhone?.trim()) msg += "📱 " + body.customerPhone.trim() + "\n";
+      msg += "\n📦 Items:\n";
+      body.items.forEach((item, i) => {
+        msg += (i + 1) + ". " + item.title + " x" + item.quantity + " — " + item.price + "\n";
+      });
+      msg += "\n💰 Total: " + fmt(total);
+
+      const res = await sendNtfy(
+        {
+          title: "⚡ New Fast Order " + orderNumber,
+          message: msg,
+          clickUrl: SITE_URL + "/admin/orders",
+          tags: ["zap"],
+          priority: 4,
+        },
+        config,
+      );
+      pushOk = res.ok;
+      if (!res.ok) console.error("Fast order ntfy failed for " + orderNumber + ":", res.error);
+    }
 
     // 3. Send emails via the unified sender (Brevo → SMTP), non-blocking —
     //    don't fail the order if email fails.
@@ -441,7 +381,7 @@ export async function POST(request: NextRequest) {
       console.error("Fast order email setup error:", emailErr);
     }
 
-    return NextResponse.json({ success: true, orderNumber });
+    return NextResponse.json({ success: true, orderNumber, notifications: { push: pushOk } });
   } catch (error) {
     console.error("Telegram order error:", error);
     return NextResponse.json(
