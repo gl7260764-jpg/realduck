@@ -396,8 +396,9 @@ export async function POST(request: NextRequest) {
 
     // 2. Send emails (customer + admin) via the unified sender (Brevo → SMTP).
     const salesEmail = config.adminEmail || config.smtpUser;
+    let emailError: string | undefined;
     try {
-      const emailPromises: Promise<unknown>[] = [
+      const emailPromises: Promise<{ ok: boolean; error?: string }>[] = [
         // Admin email — reply-to the customer for easy follow-up.
         sendMail(
           {
@@ -410,7 +411,7 @@ export async function POST(request: NextRequest) {
           config,
         ).then((res) => {
           if (!res.ok) console.error("Checkout admin email failed for " + orderNumber + ":", res.error);
-          return res.ok;
+          return res;
         }),
         // Customer email — always send (email is required for detail order).
         sendMail(
@@ -423,14 +424,21 @@ export async function POST(request: NextRequest) {
           config,
         ).then((res) => {
           if (!res.ok) console.error("Checkout customer email failed for " + orderNumber + ":", res.error);
-          return res.ok;
+          return res;
         }),
       ];
       const results = await Promise.allSettled(emailPromises);
       // Email counts as OK only if BOTH admin + customer sends succeed.
-      emailOk = results.every((r) => r.status === "fulfilled" && r.value === true);
+      emailOk = results.every((r) => r.status === "fulfilled" && r.value.ok === true);
+      if (!emailOk) {
+        const firstErr = results.find(
+          (r) => r.status === "fulfilled" && !r.value.ok,
+        ) as PromiseFulfilledResult<{ ok: boolean; error?: string }> | undefined;
+        emailError = firstErr?.value.error || "email send failed";
+      }
     } catch (emailErr) {
       emailOk = false;
+      emailError = (emailErr as Error).message;
       console.error("Checkout email setup error for " + orderNumber + ":", emailErr);
     }
 
@@ -442,6 +450,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       orderNumber: orderNumber,
+      ...(emailError ? { emailError } : {}),
       notifications,
       notificationsOk,
     });

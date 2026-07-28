@@ -29,20 +29,34 @@ export async function sendMail(
   preloadedConfig?: AdminConfig,
 ): Promise<SendMailResult> {
   const config = preloadedConfig || (await getAdminConfig());
+  let brevoLastError: string | undefined;
 
   if (brevoEnabled(config.brevoApiKey)) {
-    const res = await sendTransactional({
-      to: args.to,
-      subject: args.subject,
-      html: args.html,
-      replyTo: args.replyTo,
-      senderName: config.brevoSenderName || undefined,
-      senderEmail: config.brevoSenderEmail || undefined,
-      tags: args.tags,
-      apiKey: config.brevoApiKey,
-    });
-    if (res.ok) return { ok: true, provider: "brevo" };
-    console.error("Brevo send failed, falling back to SMTP:", res.error);
+    // Retry Brevo before giving up. From Vercel serverless the first call can be
+    // slow (cold connection) and time out; a quick retry almost always lands.
+    // The SMTP fallback below is effectively dead (Hostinger 535), so Brevo is
+    // the real delivery path and worth retrying.
+    let lastErr: string | undefined;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const res = await sendTransactional({
+        to: args.to,
+        subject: args.subject,
+        html: args.html,
+        replyTo: args.replyTo,
+        senderName: config.brevoSenderName || undefined,
+        senderEmail: config.brevoSenderEmail || undefined,
+        tags: args.tags,
+        apiKey: config.brevoApiKey,
+      });
+      if (res.ok) return { ok: true, provider: "brevo" };
+      lastErr = res.error;
+      console.error(`Brevo send attempt ${attempt}/3 failed:`, res.error);
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 400 * attempt));
+    }
+    console.error("Brevo send failed after 3 attempts, falling back to SMTP:", lastErr);
+    // Remember the Brevo error so the caller can see the real cause even if the
+    // SMTP fallback also fails.
+    brevoLastError = lastErr;
     // fall through to SMTP
   }
 
@@ -67,9 +81,19 @@ export async function sendMail(
       return { ok: true, provider: "smtp" };
     } catch (err) {
       console.error("SMTP send failed:", (err as Error).message);
-      return { ok: false, provider: "smtp", error: (err as Error).message };
+      // Surface the Brevo error as the primary cause when it was the real path.
+      const smtpErr = (err as Error).message;
+      return {
+        ok: false,
+        provider: "smtp",
+        error: brevoLastError ? `brevo: ${brevoLastError}; smtp: ${smtpErr}` : smtpErr,
+      };
     }
   }
 
-  return { ok: false, provider: "none", error: "No email provider configured" };
+  return {
+    ok: false,
+    provider: "none",
+    error: brevoLastError || "No email provider configured",
+  };
 }

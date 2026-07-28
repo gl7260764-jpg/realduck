@@ -6,7 +6,10 @@
 import prisma from "@/lib/prisma";
 
 const BREVO_BASE = "https://api.brevo.com/v3";
-const TIMEOUT_MS = 10000;
+// Serverless (Vercel) cold connections to Brevo can exceed a tight 10s budget,
+// causing false timeouts that drop transactional email. 25s is safely under the
+// route's overall budget while tolerating a slow first connection.
+const TIMEOUT_MS = 25000;
 
 const DEFAULT_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || "contact@realduckdistro.com";
 const DEFAULT_SENDER_NAME = process.env.BREVO_SENDER_NAME || "Real Duck Distro";
