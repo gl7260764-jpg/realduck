@@ -43,7 +43,6 @@ interface CartContextType {
   getMinQty: (item: CartItem) => number;
   cartTotal: number;
   cartMeetsMinimum: boolean;
-  pwaDiscount: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -52,14 +51,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [pwaDiscount, setPwaDiscount] = useState(false);
-
-  // Check PWA discount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setPwaDiscount(localStorage.getItem("nobu_pwa_discount") === "1");
-    }
-  }, []);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -201,7 +192,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         getMinQty,
         cartTotal,
         cartMeetsMinimum,
-        pwaDiscount,
       }}
     >
       {children}

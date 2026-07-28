@@ -40,8 +40,12 @@ export async function getAdminConfig(): Promise<AdminConfig> {
 
     const config: Record<string, string> = { ...ENV_DEFAULTS };
     for (const row of rows) {
-      if (row.value.trim()) {
-        config[row.key] = row.value;
+      // Store the trimmed value — a stray newline/space in a stored secret
+      // (e.g. a token pasted with a trailing newline) would otherwise be sent
+      // verbatim to Telegram/SMTP/Brevo and silently break delivery.
+      const value = row.value.trim();
+      if (value) {
+        config[row.key] = value;
       }
     }
 

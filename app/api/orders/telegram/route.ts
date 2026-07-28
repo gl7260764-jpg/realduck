@@ -189,7 +189,7 @@ function buildCustomerFastOrderFollowUpHtml(
   // Concise checklist of what we still need.
   const needed: string[] = [
     "Full name & delivery address (street, city, state/region, ZIP, country)",
-    "Payment method — Zelle, Cash App, Chime, or Crypto (10% off)",
+    "Payment method — Zelle, Cash App, Chime, or Crypto",
     "Preferred shipping carrier — UPS, USPS or FedEx",
   ];
 
@@ -228,15 +228,15 @@ function buildCustomerFastOrderFollowUpHtml(
   html += '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;">';
   html += '<tr><td style="font-size:13px;color:#64748b;">Subtotal · ' + totalItems + ' item' + (totalItems === 1 ? "" : "s") + '</td>';
   html += '<td style="font-size:18px;font-weight:700;color:#0f172a;text-align:right;">' + fmt(total) + '</td></tr>';
-  html += '<tr><td colspan="2" style="padding:6px 0 0;font-size:12px;color:#94a3b8;line-height:1.5;">Shipping and any applicable discounts are confirmed once your details are received.</td></tr>';
+  html += '<tr><td colspan="2" style="padding:6px 0 0;font-size:12px;color:#94a3b8;line-height:1.5;">Shipping is confirmed once your details are received.</td></tr>';
   html += '</table>';
   html += '</td></tr>';
 
   // Single PWA install CTA — compact
   html += '<tr><td style="padding:28px 40px 0;">';
   html += '<table width="100%" cellpadding="0" cellspacing="0" style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;"><tr><td style="padding:18px 20px;">';
-  html += '<div style="font-size:14px;font-weight:700;color:#065f46;margin-bottom:6px;">Get 10% off every order — install our app</div>';
-  html += '<div style="font-size:13px;color:#047857;line-height:1.55;margin-bottom:14px;">Add Real Duck Distro to your home screen for drop alerts and a flat 10% discount at checkout.</div>';
+  html += '<div style="font-size:14px;font-weight:700;color:#065f46;margin-bottom:6px;">Install our app for faster ordering</div>';
+  html += '<div style="font-size:13px;color:#047857;line-height:1.55;margin-bottom:14px;">Add Real Duck Distro to your home screen for instant drop alerts and one-tap checkout.</div>';
   html += '<a href="' + SITE_URL + '" style="display:inline-block;background:#047857;color:#ffffff;text-decoration:none;font-weight:600;font-size:13px;padding:10px 18px;border-radius:8px;">Install the app</a>';
   html += '</td></tr></table>';
   html += '</td></tr>';

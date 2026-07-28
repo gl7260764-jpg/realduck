@@ -132,7 +132,7 @@ export default async function Home() {
         name: "What payment methods are accepted?",
         acceptedAnswer: {
           "@type": "Answer",
-          text: "We accept Zelle, Cash App, Chime, and Cryptocurrency (Bitcoin, Ethereum, USDT). Customers paying in crypto automatically receive a 10% discount on their entire order.",
+          text: "We accept Zelle, Cash App, Chime, and Cryptocurrency (Bitcoin, Ethereum, USDT).",
         },
       },
       {
@@ -149,14 +149,6 @@ export default async function Home() {
         acceptedAnswer: {
           "@type": "Answer",
           text: "Real Duck Distro carries exotic top-shelf indoor flower, designer cannabis packs, lab-tested edibles and THC gummies, live rosin, concentrates (wax, shatter, badder, live resin), vape cartridges and disposables, pre-rolls and infused pre-rolls, plus magic mushroom products — all sourced from trusted US and Australian growers.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "How do I get a discount on my order?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "There are two automatic discounts. (1) Install the Real Duck Distro app to your home screen for a flat 10% off every order. (2) Pay in crypto for an additional 10% off. Both stack — install the app AND pay in crypto for 20% off your entire order.",
         },
       },
       {

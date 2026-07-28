@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
-import { Bell, X, Download, Gift, Check, Share, Megaphone, BellRing, Settings, Sparkles } from "lucide-react";
+import { Bell, X, Download, Gift, Share, Megaphone, BellRing, Settings, Sparkles } from "lucide-react";
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -92,7 +92,6 @@ export default function PwaManager() {
   const [installPrompt, setInstallPrompt] = useState<Event | null>(null);
   const [installed, setInstalled] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
-  const [discountEarned, setDiscountEarned] = useState(false);
   const [platform] = useState(detectPlatform);
   const [foregroundNotif, setForegroundNotif] = useState<ForegroundNotification | null>(null);
   // Notification opt-in modal state — shown to installed PWA users that
@@ -168,7 +167,6 @@ export default function PwaManager() {
 
     if (isStandalone) {
       setInstalled(true);
-      checkPwaDiscount();
       // Ping the server so PwaInstall.lastOpenedAt is bumped every app open.
       trackInstall();
 
@@ -464,26 +462,11 @@ export default function PwaManager() {
 
   const trackInstall = async () => {
     try {
-      const res = await fetch("/api/pwa", {
+      await fetch("/api/pwa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: getSessionId(), fingerprint: getFingerprint() }),
       });
-      const data = await res.json();
-      if (data.discountEligible) {
-        setDiscountEarned(true);
-        localStorage.setItem("nobu_pwa_discount", "1");
-        setTimeout(() => setDiscountEarned(false), 5000);
-      }
-    } catch {}
-  };
-
-  const checkPwaDiscount = async () => {
-    if (localStorage.getItem("nobu_pwa_discount")) return;
-    try {
-      const res = await fetch(`/api/pwa?sessionId=${getSessionId()}`);
-      const data = await res.json();
-      if (data.discountEligible) localStorage.setItem("nobu_pwa_discount", "1");
     } catch {}
   };
 
@@ -608,7 +591,7 @@ export default function PwaManager() {
                 <p className="mt-2 text-sm sm:text-[15px] text-white/70 max-w-sm leading-relaxed">
                   {notifModalMode === "denied"
                     ? "Notifications are currently blocked in your browser settings. Turn them on to start receiving drop alerts."
-                    : "Turn on push notifications to get instant alerts for new drops, restocks, and subscriber-only offers — right on your device."}
+                    : "Turn on push notifications to get instant alerts for new drops and restocks — right on your device."}
                 </p>
               </div>
             </div>
@@ -619,7 +602,7 @@ export default function PwaManager() {
                 <ul className="space-y-3">
                   {[
                     { icon: "🔥", title: "Instant drop alerts", desc: "Rare strains, limited runs — be the first to know." },
-                    { icon: "💸", title: "Subscriber-only codes", desc: "Quiet discounts sent to notification subscribers first." },
+                    { icon: "⚡", title: "Early access", desc: "New drops sent to notification subscribers first." },
                     { icon: "📦", title: "Order & restock updates", desc: "Tracking and back-in-stock pings, no refresh needed." },
                   ].map((p) => (
                     <li key={p.title} className="flex items-start gap-3">
@@ -731,12 +714,12 @@ export default function PwaManager() {
           <div className="p-4 sm:p-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Gift className="w-5 h-5 text-emerald-400" />
+                <Download className="w-5 h-5 text-emerald-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-bold">Install & Save 10%</h3>
+                <h3 className="text-sm font-bold">Install the App</h3>
                 <p className="text-xs text-white/60 mt-1 leading-relaxed">
-                  Add Real Duck Distro to your home screen and get 10% off your next order.
+                  Add Real Duck Distro to your home screen for faster access and instant drop alerts.
                 </p>
               </div>
               <button onClick={dismissInstallBanner} aria-label="Dismiss install banner" className="text-white/60 hover:text-white/80 p-1">
@@ -770,7 +753,7 @@ export default function PwaManager() {
               <div>
                 <h3 className="text-sm font-bold text-white">Install & Get Notifications</h3>
                 <p className="text-xs text-white/50 mt-0.5">
-                  Add to Home Screen to get push notifications + 10% off
+                  Add to Home Screen to get push notifications and instant drop alerts
                 </p>
               </div>
               <button onClick={dismissInstallBanner} aria-label="Dismiss install banner" className="text-white/60 hover:text-white/80 p-1 ml-auto">
@@ -806,19 +789,6 @@ export default function PwaManager() {
             <button onClick={dismissInstallBanner} className="w-full mt-4 py-3 bg-white text-slate-900 font-semibold text-sm rounded-xl">
               Got it
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Discount Earned Toast ── */}
-      {discountEarned && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-emerald-600 text-white rounded-2xl shadow-2xl z-[80] px-5 py-3 flex items-center gap-3 animate-[slideDown_0.3s_ease-out]">
-          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-            <Check className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-sm font-bold">10% Discount Unlocked!</p>
-            <p className="text-xs text-white/70">Applied to your next order</p>
           </div>
         </div>
       )}

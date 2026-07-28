@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -30,7 +30,7 @@ const PAYMENT_METHODS = [
   { id: "zelle", label: "Zelle", logo: "/images/payments/zelle.svg", color: "border-purple-500 bg-purple-50", ring: "ring-purple-200" },
   { id: "cashapp", label: "Cash App", logo: "/images/payments/cashapp.svg", color: "border-green-500 bg-emerald-50", ring: "ring-emerald-200" },
   { id: "chime", label: "Chime", logo: "/images/payments/chime.jpg", color: "border-slate-500 bg-slate-50", ring: "ring-slate-200" },
-  { id: "crypto", label: "Cryptocurrency", logo: "/images/payments/crypto.svg", color: "border-orange-500 bg-orange-50", ring: "ring-orange-200", discount: 10 },
+  { id: "crypto", label: "Cryptocurrency", logo: "/images/payments/crypto.svg", color: "border-orange-500 bg-orange-50", ring: "ring-orange-200" },
 ];
 
 /* ── Shipping Methods (only shown when delivery type = ship) ── */
@@ -112,8 +112,6 @@ interface FormData {
 
 type FieldErrors = Partial<Record<keyof FormData, string>>;
 
-const CRYPTO_DISCOUNT = 10;
-
 export default function CheckoutPage() {
   const router = useRouter();
   const settings = useSettings();
@@ -124,24 +122,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [deliveryType, setDeliveryType] = useState<"local" | "ship">("ship");
-  const [isPwa, setIsPwa] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Detect whether the user has installed the PWA — either they are currently
-  // browsing in standalone mode, or `PwaManager` flagged them previously.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-    const flagged = localStorage.getItem("nobu_pwa_discount") === "1";
-    if (standalone || flagged) {
-      setIsPwa(true);
-      // Backfill the flag for standalone users that arrived without it set,
-      // so the discount keeps applying if they later use a non-standalone tab.
-      if (standalone && !flagged) localStorage.setItem("nobu_pwa_discount", "1");
-    }
-  }, []);
   const [form, setForm] = useState<FormData>({
     firstName: "",
     lastName: "",
@@ -198,14 +180,8 @@ export default function CheckoutPage() {
   };
 
   const subtotal = calcSubtotal();
-  const isCrypto = form.paymentMethod === "crypto";
-  // PWA-install and crypto each give 10%. They stack (additive), so a user
-  // who has installed the app AND pays in crypto gets 20% off.
-  const pwaDiscountAmount = isPwa ? subtotal * 0.1 : 0;
-  const cryptoDiscountAmount = isCrypto ? subtotal * (CRYPTO_DISCOUNT / 100) : 0;
-  const discountAmount = pwaDiscountAmount + cryptoDiscountAmount;
-  const hasDiscount = discountAmount > 0;
-  const finalTotal = subtotal - discountAmount;
+  // Discounts removed — customers always pay the full amount at checkout.
+  const finalTotal = subtotal;
   const hasNumericPrice = subtotal > 0;
 
   const inputCls = (field: keyof FormData) =>
@@ -273,7 +249,6 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           ...form,
           shippingMethod: deliveryType === "ship" ? form.shippingMethod : "",
-          isPwa,
           sessionId,
           items: items.map((item) => ({
             id: item.id,
@@ -686,7 +661,6 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
             {PAYMENT_METHODS.map((method) => {
               const isSelected = form.paymentMethod === method.id;
-              const hasDiscount = "discount" in method && (method as { discount?: number }).discount;
               return (
                 <button
                   key={method.id}
@@ -703,11 +677,6 @@ export default function CheckoutPage() {
                   {isSelected && (
                     <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-slate-900 rounded-full flex items-center justify-center shadow-sm animate-[fadeInUp_0.2s_ease-out]">
                       <CheckCircle className="w-3.5 h-3.5 text-white" />
-                    </div>
-                  )}
-                  {hasDiscount && (
-                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[9px] sm:text-[10px] font-bold rounded-full shadow-md whitespace-nowrap">
-                      {(method as { discount?: number }).discount}% OFF
                     </div>
                   )}
                   <img src={method.logo} alt={`${method.label} payment logo`} title={method.label} loading="lazy" className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-contain transition-transform duration-300 hover:scale-105" />
@@ -805,48 +774,15 @@ export default function CheckoutPage() {
                 </span>
               </div>
 
-              {/* PWA App Discount */}
-              {isPwa && hasNumericPrice && (
-                <div className="flex items-center justify-between text-sm mt-2 animate-[fadeInUp_0.25s_ease-out]">
-                  <span className="text-emerald-600 font-medium flex items-center gap-1">
-                    <span className="inline-block w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded text-[8px] text-white font-black flex items-center justify-center leading-none">%</span>
-                    PWA App Discount (10%)
-                  </span>
-                  <span className="font-semibold text-emerald-600">-{fmt(pwaDiscountAmount)}</span>
-                </div>
-              )}
-
-              {/* Crypto Discount */}
-              {isCrypto && hasNumericPrice && (
-                <div className="flex items-center justify-between text-sm mt-2 animate-[fadeInUp_0.25s_ease-out]">
-                  <span className="text-orange-600 font-medium flex items-center gap-1">
-                    <span className="inline-block w-4 h-4 bg-gradient-to-br from-orange-400 to-amber-500 rounded text-[8px] text-white font-black flex items-center justify-center leading-none">%</span>
-                    Crypto Discount (10%)
-                  </span>
-                  <span className="font-semibold text-orange-600">-{fmt(cryptoDiscountAmount)}</span>
-                </div>
-              )}
-
               {/* Final Total */}
-              <div className={`flex items-center justify-between mt-3 pt-3 border-t ${hasDiscount ? "border-emerald-200" : "border-gray-200"}`}>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-200">
                 <span className="text-base font-bold text-gray-900">Total</span>
                 <div className="text-right">
-                  {hasDiscount && hasNumericPrice && (
-                    <span className="text-xs text-gray-400 line-through mr-2">{fmt(subtotal)}</span>
-                  )}
-                  <span className={`text-xl font-black ${hasDiscount ? "text-emerald-600" : "text-slate-900"}`}>
+                  <span className="text-xl font-black text-slate-900">
                     {hasNumericPrice ? fmt(finalTotal) : "TBD"}
                   </span>
                 </div>
               </div>
-
-              {hasDiscount && hasNumericPrice && (
-                <div className="mt-2 flex items-center gap-1.5 justify-end animate-[fadeInUp_0.2s_ease-out]">
-                  <span className="px-2 py-0.5 text-white text-[10px] font-bold rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600">
-                    You save {fmt(discountAmount)}{isPwa && isCrypto ? " (PWA + Crypto)" : ""}!
-                  </span>
-                </div>
-              )}
 
               {!hasNumericPrice && (
                 <p className="text-[10px] text-gray-400 mt-2">Final price will be confirmed when we send payment details.</p>

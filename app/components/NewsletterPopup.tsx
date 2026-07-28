@@ -240,7 +240,7 @@ export default function NewsletterPopup() {
               Get first info on every drop
             </h2>
             <p className="mt-2 text-[13px] sm:text-[15px] text-white/70 max-w-sm leading-relaxed">
-              Subscribe to our newsletter for subscriber-only discounts, new strain alerts, and the good stuff — straight to your inbox.
+              Subscribe to our newsletter for new strain alerts, early drop access, and the good stuff — straight to your inbox.
             </p>
           </div>
         </div>
