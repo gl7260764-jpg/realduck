@@ -32,7 +32,7 @@ export interface CategoryContent {
 
 // Common trust/shipping clause reused across answers so every category page
 // carries the brand's core buying signals for AEO extraction.
-const SHIP = "Every order is lab-tested with COAs on request and ships discreetly (smell-proof, vacuum-sealed) across the USA, Australia and worldwide — 1–3 day priority delivery to Kentucky, Michigan, Florida and Mississippi.";
+const SHIP = "Every order is lab-tested with COAs on request and ships discreetly (smell-proof, vacuum-sealed) across the USA — 1–3 day priority delivery to Kentucky, Michigan, Florida and Mississippi.";
 
 export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
   flower: {
@@ -41,19 +41,19 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Exotic Flower",
     metaTitle: "Buy Exotic Cannabis Flower Online | Top-Shelf Indoor Strains — Real Duck Distro",
     metaDescription:
-      "Buy exotic indoor cannabis flower online at Real Duck Distro. Top-shelf designer strains and gas packs, lab-tested with COAs, discreet 1–3 day shipping across the USA, Australia & worldwide.",
+      "Buy exotic indoor cannabis flower online at Real Duck Distro. Top-shelf designer strains and gas packs, lab-tested with COAs, discreet 1–3 day shipping across the USA.",
     h1: "Buy Exotic Cannabis Flower Online",
     answer:
       "Real Duck Distro sells exotic, top-shelf indoor cannabis flower — designer strains and gas packs graded for aroma, density and potency. " + SHIP,
     body: [
-      "Our flower is indoor-grown by trusted US and Australian cultivators and hand-selected for terpene profile, trichome coverage and cure quality. Each drop is graded on our internal 10-point scale, so what you see rated 10/10 is genuine top-shelf, not filler.",
+      "Our flower is indoor-grown by trusted US cultivators and hand-selected for terpene profile, trichome coverage and cure quality. Each drop is graded on our internal 10-point scale, so what you see rated 10/10 is genuine top-shelf, not filler.",
       "From candy-gas hybrids to loud OG cuts, every strain is photographed as it ships and backed by lab testing for potency and contaminants (pesticides, heavy metals, residual solvents). Prices cover both local pickup and discreet nationwide delivery.",
     ],
     faqs: [
       { question: "Is Real Duck Distro flower lab-tested?", answer: "Yes. All flower is sourced from licensed growers and lab-tested for potency and contaminants (pesticides, heavy metals, residual solvents). Certificates of Analysis (COAs) are available on request." },
       { question: "How is the cannabis flower shipped?", answer: "Flower ships in smell-proof, vacuum-sealed, plain-labelled packaging with a neutral return address. Most US orders arrive in 1–3 business days, with priority delivery to Kentucky, Michigan, Florida and Mississippi." },
       { question: "What does 'exotic' or 'top-shelf' flower mean here?", answer: "Exotic/top-shelf refers to indoor-grown, high-terpene designer strains with dense structure and strong potency — the upper tier of quality versus mid-grade or outdoor flower. We grade each strain on a 10-point scale." },
-      { question: "Do you ship flower to my state?", answer: "We deliver across the entire USA and Australia plus worldwide, with priority routes to Kentucky, Michigan, Florida and Mississippi. Packaging is discreet on every route." },
+      { question: "Do you ship flower to my state?", answer: "We deliver across the entire USA, with priority routes to Kentucky, Michigan, Florida and Mississippi. Packaging is discreet on every route." },
     ],
   },
 
@@ -63,7 +63,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Top-Shelf",
     metaTitle: "Top-Shelf Indoor Cannabis Online | Premium Exotic Strains — Real Duck Distro",
     metaDescription:
-      "Shop top-shelf indoor cannabis online at Real Duck Distro — the highest-grade exotic strains, lab-tested with COAs, discreetly shipped across the USA, Australia & worldwide.",
+      "Shop top-shelf indoor cannabis online at Real Duck Distro — the highest-grade exotic strains, lab-tested with COAs, discreetly shipped across the USA.",
     h1: "Top-Shelf Indoor Cannabis Online",
     answer:
       "Top-shelf at Real Duck Distro means the highest-grade indoor exotics we carry — peak terpene, potency and bag appeal. " + SHIP,
@@ -73,7 +73,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
     faqs: [
       { question: "What makes a strain 'top-shelf'?", answer: "Top-shelf strains score at the top of our 10-point grading scale for terpene intensity, potency, density and cure — indoor-grown designer genetics, not mid-grade or bulk flower." },
-      { question: "Is top-shelf flower more expensive?", answer: "Top-shelf commands a premium because it's limited, hand-selected indoor product. Pricing is shown per strain and covers discreet, tracked shipping across the USA, Australia and worldwide." },
+      { question: "Is top-shelf flower more expensive?", answer: "Top-shelf commands a premium because it's limited, hand-selected indoor product. Pricing is shown per strain and covers discreet, tracked shipping across the USA." },
       { question: "Is it lab-tested?", answer: "Yes — every top-shelf strain is lab-tested for potency and contaminants, with COAs available on request." },
     ],
   },
@@ -84,7 +84,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Edibles",
     metaTitle: "Buy Cannabis Edibles & THC Gummies Online | Lab-Tested — Real Duck Distro",
     metaDescription:
-      "Buy lab-tested cannabis edibles and THC gummies online at Real Duck Distro. Accurately dosed, discreetly shipped across the USA, Australia & worldwide with COAs on request.",
+      "Buy lab-tested cannabis edibles and THC gummies online at Real Duck Distro. Accurately dosed, discreetly shipped across the USA with COAs on request.",
     h1: "Buy Cannabis Edibles & THC Gummies Online",
     answer:
       "Real Duck Distro stocks lab-tested cannabis edibles and THC gummies with accurate, labelled dosing per piece. " + SHIP,
@@ -96,7 +96,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
       { question: "How much THC is in each edible?", answer: "Dosing is printed on every product page and package — typically 5–10 mg THC per piece for gummies, with higher-dose options clearly labelled. Lab tests confirm the stated potency." },
       { question: "How long do THC edibles take to kick in?", answer: "Edibles onset in about 60–90 minutes and last several hours. Start with 5–10 mg, wait at least 90 minutes, then adjust — never redose early." },
       { question: "Are the edibles lab-tested?", answer: "Yes. Every edible is lab-tested for potency and contaminants, with Certificates of Analysis available on request." },
-      { question: "Do edibles ship discreetly?", answer: "Yes — all edibles ship in plain, smell-proof packaging with neutral labelling, across the USA, Australia and worldwide." },
+      { question: "Do edibles ship discreetly?", answer: "Yes — all edibles ship in plain, smell-proof packaging with neutral labelling, across the USA." },
     ],
   },
 
@@ -106,7 +106,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Concentrates",
     metaTitle: "Buy Cannabis Concentrates Online | Live Rosin, Wax, Shatter — Real Duck Distro",
     metaDescription:
-      "Buy cannabis concentrates online at Real Duck Distro — live rosin, badder, wax, shatter and live resin. Lab-tested, solventless options, discreet worldwide shipping.",
+      "Buy cannabis concentrates online at Real Duck Distro — live rosin, badder, wax, shatter and live resin. Lab-tested, solventless options, discreet nationwide shipping.",
     h1: "Buy Cannabis Concentrates Online",
     answer:
       "Real Duck Distro sells premium cannabis concentrates — live rosin, badder, wax, shatter and live resin — including solventless options. " + SHIP,
@@ -127,7 +127,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Pre-Rolls",
     metaTitle: "Buy Pre-Rolls & Infused Joints Online | Cannabis Pre-Rolls — Real Duck Distro",
     metaDescription:
-      "Buy cannabis pre-rolls and infused joints online at Real Duck Distro. Fresh-rolled top-shelf flower, lab-tested, discreetly shipped across the USA, Australia & worldwide.",
+      "Buy cannabis pre-rolls and infused joints online at Real Duck Distro. Fresh-rolled top-shelf flower, lab-tested, discreetly shipped across the USA.",
     h1: "Buy Cannabis Pre-Rolls & Infused Joints Online",
     answer:
       "Real Duck Distro offers ready-to-smoke cannabis pre-rolls and infused joints rolled from top-shelf flower. " + SHIP,
@@ -148,7 +148,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Mushrooms",
     metaTitle: "Buy Magic Mushroom Products Online | Psilocybin Gummies — Real Duck Distro",
     metaDescription:
-      "Buy magic mushroom products online at Real Duck Distro — psilocybin gummies and edibles, accurately dosed, discreetly shipped across the USA, Australia & worldwide.",
+      "Buy magic mushroom products online at Real Duck Distro — psilocybin gummies and edibles, accurately dosed, discreetly shipped across the USA.",
     h1: "Buy Magic Mushroom Products Online",
     answer:
       "Real Duck Distro carries magic mushroom products, including psilocybin gummies and edibles, with clearly labelled dosing. " + SHIP,
@@ -158,7 +158,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     ],
     faqs: [
       { question: "How are magic mushroom products dosed?", answer: "Dosing is stated on each product page and package — measured per gummy or piece so you can dose deliberately. Start low, especially if you're new." },
-      { question: "Do mushroom products ship discreetly?", answer: "Yes — all mushroom products ship in plain, smell-proof, sealed packaging across the USA, Australia and worldwide." },
+      { question: "Do mushroom products ship discreetly?", answer: "Yes — all mushroom products ship in plain, smell-proof, sealed packaging across the USA." },
       { question: "What should first-time users know?", answer: "Start with the lowest labelled dose, be mindful of set and setting, and wait — effects build over 30–60 minutes. Never redose early." },
     ],
   },
@@ -169,7 +169,7 @@ export const CATEGORY_CONTENT: Record<string, CategoryContent> = {
     label: "Vapes & Disposables",
     metaTitle: "Buy THC Vapes & Disposables Online | Vape Carts — Real Duck Distro",
     metaDescription:
-      "Buy THC vapes and disposables online at Real Duck Distro — all-in-one rechargeable disposables and vape cartridges, lab-tested, discreetly shipped across the USA, Australia & worldwide.",
+      "Buy THC vapes and disposables online at Real Duck Distro — all-in-one rechargeable disposables and vape cartridges, lab-tested, discreetly shipped across the USA.",
     h1: "Buy THC Vapes & Disposables Online",
     answer:
       "Real Duck Distro sells THC vapes and disposables — all-in-one rechargeable devices and vape cartridges filled with lab-tested oil. " + SHIP,

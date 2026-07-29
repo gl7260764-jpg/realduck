@@ -209,9 +209,9 @@ export default function Navbar() {
               <h2 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
                 Real Duck Distro
               </h2>
-              <p className="text-white/60 text-[10px] font-semibold tracking-wider">HQ: LA, USA | SYDNEY, AUS</p>
+              <p className="text-white/60 text-[10px] font-semibold tracking-wider">HQ: LOS ANGELES, USA</p>
               <p className="text-white/60 text-[10px] font-semibold tracking-wider">PRIORITY: KY · MI · FL · MS</p>
-              <p className="text-white/60 text-[10px] font-semibold tracking-wider">USA | AUS | WORLDWIDE</p>
+              <p className="text-white/60 text-[10px] font-semibold tracking-wider">USA · NATIONWIDE SHIPPING</p>
             </div>
           </div>
 
@@ -223,7 +223,7 @@ export default function Navbar() {
             style={{ transitionDelay: isMenuOpen ? "150ms" : "0ms" }}
           >
             <p className="text-white/50 text-sm leading-relaxed">
-              The world&apos;s leading premium cannabis lifestyle brand. Delivering across the USA, Australia &amp; worldwide — priority service to Kentucky, Michigan, Florida &amp; Mississippi.
+              The world&apos;s leading premium cannabis lifestyle brand. Delivering across the the USA — priority service to Kentucky, Michigan, Florida &amp; Mississippi.
             </p>
           </div>
 

@@ -9,12 +9,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro
 export const metadata: Metadata = {
   title: "FAQ — Shipping, Payments, Lab Testing & Ordering | Real Duck Distro",
   description:
-    "Answers to common questions about Real Duck Distro: what we sell, discreet shipping across the USA, Australia & worldwide, lab testing & COAs, payment methods, discounts and how to order.",
+    "Answers to common questions about Real Duck Distro: what we sell, discreet shipping across the USA, lab testing & COAs, payment methods, discounts and how to order.",
   alternates: { canonical: `${SITE_URL}/faq` },
   openGraph: {
     title: "FAQ | Real Duck Distro",
     description:
-      "Shipping, payments, lab testing and ordering — answered. Real Duck Distro ships discreetly across the USA, Australia & worldwide.",
+      "Shipping, payments, lab testing and ordering — answered. Real Duck Distro ships discreetly across the USA.",
     url: `${SITE_URL}/faq`,
     type: "website",
     siteName: "Real Duck Distro",
@@ -35,7 +35,7 @@ const SECTIONS: FAQSection[] = [
   {
     heading: "Products & Quality",
     items: [
-      { q: "What does Real Duck Distro sell?", a: "Real Duck Distro sells exotic top-shelf cannabis flower, edibles and THC gummies, concentrates (live rosin, wax, shatter, live resin), THC vapes and disposables, pre-rolls and infused joints, and magic mushroom products — sourced from licensed US and Australian growers." },
+      { q: "What does Real Duck Distro sell?", a: "Real Duck Distro sells exotic top-shelf cannabis flower, edibles and THC gummies, concentrates (live rosin, wax, shatter, live resin), THC vapes and disposables, pre-rolls and infused joints, and magic mushroom products — sourced from licensed US growers." },
       { q: "Are your products lab-tested?", a: "Yes. Every product is sourced from licensed growers and lab-tested for potency and contaminants (pesticides, heavy metals, residual solvents). Certificates of Analysis (COAs) are available on request for any item." },
       { q: "What does 'exotic' or 'top-shelf' mean?", a: "Exotic/top-shelf refers to indoor-grown, high-terpene designer strains with dense structure and strong potency — the highest quality tier. We grade every strain on a 10-point scale so ratings reflect genuine quality, not marketing." },
     ],
@@ -43,8 +43,8 @@ const SECTIONS: FAQSection[] = [
   {
     heading: "Shipping & Delivery",
     items: [
-      { q: "Where does Real Duck Distro ship?", a: "We ship across the entire United States, Australia, and worldwide. Orders dispatch from Los Angeles, USA and Sydney, Australia, with 1–3 day priority delivery to Kentucky, Michigan, Florida and Mississippi." },
-      { q: "How long does delivery take?", a: "Most US orders arrive in 1–3 business days, with priority states fastest. Australian orders take 1–5 business days. International times vary by destination. Tracking is provided after dispatch." },
+      { q: "Where does Real Duck Distro ship?", a: "We ship across the entire United States. Orders dispatch from Los Angeles, USA, with 1–3 day priority delivery to Kentucky, Michigan, Florida and Mississippi." },
+      { q: "How long does delivery take?", a: "Most US orders arrive in 1–3 business days, with priority states fastest. Tracking is provided after dispatch." },
       { q: "Is my order packaged discreetly?", a: "Yes. Every order ships smell-proof, vacuum-sealed and plain-labelled, with a neutral return address and no reference to Real Duck Distro or the contents on the exterior." },
     ],
   },
@@ -60,7 +60,7 @@ const SECTIONS: FAQSection[] = [
     heading: "Ordering & Trust",
     items: [
       { q: "How do I place an order?", a: "Add items to your cart and check out. You can use express checkout (fast, $200 minimum) or detailed checkout (no minimum). We then send payment instructions; once confirmed, your order ships discreetly." },
-      { q: "Is Real Duck Distro legit?", a: "Real Duck Distro is an established premium cannabis brand (since 2019) with HQ in Los Angeles and Sydney, lab-tested products, published COAs on request, discreet tracked shipping, and thousands of customers across the USA and Australia." },
+      { q: "Is Real Duck Distro legit?", a: "Real Duck Distro is an established premium cannabis brand (since 2019) with HQ in Los Angeles, lab-tested products, published COAs on request, discreet tracked shipping, and thousands of customers across the USA." },
       { q: "What if I need help with my order?", a: "Email contact@realduckdistro.com and our team will assist. If you don't receive payment details within about 10 minutes of ordering, reach out and we'll follow up right away." },
     ],
   },
@@ -110,7 +110,7 @@ export default function FAQPage() {
               Frequently Asked Questions
             </h1>
             <p className="mt-3 text-gray-600 text-sm sm:text-base leading-relaxed">
-              Everything about products, lab testing, discreet shipping across the USA, Australia &amp; worldwide, payments, discounts and ordering with Real Duck Distro.
+              Everything about products, lab testing, discreet shipping across the the USA, payments, discounts and ordering with Real Duck Distro.
             </p>
           </header>
 

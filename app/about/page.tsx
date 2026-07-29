@@ -186,7 +186,7 @@ export default function AboutPage() {
               Real Duck Distro ships discreetly across <strong>all 50 US states</strong>. Our highest-volume regions are California, Florida, Texas, New York, Illinois, Michigan, Colorado, Washington, Oregon, Nevada, Arizona, Pennsylvania, Ohio, Georgia, and North Carolina — but we deliver coast to coast.
             </p>
             <p className="text-base text-gray-700 leading-relaxed">
-              International shipping is available to Australia and select markets. <Link href="/" className="text-slate-900 font-medium underline underline-offset-2">Browse our catalog</Link> or <Link href="/blog" className="text-slate-900 font-medium underline underline-offset-2">read our cannabis education blog</Link> to learn more about what we carry and why.
+              <Link href="/" className="text-slate-900 font-medium underline underline-offset-2">Browse our catalog</Link> or <Link href="/blog" className="text-slate-900 font-medium underline underline-offset-2">read our cannabis education blog</Link> to learn more about what we carry and why.
             </p>
           </div>
         </section>

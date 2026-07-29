@@ -9,8 +9,8 @@ export async function GET() {
 ## How pricing works
 - Prices are listed per product on each product page. Every product shows two prices:
   - Local price (local pickup)
-  - Shipping price (discreet nationwide/worldwide delivery)
-- Currencies accepted: USD and AUD.
+  - Shipping price (discreet nationwide delivery)
+- Currency: USD.
 
 ## Discounts (stackable, up to 20% off)
 - Crypto payment: 10% off the entire order

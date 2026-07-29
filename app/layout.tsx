@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: "%s | Real Duck Distro",
   },
   description:
-    "Buy premium cannabis online at Real Duck Distro — exotic top-shelf flower, designer cannabis packs, lab-tested edibles, live rosin, concentrates, vapes, pre-rolls, gummies, magic mushrooms & disposables. Fast, discreet shipping across the USA, Australia & worldwide. Trusted cannabis brand — HQ in Los Angeles, USA & Sydney, Australia. Priority delivery to Kentucky, Michigan, Florida & Mississippi.",
+    "Buy premium cannabis online at Real Duck Distro — exotic top-shelf flower, designer cannabis packs, lab-tested edibles, live rosin, concentrates, vapes, pre-rolls, gummies & disposables. Fast, discreet shipping across the USA. Trusted cannabis brand — HQ in Los Angeles, USA. Priority delivery to Kentucky, Michigan, Florida & Mississippi.",
   keywords: [
     "buy cannabis online",
     "buy weed online",
@@ -43,19 +43,19 @@ export const metadata: Metadata = {
     "buy magic mushrooms online",
     "THC gummies",
     "discreet cannabis shipping USA",
-    "cannabis delivery Australia",
+    "cannabis delivery USA",
     "cannabis delivery Kentucky",
     "cannabis delivery Michigan",
     "cannabis delivery Florida",
     "cannabis delivery Mississippi",
     "cannabis store Los Angeles",
-    "cannabis store Sydney",
+    "cannabis store Los Angeles",
     "buy weed Kentucky",
     "buy weed Michigan",
     "buy weed Florida",
     "buy weed Mississippi",
-    "buy weed Australia",
-    "worldwide cannabis shipping",
+    "buy weed USA",
+    "nationwide cannabis shipping",
     "Real Duck Distro",
   ],
   authors: [{ name: "Real Duck Distro" }],
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     siteName: "Real Duck Distro",
     title: "Real Duck Distro — Buy Premium Cannabis Online | Exotic Flower, Edibles, Vapes & Concentrates",
     description:
-      "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Fast, discreet cannabis shipping across the USA, Australia & worldwide. Priority delivery to Kentucky, Michigan, Florida & Mississippi.",
+      "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Fast, discreet cannabis shipping across the USA. Priority delivery to Kentucky, Michigan, Florida & Mississippi.",
     images: [
       {
         url: "/images/hero.webp?v=3",
@@ -103,7 +103,7 @@ export const metadata: Metadata = {
     site: "@realduckdistro",
     title: "Real Duck Distro — Buy Premium Cannabis Online | Exotic Flower, Edibles & Vapes",
     description:
-      "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Discreet shipping — USA (incl. KY/MI/FL/MS), Australia & worldwide.",
+      "Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies. Discreet shipping — the USA (incl. KY/MI/FL/MS).",
     images: ["/images/hero.webp?v=3"],
   },
   robots: {
@@ -121,8 +121,6 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
     languages: {
       "en-US": SITE_URL,
-      "en-AU": SITE_URL,
-      "x-default": SITE_URL,
     },
     types: {
       "application/rss+xml": `${SITE_URL}/feed.xml`,
@@ -223,7 +221,7 @@ export default async function RootLayout({
               },
               image: `${SITE_URL}/images/hero.webp?v=3`,
               description:
-                "Real Duck Distro — premium cannabis online. Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies, shipped discreetly across the USA (with priority service to Kentucky, Michigan, Florida and Mississippi), Australia and worldwide.",
+                "Real Duck Distro — premium cannabis online. Exotic top-shelf flower, designer packs, edibles, live rosin, concentrates, vapes, pre-rolls & gummies, shipped discreetly across the USA, with priority service to Kentucky, Michigan, Florida and Mississippi.",
               sameAs: [
                 settings.telegramChannel,
                 settings.telegramOrder,
@@ -250,54 +248,35 @@ export default async function RootLayout({
               "@context": "https://schema.org",
               "@type": "Store",
               name: "Real Duck Distro",
-              alternateName: ["Real Duck Distro USA", "Real Duck Distro Australia"],
+              alternateName: ["Real Duck Distro USA", "RDD"],
               description:
-                "The world's leading premium cannabis lifestyle brand. HQ in Los Angeles USA & Sydney Australia, with priority delivery across Kentucky, Michigan, Florida and Mississippi. Designer cannabis packs, exotic flower, edibles, concentrates, vapes, rosin, pre-rolls & disposables. Delivering across the USA, Australia & worldwide.",
+                "The world's leading premium cannabis lifestyle brand. HQ in Los Angeles, USA, with priority delivery across Kentucky, Michigan, Florida and Mississippi. Designer cannabis packs, exotic flower, edibles, concentrates, vapes, rosin, pre-rolls & disposables. Delivering across the USA.",
               url: SITE_URL,
               logo: `${SITE_URL}/images/logo.jpg`,
               image: `${SITE_URL}/images/hero.webp?v=3`,
-              address: [
-                {
-                  "@type": "PostalAddress",
-                  addressLocality: "Los Angeles",
-                  addressRegion: "CA",
-                  postalCode: "90001",
-                  addressCountry: "US",
-                },
-                {
-                  "@type": "PostalAddress",
-                  addressLocality: "Sydney",
-                  addressRegion: "NSW",
-                  postalCode: "2000",
-                  addressCountry: "AU",
-                },
-              ],
-              geo: [
-                {
-                  "@type": "GeoCoordinates",
-                  latitude: 34.0522,
-                  longitude: -118.2437,
-                },
-                {
-                  "@type": "GeoCoordinates",
-                  latitude: -33.8688,
-                  longitude: 151.2093,
-                },
-              ],
+              address: {
+                "@type": "PostalAddress",
+                addressLocality: "Los Angeles",
+                addressRegion: "CA",
+                postalCode: "90001",
+                addressCountry: "US",
+              },
+              geo: {
+                "@type": "GeoCoordinates",
+                latitude: 34.0522,
+                longitude: -118.2437,
+              },
               areaServed: [
                 { "@type": "Country", name: "United States" },
-                { "@type": "Country", name: "Australia" },
                 { "@type": "State", name: "California" },
                 { "@type": "State", name: "Kentucky" },
                 { "@type": "State", name: "Michigan" },
                 { "@type": "State", name: "Florida" },
                 { "@type": "State", name: "Mississippi" },
-                { "@type": "State", name: "New South Wales" },
                 { "@type": "City", name: "Los Angeles" },
-                { "@type": "City", name: "Sydney" },
               ],
               priceRange: "$$",
-              currenciesAccepted: "USD, AUD",
+              currenciesAccepted: "USD",
               openingHoursSpecification: {
                 "@type": "OpeningHoursSpecification",
                 dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],

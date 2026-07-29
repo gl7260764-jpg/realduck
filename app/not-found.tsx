@@ -30,11 +30,11 @@ export default function NotFound() {
 
       {/* SEO Content Block (hidden) */}
       <section className="sr-only" aria-label="About Real Duck Distro">
-        <h2>The Best Luxury Cannabis Lifestyle Brand Worldwide</h2>
+        <h2>The Best Luxury Cannabis Lifestyle Brand in the USA</h2>
         <p>
-          Real Duck Distro is the world&apos;s leading premium cannabis lifestyle brand — headquartered in Los Angeles, USA and Sydney, Australia, with priority delivery to Kentucky, Michigan, Florida and Mississippi. We deliver across the entire USA and Australia with fast, discreet worldwide shipping. Premium designer cannabis packs, exotic top-shelf flower, lab-tested edibles, concentrates, vapes, rosin and more. Visit our homepage to browse the full collection.
+          Real Duck Distro is the world&apos;s leading premium cannabis lifestyle brand — headquartered in Los Angeles, USA, with priority delivery to Kentucky, Michigan, Florida and Mississippi. We deliver across the entire USA with fast, discreet nationwide shipping. Premium designer cannabis packs, exotic top-shelf flower, lab-tested edibles, concentrates, vapes, rosin and more. Visit our homepage to browse the full collection.
         </p>
-        <Image src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Lifestyle Brand | HQ in LA USA & Sydney Australia | Priority Delivery KY · MI · FL · MS | Worldwide Shipping" width={800} height={450} />
+        <Image src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Lifestyle Brand | HQ in Los Angeles, USA | Priority Delivery KY · MI · FL · MS | USA Nationwide Shipping" width={800} height={450} />
       </section>
     </div>
   );

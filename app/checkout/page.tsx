@@ -51,44 +51,6 @@ const COUNTRY_STATES: Record<string, string[]> = {
     "Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia",
     "Wisconsin","Wyoming","District of Columbia",
   ],
-  "Canada": [
-    "Alberta","British Columbia","Manitoba","New Brunswick","Newfoundland and Labrador",
-    "Northwest Territories","Nova Scotia","Nunavut","Ontario","Prince Edward Island",
-    "Quebec","Saskatchewan","Yukon",
-  ],
-  "United Kingdom": [
-    "England","Scotland","Wales","Northern Ireland",
-  ],
-  "Australia": [
-    "Australian Capital Territory","New South Wales","Northern Territory","Queensland",
-    "South Australia","Tasmania","Victoria","Western Australia",
-  ],
-  "Germany": [
-    "Baden-Württemberg","Bavaria","Berlin","Brandenburg","Bremen","Hamburg","Hesse",
-    "Lower Saxony","Mecklenburg-Vorpommern","North Rhine-Westphalia","Rhineland-Palatinate",
-    "Saarland","Saxony","Saxony-Anhalt","Schleswig-Holstein","Thuringia",
-  ],
-  "France": [
-    "Auvergne-Rhône-Alpes","Bourgogne-Franche-Comté","Brittany","Centre-Val de Loire",
-    "Corsica","Grand Est","Hauts-de-France","Île-de-France","Normandy",
-    "Nouvelle-Aquitaine","Occitanie","Pays de la Loire","Provence-Alpes-Côte d'Azur",
-  ],
-  "Netherlands": [
-    "Drenthe","Flevoland","Friesland","Gelderland","Groningen","Limburg",
-    "North Brabant","North Holland","Overijssel","South Holland","Utrecht","Zeeland",
-  ],
-  "Spain": [
-    "Andalusia","Aragon","Asturias","Balearic Islands","Basque Country","Canary Islands",
-    "Cantabria","Castile and León","Castile-La Mancha","Catalonia","Extremadura",
-    "Galicia","La Rioja","Madrid","Murcia","Navarre","Valencia",
-  ],
-  "Italy": [
-    "Abruzzo","Aosta Valley","Apulia","Basilicata","Calabria","Campania",
-    "Emilia-Romagna","Friuli Venezia Giulia","Lazio","Liguria","Lombardy","Marche",
-    "Molise","Piedmont","Sardinia","Sicily","Trentino-South Tyrol","Tuscany",
-    "Umbria","Veneto",
-  ],
-  "Other": [],
 };
 
 const COUNTRIES = Object.keys(COUNTRY_STATES);
@@ -837,9 +799,9 @@ export default function CheckoutPage() {
         <section className="sr-only" aria-label="About Real Duck Distro Checkout">
           <h2>The Best Premium Cannabis Lifestyle Store Online</h2>
           <p>
-            Real Duck Distro is the world&apos;s leading premium cannabis lifestyle store online — headquartered in Los Angeles, USA and Sydney, Australia, with priority delivery to Kentucky, Michigan, Florida and Mississippi. We deliver across the entire USA and Australia with fast, secure, discreet worldwide shipping. Designer cannabis packs, luxury cannabis packaging and premium cannabis products. Complete your order now.
+            Real Duck Distro is the world&apos;s leading premium cannabis lifestyle store online — headquartered in Los Angeles, USA, with priority delivery to Kentucky, Michigan, Florida and Mississippi. We ship discreetly and securely across the entire USA. Designer cannabis packs, luxury cannabis packaging and premium cannabis products. Complete your order now.
           </p>
-          <img src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Store | HQ in LA USA & Sydney Australia | Priority Delivery KY · MI · FL · MS | Worldwide Shipping" />
+          <img src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Store | HQ in Los Angeles, USA | Priority Delivery KY · MI · FL · MS | USA Nationwide Shipping" />
         </section>
       </form>
     </div>

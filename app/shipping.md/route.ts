@@ -8,18 +8,13 @@ export async function GET() {
 
 ## Coverage
 - United States: all 50 states
-- Australia: nationwide
-- Worldwide: international shipping available
 - Priority delivery states: Kentucky, Michigan, Florida, Mississippi
 
 ## Origin
 - Los Angeles, California, USA
-- Sydney, NSW, Australia
 
 ## Delivery times
 - United States: 1–3 business days (priority states fastest)
-- Australia: 1–5 business days
-- International: varies by destination
 
 ## Packaging
 - Smell-proof and vacuum-sealed

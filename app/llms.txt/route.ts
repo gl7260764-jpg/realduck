@@ -35,12 +35,12 @@ export async function GET() {
 
   const body = `# Real Duck Distro
 
-> Real Duck Distro is a premium cannabis lifestyle brand selling exotic top-shelf flower, edibles, concentrates (live rosin, wax, shatter), THC vapes & disposables, pre-rolls and magic mushroom products. HQ in Los Angeles, USA and Sydney, Australia. Ships discreetly across the USA, Australia and worldwide, with 1–3 day priority delivery to Kentucky, Michigan, Florida and Mississippi. All products are lab-tested with Certificates of Analysis (COAs) available on request.
+> Real Duck Distro is a premium cannabis lifestyle brand selling exotic top-shelf flower, edibles, concentrates (live rosin, wax, shatter), THC vapes & disposables, pre-rolls and magic mushroom products. HQ in Los Angeles, USA. Ships discreetly across the USA, with 1–3 day priority delivery to Kentucky, Michigan, Florida and Mississippi. All products are lab-tested with Certificates of Analysis (COAs) available on request.
 
 ## Key facts
 - Products: exotic cannabis flower, top-shelf indoor strains, edibles & THC gummies, concentrates (live rosin, badder, wax, shatter, live resin), THC vapes & disposables, pre-rolls & infused joints, magic mushrooms.
-- Quality: sourced from licensed US & Australian growers; lab-tested for potency and contaminants (pesticides, heavy metals, residual solvents); COAs on request.
-- Shipping: smell-proof, vacuum-sealed, plain-labelled, neutral return address; USA, Australia & worldwide; 1–3 day US delivery; priority to Kentucky, Michigan, Florida, Mississippi. See ${SITE_URL}/shipping.md
+- Quality: sourced from licensed US growers; lab-tested for potency and contaminants (pesticides, heavy metals, residual solvents); COAs on request.
+- Shipping: smell-proof, vacuum-sealed, plain-labelled, neutral return address; the USA; 1–3 day US delivery; priority to Kentucky, Michigan, Florida, Mississippi. See ${SITE_URL}/shipping.md
 - Payments: Zelle, Cash App, Chime, and Cryptocurrency (Bitcoin, Ethereum, USDT). 10% off for crypto; 10% off for installing the web app (stackable to 20%). See ${SITE_URL}/pricing.md
 - Fast checkout (express order) minimum: $200. Detailed checkout has no minimum.
 

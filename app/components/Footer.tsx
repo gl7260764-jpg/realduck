@@ -50,9 +50,7 @@ export default function Footer() {
               The world&apos;s leading premium cannabis lifestyle brand.
             </p>
             <div className="flex items-center gap-2 mt-2 text-xs sm:text-sm font-semibold text-white/60 tracking-wider">
-              <span>HQ: LA, USA</span>
-              <span className="text-white/15">|</span>
-              <span>SYDNEY, AUS</span>
+              <span>HQ: LOS ANGELES, USA</span>
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-[10px] sm:text-xs font-semibold text-white/25 tracking-wider">
               <span>PRIORITY:</span>
@@ -65,11 +63,7 @@ export default function Footer() {
               <span>MISSISSIPPI</span>
             </div>
             <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm font-semibold text-white/60 tracking-wider">
-              <span>USA</span>
-              <span className="text-white/10">|</span>
-              <span>AUS</span>
-              <span className="text-white/10">|</span>
-              <span>WORLDWIDE SHIPPING</span>
+              <span>USA NATIONWIDE SHIPPING</span>
             </div>
           </div>
 
