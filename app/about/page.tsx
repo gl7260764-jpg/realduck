@@ -124,11 +124,14 @@ export default function AboutPage() {
               When we say "authentic," we don't mean "we hope so" — we mean we've physically traced the supply chain.
             </p>
           </div>
+          </div>
         </section>
 
-        {/* Expertise grid */}
-        <section className="bg-slate-50 py-12 sm:py-16">
-          <div className="max-w-5xl mx-auto px-5 sm:px-6">
+        <div className="h-[3px] w-full bg-slate-900" aria-hidden />
+
+        {/* Expertise grid — light grey */}
+        <section className="bg-slate-50 px-5 sm:px-6 py-10 sm:py-16">
+          <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Our expertise</h2>
             <p className="text-gray-600 mb-8 max-w-2xl">
               The Real Duck Distro team brings real industry experience across every category we stock. This isn't a reseller masquerading as experts — it's people who know their stuff.
@@ -169,8 +172,11 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Standards */}
-        <section className="max-w-4xl mx-auto px-5 sm:px-6 py-12 sm:py-16">
+        <div className="h-[3px] w-full bg-slate-900" aria-hidden />
+
+        {/* Standards — white */}
+        <section className="bg-white px-5 sm:px-6 py-10 sm:py-16">
+          <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Our standards</h2>
           <div className="space-y-5">
             <div className="border-l-4 border-emerald-500 pl-5 py-1">
@@ -198,11 +204,14 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
+          </div>
         </section>
 
-        {/* Coverage */}
-        <section className="bg-slate-50 py-12 sm:py-16">
-          <div className="max-w-4xl mx-auto px-5 sm:px-6">
+        <div className="h-[3px] w-full bg-slate-900" aria-hidden />
+
+        {/* Coverage — light grey */}
+        <section className="bg-slate-50 px-5 sm:px-6 py-10 sm:py-16">
+          <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Where we ship</h2>
             <p className="text-base text-gray-700 leading-relaxed mb-4">
               Real Duck Distro ships discreetly across <strong>all 50 US states</strong>. Our highest-volume regions are California, Florida, Texas, New York, Illinois, Michigan, Colorado, Washington, Oregon, Nevada, Arizona, Pennsylvania, Ohio, Georgia, and North Carolina — but we deliver coast to coast.
@@ -213,8 +222,11 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="max-w-3xl mx-auto px-5 sm:px-6 py-12 sm:py-16 text-center">
+        <div className="h-[3px] w-full bg-slate-900" aria-hidden />
+
+        {/* CTA — white */}
+        <section className="bg-white px-5 sm:px-6 py-10 sm:py-16 text-center">
+          <div className="max-w-3xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Real cannabis. Real source. Real delivered.</h2>
           <p className="text-base text-gray-600 mb-6">
             Browse our full catalog of premium flower, concentrates, disposables, edibles, and pharmaceutical-grade products.
@@ -226,6 +238,7 @@ export default function AboutPage() {
             <Link href="/blog" className="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
               Read the blog
             </Link>
+          </div>
           </div>
         </section>
       </main>
