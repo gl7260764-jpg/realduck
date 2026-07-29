@@ -1,7 +1,7 @@
 # Real Duck Distro — URLs to submit for indexing
-# Generated: 2026-07-29T00:29:51.134Z
+# Generated: 2026-07-29T03:44:41.927Z
 # Site: https://realduckdistro.com
-# Total URLs: 208
+# Total URLs: 212
 # Regenerate any time with:  npm run urls
 
 # ── Core pages ──
@@ -19,6 +19,12 @@ https://realduckdistro.com/category/edibles
 https://realduckdistro.com/category/concentrates
 https://realduckdistro.com/category/pre-rolls
 https://realduckdistro.com/category/disposables
+
+# ── State pages (4) ──
+https://realduckdistro.com/cannabis-delivery/kentucky
+https://realduckdistro.com/cannabis-delivery/michigan
+https://realduckdistro.com/cannabis-delivery/florida
+https://realduckdistro.com/cannabis-delivery/mississippi
 
 # ── Blog posts (60) — newest first ──
 https://realduckdistro.com/blog/live-resin-vs-live-rosin-2026-the-real-difference-which-is-worth-your-money

@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
 import { CATEGORY_CONTENT } from "@/lib/categoryContent";
+import { STATE_CONTENT } from "@/lib/stateContent";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -25,6 +26,9 @@ export async function GET() {
     take: 40,
   });
 
+  const stateLines = Object.values(STATE_CONTENT)
+    .map((s) => `- [Cannabis delivery in ${s.name}](${SITE_URL}/cannabis-delivery/${s.slug}): discreet 1–3 day priority shipping to ${s.cities.join(", ")} and statewide.`);
+
   const catLines = Object.values(CATEGORY_CONTENT)
     .filter((c) => !hidden.includes(c.category))
     .map((c) => `- [${c.label}](${SITE_URL}/category/${c.slug}): ${c.answer}`);
@@ -46,6 +50,9 @@ export async function GET() {
 
 ## Shop by category
 ${catLines.join("\n")}
+
+## Priority delivery states
+${stateLines.join("\n")}
 
 ## Featured products
 ${productLines.join("\n")}

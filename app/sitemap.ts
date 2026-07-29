@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { PRODUCT_FAQS } from "@/lib/productFAQs";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
 import { CATEGORY_CONTENT } from "@/lib/categoryContent";
+import { STATE_CONTENT } from "@/lib/stateContent";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -81,6 +82,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     }));
 
+  // State landing pages — buyer-intent geo pages ("buy cannabis online [state]").
+  const statePages: MetadataRoute.Sitemap = Object.values(STATE_CONTENT).map((s) => ({
+    url: `${SITE_URL}/cannabis-delivery/${s.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.9,
+  }));
+
   const blogCategoryPages: MetadataRoute.Sitemap = blogCategories.map((cat) => ({
     url: `${SITE_URL}/blog?category=${cat}`,
     lastModified: now,
@@ -134,6 +143,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...categoryPages,
+    ...statePages,
     ...blogCategoryPages,
     ...productPages,
     ...blogPages,

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Send, FileText, MessageSquare, Megaphone, Phone, MessageCircle } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
 import { CATEGORY_CONTENT } from "@/lib/categoryContent";
+import { STATE_CONTENT } from "@/lib/stateContent";
 
 const TelegramIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -54,13 +55,14 @@ export default function Footer() {
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-[10px] sm:text-xs font-semibold text-white/25 tracking-wider">
               <span>PRIORITY:</span>
-              <span>KENTUCKY</span>
-              <span className="text-white/10">·</span>
-              <span>MICHIGAN</span>
-              <span className="text-white/10">·</span>
-              <span>FLORIDA</span>
-              <span className="text-white/10">·</span>
-              <span>MISSISSIPPI</span>
+              {Object.values(STATE_CONTENT).map((s, i) => (
+                <span key={s.slug} className="contents">
+                  {i > 0 && <span className="text-white/10">·</span>}
+                  <Link href={`/cannabis-delivery/${s.slug}`} className="uppercase hover:text-white/60 transition-colors">
+                    {s.name}
+                  </Link>
+                </span>
+              ))}
             </div>
             <div className="flex items-center gap-2 mt-1 text-xs sm:text-sm font-semibold text-white/60 tracking-wider">
               <span>USA NATIONWIDE SHIPPING</span>

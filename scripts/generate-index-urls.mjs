@@ -26,6 +26,9 @@ const CATEGORY_SLUGS = {
   DISPOSABLES: "disposables",
 };
 
+// State landing pages (/cannabis-delivery/[slug]) — mirror of lib/stateContent.ts.
+const STATE_SLUGS = ["kentucky", "michigan", "florida", "mississippi"];
+
 async function withRetry(fn, tries = 5) {
   for (let i = 0; i < tries; i++) {
     try { return await fn(); }
@@ -66,6 +69,8 @@ async function main() {
     .filter(([cat]) => presentCategories.has(cat) && !hidden.includes(cat))
     .map(([, slug]) => `/category/${slug}`);
 
+  const stateUrls = STATE_SLUGS.map((s) => `/cannabis-delivery/${s}`);
+
   const blogUrls = blogPosts.map((p) => `/blog/${p.slug}`);
   const productUrls = products.map((p) => `/product/${p.slug || p.id}`);
   const announcementUrls = announcements.map((a) => `/announcements?id=${a.id}`);
@@ -73,6 +78,7 @@ async function main() {
   const sections = [
     ["Core pages", staticPages],
     [`Category pages (${categoryUrls.length})`, categoryUrls],
+    [`State pages (${stateUrls.length})`, stateUrls],
     [`Blog posts (${blogUrls.length}) — newest first`, blogUrls],
     [`Products (${productUrls.length}) — newest first`, productUrls],
     [`Announcements (${announcementUrls.length})`, announcementUrls],
@@ -80,7 +86,7 @@ async function main() {
 
   const stamp = new Date().toISOString();
   const total =
-    staticPages.length + categoryUrls.length + blogUrls.length + productUrls.length + announcementUrls.length;
+    staticPages.length + categoryUrls.length + stateUrls.length + blogUrls.length + productUrls.length + announcementUrls.length;
 
   // Human-readable file with section headers (lines starting with # are comments
   // you can ignore when bulk-pasting; the URLs are plain and ready to copy).
