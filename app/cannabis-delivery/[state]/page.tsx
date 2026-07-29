@@ -135,31 +135,35 @@ export default async function StatePage({ params }: StatePageProps) {
 
           <ProductGrid products={products} />
 
-          <section className="reveal mt-10 max-w-3xl">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
-              Cannabis shipping to {c.name}
-            </h2>
-            {c.body.map((p, i) => (
-              <p key={i} className="text-gray-600 text-sm sm:text-base leading-[1.85] mb-4">{p}</p>
-            ))}
-          </section>
-
-          <section className="reveal mt-9 max-w-3xl">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-4">
-              {c.name} — Frequently Asked Questions
-            </h2>
-            <div className="divide-y divide-gray-100 border-y border-gray-100">
-              {c.faqs.map((f, i) => (
-                <details key={i} className="group py-4">
-                  <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium text-slate-900 text-sm sm:text-base list-none">
-                    {f.question}
-                    <span className="text-gray-400 transition-transform group-open:rotate-45 text-lg leading-none">+</span>
-                  </summary>
-                  <p className="mt-2.5 text-gray-600 text-sm leading-relaxed">{f.answer}</p>
-                </details>
+          <div className="reveal mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-start lg:gap-14">
+            {/* Write-up — left */}
+            <section>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
+                Cannabis shipping to {c.name}
+              </h2>
+              {c.body.map((p, i) => (
+                <p key={i} className="text-gray-600 text-sm sm:text-base leading-[1.85] mb-4">{p}</p>
               ))}
-            </div>
-          </section>
+            </section>
+
+            {/* FAQ — right */}
+            <section>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-4">
+                {c.name} — Frequently Asked Questions
+              </h2>
+              <div className="divide-y divide-gray-100 border-y border-gray-100">
+                {c.faqs.map((f, i) => (
+                  <details key={i} className="group py-4">
+                    <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium text-slate-900 text-sm sm:text-base list-none">
+                      {f.question}
+                      <span className="text-gray-400 transition-transform group-open:rotate-45 text-lg leading-none">+</span>
+                    </summary>
+                    <p className="mt-2.5 text-gray-600 text-sm leading-relaxed">{f.answer}</p>
+                  </details>
+                ))}
+              </div>
+            </section>
+          </div>
 
           <section className="mt-12" aria-label="Shop by category">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3">Shop by category</h2>
