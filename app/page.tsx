@@ -5,7 +5,6 @@ import Footer from "./components/Footer";
 import SEOBlock from "./components/SEOBlock";
 import RecentlyViewed from "./components/RecentlyViewed";
 import CartRecoveryBanner from "./components/CartRecoveryBanner";
-import HomeHero from "./components/HomeHero";
 import HowItWorks from "./components/HowItWorks";
 import prisma from "@/lib/prisma";
 import Script from "next/script";
@@ -187,16 +186,12 @@ export default async function Home() {
       <Navbar />
       <CartRecoveryBanner />
       <main role="main">
-        {/* Keyword-rich context for crawlers; the visible H1 lives in HomeHero */}
-        <p className="sr-only">
-          Real Duck Distro — premium USA cannabis brand. Buy exotic top-shelf flower, edibles, concentrates, vapes, pre-rolls &amp; disposables online, shipped discreetly nationwide with priority delivery to Kentucky, Michigan, Florida &amp; Mississippi.
-        </p>
-        <HomeHero />
-        <div id="catalog" className="scroll-mt-20">
-          <Suspense fallback={<div className="min-h-[60vh]" />}>
-            <CatalogClient initialProducts={products} />
-          </Suspense>
-        </div>
+        <h1 className="sr-only">
+          Real Duck Distro — Premium USA Cannabis Brand | Buy Exotic Flower, Edibles, Concentrates &amp; Vapes Online | Priority Delivery to Kentucky, Michigan, Florida &amp; Mississippi
+        </h1>
+        <Suspense fallback={<div className="min-h-[60vh]" />}>
+          <CatalogClient initialProducts={products} />
+        </Suspense>
         <HowItWorks />
         <RecentlyViewed limit={6} />
         <SEOBlock
