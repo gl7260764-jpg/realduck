@@ -306,15 +306,19 @@ export default function OrdersTable() {
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-3">
                       <div className="bg-white rounded-xl p-3 lg:p-4 border border-gray-100">
                         <div className="flex items-center gap-1.5 text-xs lg:text-sm text-gray-400 mb-1.5"><User className="w-3.5 h-3.5" /> Contact</div>
-                        {order.isFastOrder ? (
+                        {(order.email && order.email !== "fast@order") || (order.phone && order.phone !== "-") ? (
                           <>
-                            <p className="text-sm lg:text-base font-medium text-gray-900">Telegram fast order</p>
-                            <p className="text-xs lg:text-sm text-gray-500 mt-0.5">Customer reached out via the Telegram channel — no email/phone captured.</p>
+                            <p className="text-sm lg:text-base font-medium text-gray-900 truncate">
+                              {order.email && order.email !== "fast@order" ? order.email : "—"}
+                            </p>
+                            <p className="text-xs lg:text-sm text-gray-500 mt-0.5">
+                              {order.phone && order.phone !== "-" ? order.phone : "No phone provided"}
+                            </p>
                           </>
                         ) : (
                           <>
-                            <p className="text-sm lg:text-base font-medium text-gray-900 truncate">{order.email}</p>
-                            <p className="text-xs lg:text-sm text-gray-500 mt-0.5">{order.phone}</p>
+                            <p className="text-sm lg:text-base font-medium text-gray-900">{order.isFastOrder ? "Fast order" : "No contact"}</p>
+                            <p className="text-xs lg:text-sm text-gray-500 mt-0.5">No email/phone captured for this order.</p>
                           </>
                         )}
                       </div>

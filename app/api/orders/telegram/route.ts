@@ -245,6 +245,10 @@ export async function POST(request: NextRequest) {
     if (!emailTrimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailTrimmed)) {
       return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 });
     }
+    const phoneTrimmed = body.customerPhone?.trim() || "";
+    if (!phoneTrimmed || phoneTrimmed.replace(/\D/g, "").length < 7) {
+      return NextResponse.json({ error: "Please enter a valid phone number" }, { status: 400 });
+    }
 
     // Fast orders require a minimum cart total — but the dollar minimum is
     // bypassed for disposables (the 50-unit rule above handles disposable carts).

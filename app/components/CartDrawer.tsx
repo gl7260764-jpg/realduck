@@ -74,6 +74,11 @@ export default function CartDrawer() {
       setTelegramError("Please enter a valid email");
       return;
     }
+    const phoneTrimmed = customerPhone.trim();
+    if (!phoneTrimmed || phoneTrimmed.replace(/\D/g, "").length < 7) {
+      setTelegramError("Please enter a valid phone number");
+      return;
+    }
     if (fastBelowMin) {
       setTelegramError(
         disposablesBelowMin
@@ -112,8 +117,8 @@ export default function CartDrawer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          customerPhone: customerPhone.trim() || undefined,
-          customerEmail: customerEmail.trim() || undefined,
+          customerPhone: customerPhone.trim(),
+          customerEmail: customerEmail.trim(),
           items: items.map((item) => ({
             id: item.id,
             title: item.title,
@@ -387,7 +392,7 @@ export default function CartDrawer() {
                   </div>
                 )}
                 <div>
-                  <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address</label>
+                  <label className="text-[11px] font-medium text-gray-500 mb-1 block">Email Address <span className="text-red-500">*</span></label>
                   <input
                     type="email"
                     value={customerEmail}
@@ -397,7 +402,7 @@ export default function CartDrawer() {
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-medium text-gray-500 mb-1 block">Phone Number</label>
+                  <label className="text-[11px] font-medium text-gray-500 mb-1 block">Phone Number <span className="text-red-500">*</span></label>
                   <input
                     type="tel"
                     value={customerPhone}
