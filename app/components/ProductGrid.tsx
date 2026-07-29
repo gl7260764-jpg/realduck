@@ -75,7 +75,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
   return (
     <>
       <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {paginatedProducts.map((product) => (
+        {paginatedProducts.map((product, idx) => (
           <ProductCard
             key={product.id}
             id={product.id}
@@ -91,6 +91,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
             isSoldOut={product.isSoldOut}
             imageUrl={product.imageUrl}
             videoUrl={product.videoUrl}
+            priority={currentPage === 1 && idx < 4}
           />
         ))}
       </div>

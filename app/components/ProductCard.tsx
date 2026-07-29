@@ -31,6 +31,8 @@ interface ProductCardProps {
   isSoldOut: boolean;
   imageUrl: string;
   videoUrl?: string | null;
+  /** LCP hint: the first row of cards on the first page loads eagerly. */
+  priority?: boolean;
 }
 
 export default function ProductCard({
@@ -47,6 +49,7 @@ export default function ProductCard({
   isSoldOut,
   imageUrl,
   videoUrl,
+  priority = false,
 }: ProductCardProps) {
   const router = useRouter();
   const settings = useSettings();
@@ -490,7 +493,7 @@ export default function ProductCard({
             alt={`${title} — premium ${category.toLowerCase()} from Real Duck Distro Los Angeles, nationwide cannabis shipping`}
             title={`${title} | Real Duck Distro`}
             fill
-            loading="lazy"
+            {...(priority ? { priority: true } : { loading: "lazy" as const })}
             placeholder={blurUrl(imageUrl) ? "blur" : "empty"}
             blurDataURL={blurUrl(imageUrl) || undefined}
             className={`object-cover transition-all duration-500 ${
