@@ -1,7 +1,7 @@
 # Real Duck Distro — URLs to submit for indexing
-# Generated: 2026-07-28T23:57:16.438Z
+# Generated: 2026-07-29T00:29:51.134Z
 # Site: https://realduckdistro.com
-# Total URLs: 209
+# Total URLs: 208
 # Regenerate any time with:  npm run urls
 
 # ── Core pages ──
@@ -12,13 +12,12 @@ https://realduckdistro.com/about
 https://realduckdistro.com/announcements
 https://realduckdistro.com/orders
 
-# ── Category pages (7) ──
+# ── Category pages (6) ──
 https://realduckdistro.com/category/flower
 https://realduckdistro.com/category/top-shelf
 https://realduckdistro.com/category/edibles
 https://realduckdistro.com/category/concentrates
 https://realduckdistro.com/category/pre-rolls
-https://realduckdistro.com/category/mushrooms
 https://realduckdistro.com/category/disposables
 
 # ── Blog posts (60) — newest first ──

@@ -23,7 +23,6 @@ const CATEGORY_SLUGS = {
   EDIBLES: "edibles",
   CONCENTRATES: "concentrates",
   PREROLLS: "pre-rolls",
-  MUSHROOM: "mushrooms",
   DISPOSABLES: "disposables",
 };
 
