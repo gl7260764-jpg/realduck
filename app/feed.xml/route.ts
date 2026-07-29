@@ -9,7 +9,7 @@
 
 import prisma from "@/lib/prisma";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 const FEED_TITLE = "Real Duck Distro — Premium Cannabis Guides & Strain Reviews";
 const FEED_DESC = "Cannabis education, strain reviews, and industry guides from Real Duck Distro — premium California indoor cannabis brand with US nationwide discreet shipping.";
 

@@ -4,7 +4,7 @@ import Script from "next/script";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 export const metadata: Metadata = {
   title: "FAQ — Shipping, Payments, Lab Testing & Ordering | Real Duck Distro",

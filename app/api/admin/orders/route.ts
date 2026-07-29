@@ -156,7 +156,7 @@ export async function PATCH(request: NextRequest) {
     // Send status update email to customer (non-blocking) via Brevo → SMTP.
     if (STATUS_INFO[status] && order.email && !order.email.includes("telegram@")) {
       const config = await getAdminConfig();
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
       const trackUrl = `${siteUrl}/orders`;
 
       const res = await sendMail(

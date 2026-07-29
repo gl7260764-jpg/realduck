@@ -12,7 +12,7 @@ import RecentlyViewed from "@/app/components/RecentlyViewed";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
 import { getCategorySlug } from "@/lib/categoryContent";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 export const revalidate = 60;
 
@@ -204,6 +204,40 @@ export default async function ProductPage({ params }: ProductPageProps) {
     .toISOString()
     .slice(0, 10);
 
+  // Parse the first price line of each tier; guard against unparseable/zero
+  // prices so we never emit a misleading $0 Offer (an invalid rich result).
+  const parseFirstPrice = (s: string | null | undefined): number => {
+    const m = (s || "").split("\n")[0].match(/[\d,]+(?:\.\d+)?/);
+    return m ? parseFloat(m[0].replace(/,/g, "")) : NaN;
+  };
+  const validPrices = [parseFirstPrice(product.priceLocal), parseFirstPrice(product.priceShip)]
+    .filter((n) => Number.isFinite(n) && n > 0);
+  const offers = validPrices.length
+    ? {
+        "@type": "AggregateOffer",
+        priceCurrency: "USD",
+        lowPrice: String(Math.min(...validPrices)),
+        highPrice: String(Math.max(...validPrices)),
+        priceValidUntil,
+        availability: product.isSoldOut
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+        offerCount: validPrices.length,
+        seller: { "@type": "Organization", name: "Real Duck Distro", url: SITE_URL },
+        shippingDetails: [
+          {
+            "@type": "OfferShippingDetails",
+            shippingDestination: { "@type": "DefinedRegion", addressCountry: "US" },
+            deliveryTime: {
+              "@type": "ShippingDeliveryTime",
+              handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+              transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 3, unitCode: "DAY" },
+            },
+          },
+        ],
+      }
+    : undefined;
+
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -222,36 +256,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
     // NOTE: aggregateRating intentionally omitted — we do not fabricate review
     // counts. Star-rating markup will be reinstated when a genuine customer
     // review system feeds real Review nodes (Google policy: no fake reviews).
-    offers: {
-      "@type": "AggregateOffer",
-      priceCurrency: "USD",
-      lowPrice: product.priceLocal.replace(/[^0-9.]/g, "").split("\n")[0] || "0",
-      highPrice: product.priceShip.replace(/[^0-9.]/g, "").split("\n")[0] || "0",
-      priceValidUntil,
-      availability: product.isSoldOut
-        ? "https://schema.org/OutOfStock"
-        : "https://schema.org/InStock",
-      offerCount: 2,
-      seller: {
-        "@type": "Organization",
-        name: "Real Duck Distro",
-        url: SITE_URL,
-      },
-      shippingDetails: [
-        {
-          "@type": "OfferShippingDetails",
-          shippingDestination: {
-            "@type": "DefinedRegion",
-            addressCountry: "US",
-          },
-          deliveryTime: {
-            "@type": "ShippingDeliveryTime",
-            handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
-            transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 3, unitCode: "DAY" },
-          },
-        },
-      ],
-    },
+    // offers is omitted entirely when no valid price is parseable.
+    offers,
   };
 
   // FAQ schema — only for the 20 priority products with curated FAQ data.

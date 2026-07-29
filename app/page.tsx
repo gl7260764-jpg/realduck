@@ -11,7 +11,7 @@ import Script from "next/script";
 import { dailyShuffle } from "@/lib/dailyShuffle";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 export const revalidate = 60;
 

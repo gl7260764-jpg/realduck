@@ -10,7 +10,7 @@
 
 import prisma from "@/lib/prisma";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 const PUBLICATION_NAME = "Real Duck Distro";
 const LANGUAGE = "en";
 

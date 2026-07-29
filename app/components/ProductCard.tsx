@@ -502,7 +502,10 @@ export default function ProductCard({
             sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 25vw"
           />
 
-          {/* Video Overlay — preload=metadata loads just the first frame, not the whole file */}
+          {/* Video Overlay — preload=none so up to 12 grid videos don't fire
+              concurrent metadata requests that contend with the LCP image.
+              It fetches on demand when play() runs (hover / in-view). The
+              optimized card image shows behind it until then. */}
           {videoUrl && (
             <video
               ref={videoRef}
@@ -510,7 +513,7 @@ export default function ProductCard({
               muted
               loop
               playsInline
-              preload="metadata"
+              preload="none"
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
                 isHovering ? "opacity-100" : "opacity-0"
               }`}

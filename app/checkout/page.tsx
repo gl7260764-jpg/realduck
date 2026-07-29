@@ -809,7 +809,8 @@ export default function CheckoutPage() {
           <p>
             Real Duck Distro is the world&apos;s leading premium cannabis lifestyle store online — headquartered in Los Angeles, USA, with priority delivery to Kentucky, Michigan, Florida and Mississippi. We ship discreetly and securely across the entire USA. Designer cannabis packs, luxury cannabis packaging and premium cannabis products. Complete your order now.
           </p>
-          <img src="/images/hero.webp" alt="Real Duck Distro — Premium Cannabis Store | HQ in Los Angeles, USA | Priority Delivery KY · MI · FL · MS | USA Nationwide Shipping" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/hero.webp" width={1200} height={630} loading="lazy" alt="Real Duck Distro — Premium Cannabis Store | HQ in Los Angeles, USA | Priority Delivery KY · MI · FL · MS | USA Nationwide Shipping" />
         </section>
       </form>
     </div>

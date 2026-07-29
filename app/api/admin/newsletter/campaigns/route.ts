@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 import { getAdminConfig } from "@/lib/adminConfig";
 import { brevoEnabled, createAndSendCampaign, getNewsletterListId } from "@/lib/brevo";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 const LOGO_URL = SITE_URL + "/images/logo.jpg";
 const CONTACT_EMAIL = "contact@realduckdistro.com";
 

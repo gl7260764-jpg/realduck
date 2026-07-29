@@ -14,7 +14,7 @@ import {
   type CategoryContent,
 } from "@/lib/categoryContent";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 export const revalidate = 300;
 

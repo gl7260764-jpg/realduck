@@ -5,7 +5,7 @@ import { getHiddenCategories } from "@/lib/categoryVisibility";
 import { CATEGORY_CONTENT } from "@/lib/categoryContent";
 import { STATE_CONTENT } from "@/lib/stateContent";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 /**
  * Sitemap — built dynamically from the DB.

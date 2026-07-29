@@ -19,7 +19,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getClientIp, getGeoFromRequest } from "@/lib/geo";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
 /**
  * Bot / crawler / link-preview detector. These User-Agents prefetch any link
