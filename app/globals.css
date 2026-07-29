@@ -400,3 +400,26 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ── Classic global motion polish ─────────────────────────────────────────
+   Smooth in-page anchor scrolling + a subtle, JS-free scroll-reveal used on
+   lower page sections for a smoother flow. Uses CSS scroll-driven animations,
+   so it costs no JS and degrades to "fully visible" where unsupported. */
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes rdd-reveal-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rdd-reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 40%;
+    }
+  }
+}

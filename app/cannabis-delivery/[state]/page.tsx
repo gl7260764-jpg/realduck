@@ -128,7 +128,7 @@ export default async function StatePage({ params }: StatePageProps) {
 
           <ProductGrid products={products} />
 
-          <section className="mt-12 max-w-3xl">
+          <section className="reveal mt-10 max-w-3xl">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
               Cannabis shipping to {c.name}
             </h2>
@@ -137,7 +137,7 @@ export default async function StatePage({ params }: StatePageProps) {
             ))}
           </section>
 
-          <section className="mt-10 max-w-3xl">
+          <section className="reveal mt-9 max-w-3xl">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-4">
               {c.name} — Frequently Asked Questions
             </h2>

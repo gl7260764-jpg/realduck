@@ -167,7 +167,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           <ProductGrid products={products} />
 
           {/* Supporting E-E-A-T copy */}
-          <section className="mt-12 max-w-3xl">
+          <section className="reveal mt-10 max-w-3xl">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-3">
               About {content.label} at Real Duck Distro
             </h2>
@@ -179,7 +179,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           </section>
 
           {/* Visible FAQ (also emitted as FAQPage JSON-LD above) */}
-          <section className="mt-10 max-w-3xl">
+          <section className="reveal mt-9 max-w-3xl">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-4">
               Frequently Asked Questions
             </h2>
