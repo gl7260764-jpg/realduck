@@ -6,6 +6,7 @@ import SEOBlock from "./components/SEOBlock";
 import RecentlyViewed from "./components/RecentlyViewed";
 import CartRecoveryBanner from "./components/CartRecoveryBanner";
 import HomeHero from "./components/HomeHero";
+import HowItWorks from "./components/HowItWorks";
 import prisma from "@/lib/prisma";
 import Script from "next/script";
 import { dailyShuffle } from "@/lib/dailyShuffle";
@@ -196,6 +197,7 @@ export default async function Home() {
             <CatalogClient initialProducts={products} />
           </Suspense>
         </div>
+        <HowItWorks />
         <RecentlyViewed limit={6} />
         <SEOBlock
           heading="The World's Leading Premium Cannabis Lifestyle Brand"

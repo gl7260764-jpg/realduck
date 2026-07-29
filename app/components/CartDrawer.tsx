@@ -5,6 +5,7 @@ import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { useRouter } from "next/navigation";
 import CloudImage from "./CloudImage";
 import { X, Minus, Plus, Trash2, ShoppingBag, Mail, AlertTriangle, Loader2, CheckCircle, Send, Package } from "lucide-react";
+import PurchaseReassurance from "./PurchaseReassurance";
 import { useCart } from "../context/CartContext";
 import { useSettings } from "../context/SettingsContext";
 import { optimizeImage } from "@/lib/cloudinary";
@@ -423,6 +424,7 @@ export default function CartDrawer() {
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition-all"
                   />
                 </div>
+                <PurchaseReassurance />
                 <div className="flex gap-2">
                   <button
                     onClick={() => {

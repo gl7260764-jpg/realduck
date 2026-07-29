@@ -28,6 +28,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import PurchaseReassurance from "@/app/components/PurchaseReassurance";
 import { useCart } from "../../context/CartContext";
 import { useSettings } from "../../context/SettingsContext";
 import { optimizeImage, blurUrl } from "@/lib/cloudinary";
@@ -385,6 +386,7 @@ export default function ProductDetailClient({
                     {fastError && (
                       <p className="text-xs text-red-600 text-center bg-red-50 p-2 rounded-lg">{fastError}</p>
                     )}
+                    <PurchaseReassurance />
                     <button
                       onClick={handleFastOrder}
                       disabled={fastLoading || fastBelowMin}

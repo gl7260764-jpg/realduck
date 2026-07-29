@@ -4,6 +4,7 @@ import CloudImage from "./CloudImage";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Star, Heart, X, ArrowLeft, Check, Loader2, CheckCircle, Zap, ClipboardList, Send, Mail, Package } from "lucide-react";
+import PurchaseReassurance from "./PurchaseReassurance";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
@@ -389,6 +390,7 @@ export default function ProductCard({
                     {fastError && (
                       <p className="text-xs text-red-600 text-center bg-red-50 p-2 rounded-lg">{fastError}</p>
                     )}
+                    <PurchaseReassurance />
                     <button
                       onClick={handleFastOrder}
                       disabled={fastLoading || fastBelowMin}
