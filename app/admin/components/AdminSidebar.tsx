@@ -20,6 +20,7 @@ import {
   Link2,
   ExternalLink,
   Sparkles,
+  AlignLeft,
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -48,6 +49,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/admin/orders", label: "Orders", icon: ShoppingBag, accent: "from-emerald-500 to-teal-600" },
       { href: "/admin/products", label: "Products", icon: Package, accent: "from-amber-500 to-orange-600" },
+      { href: "/admin/descriptions", label: "Descriptions", icon: AlignLeft, accent: "from-amber-500 to-orange-600" },
     ],
   },
   {
