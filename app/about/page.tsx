@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import Script from "next/script";
@@ -73,23 +74,44 @@ export default function AboutPage() {
       />
       <Navbar />
       <main className="flex-1">
-        {/* Hero */}
-        <section className="bg-slate-900 text-white py-16 sm:py-24 px-5">
-          <div className="max-w-4xl mx-auto">
-            <span className="inline-block px-3 py-1 rounded-full text-[11px] font-bold mb-4 bg-emerald-500/20 text-emerald-300 uppercase tracking-wide">
-              About
+        {/* Hero — background image + gradient wash */}
+        <section className="relative overflow-hidden bg-slate-950 text-white">
+          <div className="absolute inset-0" aria-hidden>
+            <Image
+              src="/images/hero.webp"
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover object-center opacity-30"
+            />
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-950/85 to-slate-900/50" />
+          </div>
+          <div className="relative max-w-5xl mx-auto px-5 sm:px-6 py-16 sm:py-24 lg:py-28">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> About
             </span>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+            <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.05] tracking-tight">
               Real Duck Distro
             </h1>
-            <p className="text-lg sm:text-xl text-white/70 mt-4 max-w-2xl leading-relaxed">
+            <p className="mt-4 max-w-2xl text-base sm:text-lg text-white/70 leading-relaxed">
               Premium cannabis from Los Angeles, California — with 25+ years of combined industry experience and a verified supply chain that ships nationwide across the USA.
             </p>
+            <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/50">
+              <span>Los Angeles, USA</span>
+              <span className="text-white/20">•</span>
+              <span>Lab-tested · COA on request</span>
+              <span className="text-white/20">•</span>
+              <span>Discreet nationwide shipping</span>
+            </div>
           </div>
         </section>
 
-        {/* Story */}
-        <section className="max-w-4xl mx-auto px-5 sm:px-6 py-12 sm:py-16">
+        <div className="h-[3px] w-full bg-slate-900" aria-hidden />
+
+        {/* Story — white */}
+        <section className="bg-white px-5 sm:px-6 py-10 sm:py-16">
+          <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Why we exist</h2>
           <div className="space-y-4 text-base text-gray-700 leading-relaxed">
             <p>
