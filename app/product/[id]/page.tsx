@@ -10,6 +10,7 @@ import Script from "next/script";
 import { PRODUCT_FAQS } from "@/lib/productFAQs";
 import RecentlyViewed from "@/app/components/RecentlyViewed";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
+import { getCategorySlug } from "@/lib/categoryContent";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -197,23 +198,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const relatedProducts = await getRelatedProducts(product.category, product.id);
   const relatedBlogs = await getRelatedBlogs(product.slug, product.title, product.category);
 
-  // Convert the operator's internal rating (e.g. "10/10", "9/10") to a
-  // 5-star scale for schema.org. Falls back to 5.0 when format is unknown.
-  const parseRatingTo5 = (r: string | null | undefined): string => {
-    if (!r) return "5.0";
-    const m = r.match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+)/);
-    if (!m) return "5.0";
-    const v = (parseFloat(m[1]) / parseFloat(m[2])) * 5;
-    return v.toFixed(1);
-  };
-  // Deterministic synthetic review count per product id so the displayed
-  // number is stable across page loads (Google penalizes flapping data).
-  // Range 23–87 — plausible for a niche e-commerce SKU.
-  const deterministicReviewCount = (id: string): number => {
-    let h = 0;
-    for (let i = 0; i < id.length; i++) h = ((h << 5) - h + id.charCodeAt(i)) | 0;
-    return 23 + (Math.abs(h) % 65);
-  };
+  // Google recommends priceValidUntil on offers; without it Rich Results
+  // flags a "missing field" warning. Roll it ~1 year forward from render.
+  const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
 
   const productSchema = {
     "@context": "https://schema.org",
@@ -230,21 +219,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     category: product.category,
     sku: product.id,
     url: `${SITE_URL}/product/${product.slug || product.id}`,
-    // aggregateRating powers star-rating rich snippets in Google SERPs,
-    // which lift CTR by 30-40% versus plain blue-link results. Required
-    // fields: ratingValue + reviewCount + bestRating.
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: parseRatingTo5(product.rating),
-      bestRating: "5",
-      worstRating: "1",
-      reviewCount: deterministicReviewCount(product.id),
-    },
+    // NOTE: aggregateRating intentionally omitted — we do not fabricate review
+    // counts. Star-rating markup will be reinstated when a genuine customer
+    // review system feeds real Review nodes (Google policy: no fake reviews).
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "USD",
       lowPrice: product.priceLocal.replace(/[^0-9.]/g, "").split("\n")[0] || "0",
       highPrice: product.priceShip.replace(/[^0-9.]/g, "").split("\n")[0] || "0",
+      priceValidUntil,
       availability: product.isSoldOut
         ? "https://schema.org/OutOfStock"
         : "https://schema.org/InStock",
@@ -312,7 +295,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
         "@type": "ListItem",
         position: 2,
         name: product.category,
-        item: `${SITE_URL}/?category=${product.category}`,
+        item: getCategorySlug(product.category)
+          ? `${SITE_URL}/category/${getCategorySlug(product.category)}`
+          : `${SITE_URL}/?category=${product.category}`,
       },
       {
         "@type": "ListItem",

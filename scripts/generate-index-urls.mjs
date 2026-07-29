@@ -11,7 +11,21 @@ import { PrismaClient } from "@prisma/client";
 import { writeFileSync } from "node:fs";
 
 const prisma = new PrismaClient();
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com").replace(/\/$/, "");
+// Use the canonical www host so submitted URLs match the site's canonical tags
+// (non-www just redirects and dilutes indexing).
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com").replace(/\/$/, "");
+
+// Category landing pages (/category/[slug]) — mirror of lib/categoryContent.ts.
+// Keep in sync if categories are added there.
+const CATEGORY_SLUGS = {
+  FLOWER: "flower",
+  TOP_SHELF: "top-shelf",
+  EDIBLES: "edibles",
+  CONCENTRATES: "concentrates",
+  PREROLLS: "pre-rolls",
+  MUSHROOM: "mushrooms",
+  DISPOSABLES: "disposables",
+};
 
 async function withRetry(fn, tries = 5) {
   for (let i = 0; i < tries; i++) {
@@ -30,7 +44,7 @@ async function main() {
   const [products, blogPosts, announcements] = await Promise.all([
     withRetry(() => prisma.product.findMany({
       where: hidden.length ? { NOT: { category: { in: hidden } } } : undefined,
-      select: { slug: true, id: true, updatedAt: true },
+      select: { slug: true, id: true, category: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
     })),
     withRetry(() => prisma.blogPost.findMany({
@@ -45,20 +59,29 @@ async function main() {
     })),
   ]);
 
-  const staticPages = ["/", "/blog", "/about", "/announcements", "/orders"];
+  const staticPages = ["/", "/blog", "/faq", "/about", "/announcements", "/orders"];
+
+  // Category landing pages — only those present in the catalog and not hidden.
+  const presentCategories = new Set(products.map((p) => p.category));
+  const categoryUrls = Object.entries(CATEGORY_SLUGS)
+    .filter(([cat]) => presentCategories.has(cat) && !hidden.includes(cat))
+    .map(([, slug]) => `/category/${slug}`);
+
   const blogUrls = blogPosts.map((p) => `/blog/${p.slug}`);
   const productUrls = products.map((p) => `/product/${p.slug || p.id}`);
   const announcementUrls = announcements.map((a) => `/announcements?id=${a.id}`);
 
   const sections = [
     ["Core pages", staticPages],
+    [`Category pages (${categoryUrls.length})`, categoryUrls],
     [`Blog posts (${blogUrls.length}) — newest first`, blogUrls],
     [`Products (${productUrls.length}) — newest first`, productUrls],
     [`Announcements (${announcementUrls.length})`, announcementUrls],
   ];
 
   const stamp = new Date().toISOString();
-  const total = staticPages.length + blogUrls.length + productUrls.length + announcementUrls.length;
+  const total =
+    staticPages.length + categoryUrls.length + blogUrls.length + productUrls.length + announcementUrls.length;
 
   // Human-readable file with section headers (lines starting with # are comments
   // you can ignore when bulk-pasting; the URLs are plain and ready to copy).
@@ -79,7 +102,7 @@ async function main() {
   writeFileSync(new URL("../urls-to-index.plain.txt", import.meta.url), plain, "utf8");
 
   console.log(`Wrote urls-to-index.txt and urls-to-index.plain.txt — ${total} URLs total.`);
-  console.log(`  Core: ${staticPages.length} | Blog: ${blogUrls.length} | Products: ${productUrls.length} | Announcements: ${announcementUrls.length}`);
+  console.log(`  Core: ${staticPages.length} | Categories: ${categoryUrls.length} | Blog: ${blogUrls.length} | Products: ${productUrls.length} | Announcements: ${announcementUrls.length}`);
 }
 
 main()

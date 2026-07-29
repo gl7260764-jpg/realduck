@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Home, Package, MessageCircle, ExternalLink, X, Download, FileText, Megaphone, Phone } from "lucide-react";
+import { ShoppingCart, Home, Package, MessageCircle, ExternalLink, X, Download, FileText, Megaphone, Phone, HelpCircle, Info, Tag } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useSettings } from "../context/SettingsContext";
+import { CATEGORY_CONTENT } from "@/lib/categoryContent";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -79,11 +80,15 @@ export default function Navbar() {
     { href: "/", label: "Home", icon: Home },
     { href: "/", label: "Products", icon: Package },
     { href: "/blog", label: "Blog", icon: FileText },
+    { href: "/faq", label: "FAQ", icon: HelpCircle },
+    { href: "/about", label: "About", icon: Info },
     { href: "/announcements", label: "Announcements", icon: Megaphone },
     ...(settings.telegramChannel
       ? [{ href: settings.telegramChannel, label: "Contact Us", icon: MessageCircle, external: true }]
       : []),
   ];
+
+  const categoryLinks = Object.values(CATEGORY_CONTENT);
 
   return (
     <>
@@ -279,6 +284,31 @@ export default function Navbar() {
               );
             })}
           </nav>
+
+          {/* Shop by category */}
+          <div
+            className={`mt-6 transition-all duration-300 ${
+              isMenuOpen && isAnimating ? "opacity-100" : "opacity-0"
+            }`}
+            style={{ transitionDelay: isMenuOpen ? "500ms" : "0ms" }}
+          >
+            <div className="flex items-center gap-2 px-3 mb-2 text-white/40">
+              <Tag className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Shop by Category</span>
+            </div>
+            <div className="flex flex-wrap gap-2 px-3 pb-4">
+              {categoryLinks.map((c) => (
+                <Link
+                  key={c.slug}
+                  href={`/category/${c.slug}`}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="inline-flex items-center rounded-full border border-white/10 px-3 py-1.5 text-xs text-white/70 hover:text-white hover:border-white/30 transition-colors"
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
+          </div>
 
           {/* Footer */}
           <div

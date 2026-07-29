@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 import { PRODUCT_FAQS } from "@/lib/productFAQs";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
+import { CATEGORY_CONTENT } from "@/lib/categoryContent";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.realduckdistro.com";
 
@@ -63,16 +64,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "daily", priority: 1.0 },
     { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/faq`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${SITE_URL}/announcements`, lastModified: now, changeFrequency: "daily", priority: 0.6 },
     { url: `${SITE_URL}/orders`, lastModified: now, changeFrequency: "monthly", priority: 0.3 },
   ];
 
-  const categoryPages: MetadataRoute.Sitemap = productCategories.map((category) => ({
-    url: `${SITE_URL}/?category=${category}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.9,
-  }));
+  // Real category landing pages (/category/[slug]) — replaces the old
+  // ?category= query URLs that canonicalized away to the homepage. Only emit
+  // pages whose category is present in the catalog and not hidden.
+  const categoryPages: MetadataRoute.Sitemap = Object.values(CATEGORY_CONTENT)
+    .filter((c) => !hidden.includes(c.category) && productCategories.includes(c.category))
+    .map((c) => ({
+      url: `${SITE_URL}/category/${c.slug}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.9,
+    }));
 
   const blogCategoryPages: MetadataRoute.Sitemap = blogCategories.map((cat) => ({
     url: `${SITE_URL}/blog?category=${cat}`,

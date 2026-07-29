@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Send, FileText, MessageSquare, Megaphone, Phone, MessageCircle } from "lucide-react";
 import { useSettings } from "../context/SettingsContext";
+import { CATEGORY_CONTENT } from "@/lib/categoryContent";
 
 const TelegramIcon = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -73,7 +74,19 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-center sm:text-left">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-10 gap-y-4 text-center sm:text-left">
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-white mb-3">Shop</h3>
+              <ul className="space-y-2">
+                {Object.values(CATEGORY_CONTENT).map((c) => (
+                  <li key={c.slug}>
+                    <Link href={`/category/${c.slug}`} className="text-sm sm:text-base text-white/50 hover:text-white transition-colors">
+                      {c.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold text-white mb-3">Explore</h3>
               <ul className="space-y-2">
@@ -85,6 +98,16 @@ export default function Footer() {
                 <li>
                   <Link href="/blog" className="text-sm sm:text-base text-white/50 hover:text-white transition-colors flex items-center justify-center sm:justify-start gap-1.5">
                     <FileText className="w-4 h-4" /> Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/faq" className="text-sm sm:text-base text-white/50 hover:text-white transition-colors">
+                    FAQ
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about" className="text-sm sm:text-base text-white/50 hover:text-white transition-colors">
+                    About
                   </Link>
                 </li>
                 <li>
