@@ -5,7 +5,6 @@ import Footer from "./components/Footer";
 import SEOBlock from "./components/SEOBlock";
 import RecentlyViewed from "./components/RecentlyViewed";
 import CartRecoveryBanner from "./components/CartRecoveryBanner";
-import HowItWorks from "./components/HowItWorks";
 import prisma from "@/lib/prisma";
 import Script from "next/script";
 import { dailyShuffle } from "@/lib/dailyShuffle";
@@ -192,7 +191,6 @@ export default async function Home() {
         <Suspense fallback={<div className="min-h-[60vh]" />}>
           <CatalogClient initialProducts={products} />
         </Suspense>
-        <HowItWorks />
         <RecentlyViewed limit={6} />
         <SEOBlock
           heading="The World's Leading Premium Cannabis Lifestyle Brand"
