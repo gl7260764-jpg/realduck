@@ -33,7 +33,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetch("/api/settings", { cache: "no-store" })
       .then((r) => r.json())
-      .then((data) => setSettings({ ...DEFAULTS, ...data }))
+      .then((data) => {
+        // Drop empty/null values so a blank DB setting doesn't override a good
+        // default (e.g. an empty telegramOrder was producing href="" links that
+        // broke the "Message us" button on the post-order success screens).
+        const clean = Object.fromEntries(
+          Object.entries(data || {}).filter(([, v]) => v != null && v !== ""),
+        );
+        setSettings({ ...DEFAULTS, ...clean });
+      })
       .catch(() => {});
   }, []);
 

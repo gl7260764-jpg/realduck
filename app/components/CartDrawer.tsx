@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { useRouter } from "next/navigation";
 import CloudImage from "./CloudImage";
-import { X, Minus, Plus, Trash2, ShoppingBag, Mail, AlertTriangle, Loader2, CheckCircle, Send } from "lucide-react";
+import { X, Minus, Plus, Trash2, ShoppingBag, Mail, AlertTriangle, Loader2, CheckCircle, Send, Package } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useSettings } from "../context/SettingsContext";
 import { optimizeImage } from "@/lib/cloudinary";
@@ -27,6 +27,7 @@ export default function CartDrawer() {
   const [showFastContact, setShowFastContact] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
+  const [telegramOrderNumber, setTelegramOrderNumber] = useState("");
 
   // Prevent body scroll when cart is open
   useEffect(() => {
@@ -138,6 +139,7 @@ export default function CartDrawer() {
         return;
       }
 
+      setTelegramOrderNumber(data.orderNumber || "");
       setTelegramSuccess(true);
       clearCart();
     } catch {
@@ -184,14 +186,24 @@ export default function CartDrawer() {
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
                 <CheckCircle className="w-10 h-10 text-green-500" />
               </div>
-              <p className="font-bold text-gray-900 text-lg mb-3">Order Placed!</p>
+              <p className="font-bold text-gray-900 text-lg mb-1">Order Received</p>
+              {telegramOrderNumber && (
+                <p className="text-sm font-semibold text-slate-900 mb-2">Order #{telegramOrderNumber}</p>
+              )}
               <p className="text-sm text-gray-500 leading-relaxed">
-                Our team will process your order and contact you through the email or phone number you provided. Please check it shortly.
+                Nothing has been charged yet. We&apos;ll message you within ~10 minutes with payment details (Zelle, Cash App, Chime or Crypto) to finalize and ship your order.
               </p>
               <p className="text-sm text-gray-500 mt-3 leading-relaxed">
                 If it takes more than 5 minutes, reach out to us directly:
               </p>
               <div className="flex flex-col gap-2.5 mt-5 w-full">
+                <a
+                  href="/orders"
+                  className="flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                >
+                  <Package className="w-4 h-4" />
+                  Track my order
+                </a>
                 <a
                   href={settings.telegramOrder}
                   target="_blank"
@@ -364,7 +376,7 @@ export default function CartDrawer() {
               className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors"
             >
               <Mail className="w-5 h-5" />
-              Fast Order
+              Full Checkout
             </button>
             {telegramError && (
               <p className="text-xs text-red-600 text-center bg-red-50 p-2 rounded-lg">{telegramError}</p>
@@ -452,7 +464,7 @@ export default function CartDrawer() {
                 className="w-full flex items-center justify-center gap-2 bg-[#29B6F6] hover:bg-[#0288D1] disabled:bg-sky-300 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors"
               >
                 <TelegramIcon className="w-5 h-5" />
-                Detailed Order
+                Express Order
               </button>
             )}
           </div>

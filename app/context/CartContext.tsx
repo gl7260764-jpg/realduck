@@ -31,7 +31,7 @@ interface CartContextType {
   items: CartItem[];
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  addItem: (item: Omit<CartItem, "quantity">) => boolean;
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => boolean;
   isInCart: (id: string) => boolean;
   removeItem: (id: string, priceType: "local" | "ship") => void;
   updateQuantity: (id: string, priceType: "local" | "ship", quantity: number) => void;
@@ -76,13 +76,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return items.some((item) => item.id === id);
   };
 
-  const addItem = (newItem: Omit<CartItem, "quantity">): boolean => {
-    if (items.some((item) => item.id === newItem.id)) {
-      return false; // Already in cart
+  const addItem = (newItem: Omit<CartItem, "quantity">, quantity?: number): boolean => {
+    // Already in cart → increment instead of no-op (a second "Add to Cart"
+    // used to do nothing, which reads as broken and loses AOV).
+    const existing = items.find((item) => item.id === newItem.id);
+    if (existing) {
+      const inc = Math.max(1, quantity ?? 1);
+      updateQuantity(existing.id, existing.priceType, existing.quantity + inc);
+      return true;
     }
     // Disposables ALWAYS start at 50 — business rule, no bypass.
     if (isDisposableItem(newItem.category)) {
-      setItems((prev) => [...prev, { ...newItem, quantity: DISPOSABLES_MIN_QTY }]);
+      const qty = Math.max(DISPOSABLES_MIN_QTY, quantity ?? DISPOSABLES_MIN_QTY);
+      setItems((prev) => [...prev, { ...newItem, quantity: qty }]);
       return true;
     }
     // Otherwise: low-price items start at 5 (unless cart total already bypasses), else 1.
@@ -94,7 +100,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const p = extractNumericPrice(formatPrice(i.priceType === "local" ? i.priceLocal : i.priceShip).split("\n")[0] || "");
       return sum + p * i.quantity;
     }, 0);
-    const startQty = (isLow && currentTotal < CART_TOTAL_BYPASS) ? LOW_PRICE_MIN_QTY : 1;
+    const minQty = (isLow && currentTotal < CART_TOTAL_BYPASS) ? LOW_PRICE_MIN_QTY : 1;
+    // Honor a caller-supplied quantity (e.g. the PDP quantity selector), but
+    // never below the item's minimum.
+    const startQty = quantity ? Math.max(minQty, quantity) : minQty;
     setItems((prev) => [...prev, { ...newItem, quantity: startQty }]);
     return true;
   };

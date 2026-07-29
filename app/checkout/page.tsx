@@ -226,7 +226,15 @@ export default function CheckoutPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to place order");
       setOrderSuccess(data.orderNumber);
-      if (data.emailWarning) setEmailWarning(data.emailWarning);
+      // The API returns notificationsOk/emailError (not emailWarning). Email can
+      // fail (provider outage) — the on-screen confirmation + order number is the
+      // source of truth, so show a calm heads-up rather than leaving the customer
+      // waiting on an email that may never arrive.
+      if (data.notificationsOk === false || data.emailError) {
+        setEmailWarning(
+          "Your confirmation email may be delayed — but your order is saved. Note your order number above and message us on Telegram below to get your payment details.",
+        );
+      }
       clearCart();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -248,21 +256,21 @@ export default function CheckoutPage() {
               <CheckCircle className="w-12 h-12 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Order Placed!</h1>
-          <p className="text-sm text-gray-500 mb-5">Your order has been received successfully</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Order Received</h1>
+          <p className="text-sm text-gray-500 mb-5">Nothing charged yet — we&apos;ll message you to finalize payment</p>
           <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl px-5 py-4 mb-5 shadow-lg">
             <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 mb-1.5">Order Number</p>
             <p className="text-xl font-mono font-bold text-white tracking-wide">{orderSuccess}</p>
           </div>
           {emailWarning && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4 text-left flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-red-700 leading-relaxed">{emailWarning}</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-left flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-800 leading-relaxed">{emailWarning}</p>
             </div>
           )}
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-left">
             <p className="text-xs text-gray-600 leading-relaxed">
-              Our team will process your order and contact you through the email or Telegram you provided. Please check it shortly.
+              Nothing has been charged yet. We&apos;ll message you within ~10 minutes with payment details (Zelle, Cash App, Chime or Crypto) to finalize and ship your order. Save your order number above.
             </p>
           </div>
           <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 mb-5 text-left">

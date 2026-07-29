@@ -30,6 +30,7 @@ interface CheckoutBody {
   paymentMethod: string;
   shippingMethod?: string;
   deliveryNotes?: string;
+  telegramUsername?: string;
   items: CheckoutItem[];
   sessionId?: string;
   isPwa?: boolean;
@@ -47,7 +48,8 @@ function getShippingLabel(method?: string | null): string {
 }
 
 function generateOrderNumber(): string {
-  const num = Math.floor(1000 + Math.random() * 9000);
+  // 6-digit space (900k) + create-time retry loop makes collisions negligible.
+  const num = Math.floor(100000 + Math.random() * 900000);
   return "NP-" + num;
 }
 
@@ -273,38 +275,60 @@ export async function POST(request: NextRequest) {
     var orderNumber = generateOrderNumber();
     var totalItems = body.items.reduce(function(sum: number, item: CheckoutItem) { return sum + item.quantity; }, 0);
 
+    // Fold the customer's Telegram handle into deliveryNotes so it's persisted
+    // AND surfaced in the admin ntfy/email (it was previously collected in the
+    // form, POSTed, then silently dropped — the customer was never reachable).
+    const tgHandle = body.telegramUsername?.trim();
+    if (tgHandle) {
+      const existingNotes = body.deliveryNotes?.trim();
+      body.deliveryNotes = existingNotes ? `${existingNotes} | Telegram: ${tgHandle}` : `Telegram: ${tgHandle}`;
+    }
+
     // Get IP-based geolocation
     const ip = getClientIp(request);
     const geo = await getGeoFromRequest(request);
 
-    await prisma.checkoutOrder.create({
-      data: {
-        orderNumber: orderNumber,
-        sessionId: body.sessionId || null,
-        firstName: body.firstName.trim(),
-        lastName: body.lastName.trim(),
-        email: body.email.trim().toLowerCase(),
-        phone: body.phone.trim(),
-        address: body.address.trim(),
-        apartment: body.apartment?.trim() || null,
-        city: body.city.trim(),
-        state: body.state.trim(),
-        zipCode: body.zipCode.trim(),
-        country: body.country || "United States",
-        items: JSON.parse(JSON.stringify(body.items)),
-        totalItems: totalItems,
-        paymentMethod: body.paymentMethod,
-        shippingMethod: isShipped && body.shippingMethod ? body.shippingMethod : null,
-        pwaDiscount: false,
-        deliveryNotes: body.deliveryNotes?.trim() || null,
-        ipCountry: geo?.country || null,
-        ipState: geo?.state || null,
-        ipCity: geo?.city || null,
-        ipZip: geo?.zip || null,
-        ipAddress: geo?.ip || ip || null,
-        orderSource: "email",
-      },
-    });
+    // Create with collision retry: orderNumber is @unique, so on the rare
+    // duplicate (P2002) we regenerate and try again rather than 500 the order.
+    for (let attempt = 0; ; attempt++) {
+      try {
+        await prisma.checkoutOrder.create({
+          data: {
+            orderNumber: orderNumber,
+            sessionId: body.sessionId || null,
+            firstName: body.firstName.trim(),
+            lastName: body.lastName.trim(),
+            email: body.email.trim().toLowerCase(),
+            phone: body.phone.trim(),
+            address: body.address.trim(),
+            apartment: body.apartment?.trim() || null,
+            city: body.city.trim(),
+            state: body.state.trim(),
+            zipCode: body.zipCode.trim(),
+            country: body.country || "United States",
+            items: JSON.parse(JSON.stringify(body.items)),
+            totalItems: totalItems,
+            paymentMethod: body.paymentMethod,
+            shippingMethod: isShipped && body.shippingMethod ? body.shippingMethod : null,
+            pwaDiscount: false,
+            deliveryNotes: body.deliveryNotes?.trim() || null,
+            ipCountry: geo?.country || null,
+            ipState: geo?.state || null,
+            ipCity: geo?.city || null,
+            ipZip: geo?.zip || null,
+            ipAddress: geo?.ip || ip || null,
+            orderSource: "email",
+          },
+        });
+        break;
+      } catch (err) {
+        if ((err as { code?: string })?.code === "P2002" && attempt < 5) {
+          orderNumber = generateOrderNumber();
+          continue;
+        }
+        throw err;
+      }
+    }
 
     // Also record each item in the analytics `Order` table, using
     // IP-based geolocation (not the user-entered shipping address) so

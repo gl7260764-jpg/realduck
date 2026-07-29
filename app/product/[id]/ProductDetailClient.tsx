@@ -67,6 +67,7 @@ export default function ProductDetailClient({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [quantity, setQuantity] = useState(product.category === "DISPOSABLES" ? 50 : 1);
+  const [fastOrderNumber, setFastOrderNumber] = useState("");
   const [activeTab, setActiveTab] = useState<"description" | "shipping">("description");
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyStep, setBuyStep] = useState<"choose" | "fast-contact" | "success">("choose");
@@ -160,6 +161,11 @@ export default function ProductDetailClient({
       setFastError("Please enter a valid email");
       return;
     }
+    const phoneTrimmed = customerPhone.trim();
+    if (!phoneTrimmed || phoneTrimmed.replace(/\D/g, "").length < 7) {
+      setFastError("Please enter a valid phone number");
+      return;
+    }
     if (fastBelowMin) {
       setFastError(
         isDisposables
@@ -190,8 +196,8 @@ export default function ProductDetailClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          customerPhone: customerPhone.trim() || undefined,
-          customerEmail: customerEmail.trim() || undefined,
+          customerPhone: customerPhone.trim(),
+          customerEmail: customerEmail.trim(),
           items: [{
             id: product.id,
             title: product.title,
@@ -211,6 +217,7 @@ export default function ProductDetailClient({
         return;
       }
 
+      setFastOrderNumber(data.orderNumber || "");
       setBuyStep("success");
     } catch {
       setFastError("Network error. Please try again.");
@@ -236,10 +243,7 @@ export default function ProductDetailClient({
   };
 
   const handleAddToCart = () => {
-    if (alreadyInCart) {
-      setIsOpen(true);
-      return;
-    }
+    // Honor the selected quantity; addItem increments if already in cart.
     addItem({
       id: product.id,
       title: product.title,
@@ -248,7 +252,7 @@ export default function ProductDetailClient({
       priceLocal: product.priceLocal,
       priceShip: product.priceShip,
       priceType: "ship",
-    });
+    }, quantity);
     setIsOpen(true);
   };
 
@@ -314,8 +318,8 @@ export default function ProductDetailClient({
                         <Zap className="w-5 h-5 text-amber-600" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-gray-900 text-sm">Detailed Order</p>
-                        <p className="text-xs text-gray-500">Just your contact info & done</p>
+                        <p className="font-medium text-gray-900 text-sm">Express Order</p>
+                        <p className="text-xs text-gray-500">Contact only — we message you to finish</p>
                       </div>
                     </button>
                     <button
@@ -326,8 +330,8 @@ export default function ProductDetailClient({
                         <ClipboardList className="w-5 h-5 text-slate-700" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-gray-900 text-sm">Fast Order</p>
-                        <p className="text-xs text-gray-500">Full checkout with address & payment</p>
+                        <p className="font-medium text-gray-900 text-sm">Full Checkout</p>
+                        <p className="text-xs text-gray-500">Enter address & payment now</p>
                       </div>
                     </button>
                   </div>
@@ -337,7 +341,7 @@ export default function ProductDetailClient({
               {/* Step 2: Fast Order - Enter contact info */}
               {buyStep === "fast-contact" && (
                 <>
-                  <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
+                  <p className="text-xs text-gray-500 mb-3 text-center">Email and phone number are required</p>
                   {fastBelowMin && (
                     <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                       {isDisposables ? (
@@ -351,7 +355,7 @@ export default function ProductDetailClient({
                         <>
                           <p className="text-xs font-semibold text-amber-900">Fast order minimum is ${FAST_ORDER_MIN}</p>
                           <p className="text-[11px] text-amber-800 mt-1 leading-relaxed">
-                            At {fastUnitPrice ? `$${fastUnitPrice.toFixed(2)}` : "this price"} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}. Use the quantity selector below to bump it up, or switch to Detailed Order.
+                            At {fastUnitPrice ? `$${fastUnitPrice.toFixed(2)}` : "this price"} each, you need at least <strong>{fastMinQty}</strong> unit{fastMinQty === 1 ? "" : "s"} to reach ${FAST_ORDER_MIN}. Use the quantity selector below to bump it up, or switch to Full Checkout.
                           </p>
                         </>
                       )}
@@ -407,14 +411,24 @@ export default function ProductDetailClient({
                   <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-3">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
-                  <p className="font-bold text-gray-900 text-base">Order Placed!</p>
+                  <p className="font-bold text-gray-900 text-base">Order Received</p>
+                  {fastOrderNumber && (
+                    <p className="text-sm font-semibold text-slate-900 mt-1">Order #{fastOrderNumber}</p>
+                  )}
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed px-2">
-                    Our team will process your order and contact you through the email or phone number you provided. Please check it shortly.
+                    Nothing has been charged yet. We&apos;ll message you within ~10 minutes with payment details (Zelle, Cash App, Chime or Crypto) to finalize and ship your order.
                   </p>
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed px-2">
                     If it takes more than 5 minutes, reach out to us directly:
                   </p>
                   <div className="flex flex-col gap-2 mt-3 w-full">
+                    <a
+                      href="/orders"
+                      className="flex items-center justify-center gap-2 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                    >
+                      <Package className="w-4 h-4" />
+                      Track my order
+                    </a>
                     <a
                       href={settings.telegramOrder}
                       target="_blank"

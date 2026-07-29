@@ -3,7 +3,7 @@
 import CloudImage from "./CloudImage";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Star, Heart, X, ArrowLeft, Check, Loader2, CheckCircle, Zap, ClipboardList, Send, Mail } from "lucide-react";
+import { ShoppingCart, Star, Heart, X, ArrowLeft, Check, Loader2, CheckCircle, Zap, ClipboardList, Send, Mail, Package } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
@@ -59,6 +59,7 @@ export default function ProductCard({
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [fastQty, setFastQty] = useState(category === "DISPOSABLES" ? 50 : 1);
+  const [fastOrderNumber, setFastOrderNumber] = useState("");
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRef = useRef<HTMLAnchorElement>(null);
@@ -160,6 +161,11 @@ export default function ProductCard({
       setFastError("Please enter a valid email");
       return;
     }
+    const phoneTrimmed = customerPhone.trim();
+    if (!phoneTrimmed || phoneTrimmed.replace(/\D/g, "").length < 7) {
+      setFastError("Please enter a valid phone number");
+      return;
+    }
     if (fastBelowMin) {
       setFastError(
         isDisposables
@@ -190,8 +196,8 @@ export default function ProductCard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          customerPhone: customerPhone.trim() || undefined,
-          customerEmail: customerEmail.trim() || undefined,
+          customerPhone: customerPhone.trim(),
+          customerEmail: customerEmail.trim(),
           items: [{
             id,
             title,
@@ -211,6 +217,7 @@ export default function ProductCard({
         return;
       }
 
+      setFastOrderNumber(data.orderNumber || "");
       setBuyStep("success");
     } catch {
       setFastError("Network error. Please try again.");
@@ -289,8 +296,8 @@ export default function ProductCard({
                         <Zap className="w-5 h-5 text-amber-600" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-gray-900 text-sm">Detailed Order</p>
-                        <p className="text-xs text-gray-500">Just your contact info & done</p>
+                        <p className="font-medium text-gray-900 text-sm">Express Order</p>
+                        <p className="text-xs text-gray-500">Contact only — we message you to finish</p>
                       </div>
                     </button>
                     <button
@@ -301,8 +308,8 @@ export default function ProductCard({
                         <ClipboardList className="w-5 h-5 text-slate-700" />
                       </div>
                       <div className="flex-1 text-left">
-                        <p className="font-medium text-gray-900 text-sm">Fast Order</p>
-                        <p className="text-xs text-gray-500">Full checkout with address & payment</p>
+                        <p className="font-medium text-gray-900 text-sm">Full Checkout</p>
+                        <p className="text-xs text-gray-500">Enter address & payment now</p>
                       </div>
                     </button>
                   </div>
@@ -312,7 +319,7 @@ export default function ProductCard({
               {/* Step 2: Fast Order - Enter contact info */}
               {buyStep === "fast-contact" && (
                 <>
-                  <p className="text-xs text-gray-500 mb-3 text-center">Email is required — phone number is optional</p>
+                  <p className="text-xs text-gray-500 mb-3 text-center">Email and phone number are required</p>
                   {isDisposables ? (
                     fastBelowMin && (
                       <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
@@ -408,14 +415,24 @@ export default function ProductCard({
                   <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-3">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                   </div>
-                  <p className="font-bold text-gray-900 text-base">Order Placed!</p>
+                  <p className="font-bold text-gray-900 text-base">Order Received</p>
+                  {fastOrderNumber && (
+                    <p className="text-sm font-semibold text-slate-900 mt-1">Order #{fastOrderNumber}</p>
+                  )}
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed px-2">
-                    Our team will process your order and contact you through the email or phone number you provided. Please check it shortly.
+                    Nothing has been charged yet. We&apos;ll message you within ~10 minutes with payment details (Zelle, Cash App, Chime or Crypto) to finalize and ship your order.
                   </p>
                   <p className="text-xs text-gray-500 mt-2 leading-relaxed px-2">
                     If it takes more than 5 minutes, reach out to us directly:
                   </p>
                   <div className="flex flex-col gap-2 mt-3 w-full">
+                    <a
+                      href="/orders"
+                      className="flex items-center justify-center gap-2 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
+                    >
+                      <Package className="w-4 h-4" />
+                      Track my order
+                    </a>
                     <a
                       href={settings.telegramOrder}
                       target="_blank"
