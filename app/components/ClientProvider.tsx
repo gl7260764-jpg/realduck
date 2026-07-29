@@ -1,6 +1,7 @@
 "use client";
 
 import PasswordGate from "./PasswordGate";
+import AgeGate from "./AgeGate";
 import PageTracker from "./PageTracker";
 import { CartProvider } from "../context/CartContext";
 import { SettingsProvider } from "../context/SettingsContext";
@@ -17,7 +18,9 @@ export default function ClientProvider({ children }: ClientProviderProps) {
     <SettingsProvider>
       <CartProvider>
         <PageTracker />
-        <PasswordGate>{children}</PasswordGate>
+        <AgeGate>
+          <PasswordGate>{children}</PasswordGate>
+        </AgeGate>
         <CartDrawer />
         <PwaManager />
         <NewsletterPopup />
