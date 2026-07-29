@@ -113,17 +113,24 @@ export default async function StatePage({ params }: StatePageProps) {
             </ol>
           </nav>
 
-          <header className="mb-6 max-w-3xl">
-            <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
-              Priority delivery state
-            </span>
-            <h1 className="mt-3 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
-              {c.h1}
-            </h1>
-            <p className="mt-3 text-gray-600 text-sm sm:text-base leading-relaxed">{c.answer}</p>
-            <p className="mt-2 text-xs text-gray-400">
-              Serving {c.cities.join(" · ")} and all of {c.name}.
-            </p>
+          <header className="relative mb-8 overflow-hidden rounded-3xl border border-slate-100 bg-gradient-to-b from-emerald-50/60 via-white to-white px-6 py-12 text-center shadow-[0_1px_2px_rgba(15,23,42,0.03),0_12px_40px_rgba(15,23,42,0.05)] sm:py-16">
+            {/* soft ambient glow */}
+            <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 h-56 w-[36rem] max-w-full -translate-x-1/2 rounded-full bg-emerald-200/25 blur-3xl" />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Priority delivery state
+              </span>
+              <h1 className="mx-auto mt-5 max-w-3xl text-3xl font-extrabold leading-[1.1] tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+                {c.h1}
+              </h1>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
+                {c.answer}
+              </p>
+              <p className="mx-auto mt-4 text-xs font-medium tracking-wide text-slate-400">
+                Serving {c.cities.join(" · ")} and all of {c.name}
+              </p>
+            </div>
           </header>
 
           <ProductGrid products={products} />
