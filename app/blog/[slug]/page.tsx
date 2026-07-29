@@ -5,6 +5,8 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import BlogPostClient from "./BlogPostClient";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+
 export const revalidate = 600;
 
 async function getPost(slug: string) {
@@ -94,7 +96,7 @@ export async function generateMetadata({
       title: post.metaTitle?.trim() || post.title,
       description: desc,
       type: "article",
-      url: `https://www.realduckdistro.com/blog/${post.slug}`,
+      url: `${SITE_URL}/blog/${post.slug}`,
       siteName: "Real Duck Distro",
       publishedTime: post.createdAt.toISOString(),
       modifiedTime: post.updatedAt.toISOString(),
@@ -110,7 +112,7 @@ export async function generateMetadata({
       images: ogImage ? [ogImage] : [],
     },
     alternates: {
-      canonical: `https://www.realduckdistro.com/blog/${post.slug}`,
+      canonical: `${SITE_URL}/blog/${post.slug}`,
     },
     robots: {
       index: true,
@@ -162,7 +164,7 @@ export default async function BlogPostPage({
     author: {
       "@type": "Organization",
       name: "Real Duck Distro Editorial Team",
-      url: "https://www.realduckdistro.com/about",
+      url: `${SITE_URL}/about`,
       knowsAbout: [
         "California cannabis cultivation",
         "Cannabis extracts and concentrates",
@@ -175,28 +177,28 @@ export default async function BlogPostPage({
     publisher: {
       "@type": "Organization",
       name: "Real Duck Distro",
-      url: "https://www.realduckdistro.com",
+      url: `${SITE_URL}`,
       logo: {
         "@type": "ImageObject",
-        url: "https://www.realduckdistro.com/images/logo.jpg",
+        url: `${SITE_URL}/images/logo.jpg`,
         width: 1111,
         height: 874,
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://www.realduckdistro.com/blog/${post.slug}`,
+      "@id": `${SITE_URL}/blog/${post.slug}`,
     },
-    url: `https://www.realduckdistro.com/blog/${post.slug}`,
+    url: `${SITE_URL}/blog/${post.slug}`,
   };
 
   const breadcrumbLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.realduckdistro.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.realduckdistro.com/blog" },
-      { "@type": "ListItem", position: 3, name: post.title, item: `https://www.realduckdistro.com/blog/${post.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}` },
+      { "@type": "ListItem", position: 2, name: "Blog", item: `${SITE_URL}/blog` },
+      { "@type": "ListItem", position: 3, name: post.title, item: `${SITE_URL}/blog/${post.slug}` },
     ],
   };
 

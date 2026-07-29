@@ -4,6 +4,8 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import BlogClient from "./BlogClient";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
+
 export const revalidate = 300;
 
 export const metadata: Metadata = {
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   alternates: {
-    canonical: "https://www.realduckdistro.com/blog",
+    canonical: `${SITE_URL}/blog`,
   },
 };
 
@@ -53,17 +55,17 @@ export default async function BlogPage() {
     "@type": "Blog",
     name: "Real Duck Distro Blog",
     description: "Cannabis education, guides, health benefits, and industry insights.",
-    url: "https://www.realduckdistro.com/blog",
+    url: `${SITE_URL}/blog`,
     publisher: {
       "@type": "Organization",
       name: "Real Duck Distro",
-      url: "https://www.realduckdistro.com",
+      url: `${SITE_URL}`,
     },
     blogPost: posts.slice(0, 10).map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,
       description: post.excerpt,
-      url: `https://www.realduckdistro.com/blog/${post.slug}`,
+      url: `${SITE_URL}/blog/${post.slug}`,
       datePublished: post.createdAt,
       author: { "@type": "Person", name: post.author },
       image: post.imageUrl,
