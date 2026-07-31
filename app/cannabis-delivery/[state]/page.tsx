@@ -39,23 +39,28 @@ export async function generateMetadata({ params }: StatePageProps): Promise<Meta
 
 async function getFeaturedProducts() {
   const hidden = await getHiddenCategories();
-  const products = await prisma.product.findMany({
-    where: {
-      isSoldOut: false,
-      ...(hidden.length ? { NOT: { category: { in: hidden as never } } } : {}),
-    },
-    select: {
-      id: true, slug: true, title: true, category: true, indoor: true, rating: true,
-      priceLocal: true, priceShip: true, slashedPriceLocal: true, slashedPriceShip: true,
-      isSoldOut: true, imageUrl: true, videoUrl: true,
-    },
-    orderBy: { createdAt: "desc" },
-    take: 60,
-  });
-  // Flower-first, then a daily-shuffled mix — same feel as the homepage.
-  const flower = dailyShuffle(products.filter((p) => p.category === "FLOWER"));
-  const other = dailyShuffle(products.filter((p) => p.category !== "FLOWER"));
-  return [...flower, ...other].slice(0, 12);
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isSoldOut: false,
+        ...(hidden.length ? { NOT: { category: { in: hidden as never } } } : {}),
+      },
+      select: {
+        id: true, slug: true, title: true, category: true, indoor: true, rating: true,
+        priceLocal: true, priceShip: true, slashedPriceLocal: true, slashedPriceShip: true,
+        isSoldOut: true, imageUrl: true, videoUrl: true,
+      },
+      orderBy: { createdAt: "desc" },
+      take: 60,
+    });
+    // Flower-first, then a daily-shuffled mix — same feel as the homepage.
+    const flower = dailyShuffle(products.filter((p) => p.category === "FLOWER"));
+    const other = dailyShuffle(products.filter((p) => p.category !== "FLOWER"));
+    return [...flower, ...other].slice(0, 12);
+  } catch (e) {
+    console.error("State page products fetch failed:", (e as Error).message);
+    return [];
+  }
 }
 
 export default async function StatePage({ params }: StatePageProps) {

@@ -63,7 +63,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 }
 
 async function getCategoryProducts(category: string) {
-  return prisma.product.findMany({
+  try {
+  return await prisma.product.findMany({
     where: { category: category as never, isSoldOut: false },
     select: {
       id: true,
@@ -82,6 +83,10 @@ async function getCategoryProducts(category: string) {
     },
     orderBy: { createdAt: "desc" },
   });
+  } catch (e) {
+    console.error("Category products fetch failed:", (e as Error).message);
+    return [];
+  }
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

@@ -20,7 +20,9 @@ async function getProducts() {
   // images[]/ogImage/updatedAt — those are ~180 KB of SEO + admin data the
   // homepage's client renderer doesn't need. Cuts client JS payload ~70%.
   const hidden = await getHiddenCategories();
-  const products = await prisma.product.findMany({
+  let products;
+  try {
+  products = await prisma.product.findMany({
     // Sold-out products are hidden from the catalog entirely — their own
     // /product/[slug] page still resolves (so existing backlinks and indexed
     // results don't 404), but they never surface in any listing.
@@ -48,6 +50,12 @@ async function getProducts() {
       createdAt: "desc",
     },
   });
+  } catch (e) {
+    // DB unavailable (e.g. Neon cold-start) — degrade to an empty catalog
+    // instead of crashing the whole homepage with a server exception.
+    console.error("Homepage catalog fetch failed:", (e as Error).message);
+    return [];
+  }
 
   // Pinned top three — matched by title (case-insensitive substring), order preserved
   const pinnedMatchers = [
