@@ -16,15 +16,28 @@ export default function AdminLoginPage() {
     setError("");
     setIsLoading(true);
 
-    try {
+    const attempt = async () => {
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-
       const data = await response.json();
+      return { response, data };
+    };
 
+    try {
+      let result;
+      try {
+        result = await attempt();
+      } catch {
+        // First attempt failed at the network/timeout level (often a cold Neon
+        // DB waking up). Wait briefly and retry once before surfacing an error.
+        await new Promise((r) => setTimeout(r, 900));
+        result = await attempt();
+      }
+
+      const { response, data } = result;
       if (!response.ok) {
         setError(data.error || "Login failed");
         return;
@@ -33,7 +46,7 @@ export default function AdminLoginPage() {
       router.push("/admin");
       router.refresh();
     } catch {
-      setError("An error occurred. Please try again.");
+      setError("The server is waking up. Please tap Sign In once more.");
     } finally {
       setIsLoading(false);
     }

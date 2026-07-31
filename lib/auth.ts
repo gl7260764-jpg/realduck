@@ -11,11 +11,20 @@ export async function createSession(username: string): Promise<string> {
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_MS);
 
-  await prisma.adminSession.create({
-    data: { token, username, expiresAt },
-  });
-
-  return token;
+  // Neon (serverless) scales to zero when idle, so the first write can fail with
+  // a connection error while the DB wakes. Retry briefly so a cold-start recovers
+  // instead of erroring the admin out of login.
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      await prisma.adminSession.create({ data: { token, username, expiresAt } });
+      return token;
+    } catch (e) {
+      lastErr = e;
+      await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+    }
+  }
+  throw lastErr;
 }
 
 // ── Read the session cookie ──
