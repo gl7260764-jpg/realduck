@@ -496,9 +496,32 @@ export default function AnalyticsPage() {
     fetchData();
   }, [fetchData]);
 
+  // Refresh every 30s only while someone is looking: paused when the tab is
+  // hidden or untouched for 3 minutes, with an immediate refresh on return. An
+  // analytics tab left open otherwise queried the database forever, and Neon
+  // only suspends (and stops billing) after 5 minutes with no queries at all.
   useEffect(() => {
-    const interval = setInterval(() => fetchData(), 30000);
-    return () => clearInterval(interval);
+    const IDLE_MS = 3 * 60_000;
+    let lastActivity = Date.now();
+    const active = () =>
+      document.visibilityState === "visible" && Date.now() - lastActivity < IDLE_MS;
+    const interval = setInterval(() => {
+      if (active()) fetchData();
+    }, 30000);
+    const onActivity = () => {
+      if (document.visibilityState !== "visible") return;
+      const wasIdle = !active();
+      lastActivity = Date.now();
+      if (wasIdle) fetchData();
+    };
+    const events = ["pointerdown", "keydown", "touchstart", "wheel"] as const;
+    events.forEach((e) => window.addEventListener(e, onActivity, { passive: true }));
+    document.addEventListener("visibilitychange", onActivity);
+    return () => {
+      clearInterval(interval);
+      events.forEach((e) => window.removeEventListener(e, onActivity));
+      document.removeEventListener("visibilitychange", onActivity);
+    };
   }, [fetchData]);
 
   // ─── Loading skeleton ────────────────────────────────
