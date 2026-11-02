@@ -1,9 +1,16 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
+import {
+  ADMIN_SESSION_COOKIE,
+  ADMIN_SESSION_TTL_MS,
+  adminSessionCookieOptions,
+  renewedExpiry,
+} from "@/lib/admin-session-policy";
 
-const ADMIN_SESSION_COOKIE = "admin_session";
-const SESSION_MAX_AGE_MS = 4 * 60 * 60 * 1000; // 4 hours
+// 90 days, renewed at most once a day while the device is in use, so the owner
+// stays signed in on a device. See lib/admin-session-policy.ts.
+const SESSION_MAX_AGE_MS = ADMIN_SESSION_TTL_MS;
 
 // ── Create a cryptographically secure session stored in DB ──
 
@@ -38,13 +45,9 @@ export async function getSession(): Promise<string | null> {
 
 export async function setSessionCookie(token: string): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: SESSION_MAX_AGE_MS / 1000, // 4 hours in seconds
-    path: "/",
-  });
+  // Lax, not Strict: a tap on a notification opens the admin from another app, and
+  // Strict cookies are not sent then. See lib/admin-session-policy.ts.
+  cookieStore.set(ADMIN_SESSION_COOKIE, token, adminSessionCookieOptions());
 }
 
 // ── Clear the session cookie AND delete from DB ──
@@ -79,6 +82,15 @@ export async function isAuthenticated(): Promise<boolean> {
       // Expired — clean up
       await prisma.adminSession.delete({ where: { id: session.id } }).catch(() => {});
       return false;
+    }
+
+    // Sliding renewal: a session last renewed more than a day ago gets a fresh 90
+    // days. At most one write per device per day. A failed write is not a sign-out.
+    const nextExpiry = renewedExpiry(session.expiresAt);
+    if (nextExpiry) {
+      await prisma.adminSession
+        .update({ where: { id: session.id }, data: { expiresAt: nextExpiry } })
+        .catch(() => {});
     }
 
     return true;

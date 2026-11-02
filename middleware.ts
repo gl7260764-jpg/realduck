@@ -13,6 +13,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import deleted from "./lib/deletedSlugs.generated.json";
+import { ADMIN_SESSION_COOKIE, adminSessionCookieOptions } from "./lib/admin-session-policy";
 
 const DELETED_PRODUCTS = new Set<string>(deleted.products || []);
 const DELETED_BLOGS = new Set<string>(deleted.blogs || []);
@@ -33,6 +34,11 @@ function gone(): NextResponse {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Signed-in admin page: keep the session cookie's 90 days fresh so a device in use
+  // stays signed in (lib/admin-session-policy.ts). No DB here; lib/auth.ts still
+  // checks the session row and renews it at most once a day.
+  if (pathname.startsWith("/admin")) return keepAdminCookie(request);
+
   // /product/<slug> or /product/<slug>/
   const productMatch = pathname.match(/^\/product\/([^/]+)\/?$/);
   if (productMatch) {
@@ -50,6 +56,20 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+function keepAdminCookie(request: NextRequest): NextResponse {
+  const response = NextResponse.next();
+  const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  if (token) response.cookies.set(ADMIN_SESSION_COOKIE, token, adminSessionCookieOptions());
+  return response;
+}
+
 export const config = {
-  matcher: ["/product/:path*", "/blog/:path*"],
+  matcher: [
+    "/product/:path*",
+    "/blog/:path*",
+    // Only runs when an admin session cookie is present, so signed-out visitors and
+    // the public site never invoke it. Keep the key equal to ADMIN_SESSION_COOKIE
+    // (the matcher must be a literal).
+    { source: "/admin/:path*", has: [{ type: "cookie", key: "admin_session" }] },
+  ],
 };
