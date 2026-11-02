@@ -43,11 +43,22 @@ function extractDomain(referer: string | undefined): string | undefined {
 }
 
 
+const BOT_UA =
+  /(?<!cu)bot|crawl|spider|slurp|bingpreview|facebookexternalhit|embedly|quora link preview|whatsapp|telegrambot|discordbot|preview|headless|lighthouse|pagespeed|gtmetrix|pingdom|uptime|monitor|curl|wget|python-requests|axios|node-fetch|go-http-client|okhttp|java\//i;
+
 export async function POST(request: NextRequest) {
   try {
     // Skip tracking from localhost and Vercel preview deploys
     const host = request.headers.get("host") || "";
     if (host.includes("localhost") || host.includes("127.0.0.1") || host.includes("vercel.app")) {
+      return NextResponse.json({ success: true, skipped: true });
+    }
+
+    // Crawlers and headless tools that execute JS would otherwise each write
+    // a PageView row (and wake the database) — they are not visitors. ("Cubot"
+    // is a phone brand, hence the lookbehind.)
+    const ua = request.headers.get("user-agent") || "";
+    if (!ua || BOT_UA.test(ua)) {
       return NextResponse.json({ success: true, skipped: true });
     }
 

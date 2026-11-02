@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getHiddenCategories } from "@/lib/categoryVisibility";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 /**
  * Tiny slug-only endpoint used by client components that hold product

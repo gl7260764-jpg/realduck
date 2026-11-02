@@ -3,6 +3,7 @@ import { DM_Sans } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import ClientProvider from "./components/ClientProvider";
+import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 
 const dmSans = DM_Sans({
@@ -139,9 +140,17 @@ export const metadata: Metadata = {
   category: "shopping",
 };
 
+// Cached so dynamic routes (admin, checkout, orders) don't query site settings
+// on every request; the admin settings save revalidates the "site-settings" tag.
+const getSettingRows = unstable_cache(
+  () => prisma.siteSetting.findMany({ select: { key: true, value: true } }),
+  ["site-settings-rows"],
+  { revalidate: 300, tags: ["site-settings"] },
+);
+
 async function getSettings() {
   try {
-    const rows = await prisma.siteSetting.findMany();
+    const rows = await getSettingRows();
     const map: Record<string, string> = {};
     for (const row of rows) map[row.key] = row.value;
     return {

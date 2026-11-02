@@ -85,6 +85,23 @@ interface ForegroundNotification {
   image?: string;
 }
 
+/**
+ * True at most once per `ms` for `key` in this browser. The push-subscription
+ * re-sync and the PWA "opened" ping ran on every full page load (twice for an
+ * installed app), each one a database write; a subscription that is still valid
+ * only needs re-confirming occasionally.
+ */
+function dueAtMostEvery(key: string, ms: number): boolean {
+  try {
+    const last = Number(localStorage.getItem(key) || 0);
+    if (last && Date.now() - last < ms) return false;
+    localStorage.setItem(key, String(Date.now()));
+  } catch {}
+  return true;
+}
+const PUSH_RESYNC_MS = 24 * 60 * 60_000;
+const PWA_OPEN_PING_MS = 30 * 60_000;
+
 export default function PwaManager() {
   const [showNotifBanner, setShowNotifBanner] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -167,8 +184,9 @@ export default function PwaManager() {
 
     if (isStandalone) {
       setInstalled(true);
-      // Ping the server so PwaInstall.lastOpenedAt is bumped every app open.
-      trackInstall();
+      // Ping the server so PwaInstall.lastOpenedAt is bumped on app open
+      // (at most every 30 min — a reload is not a new open).
+      if (dueAtMostEvery("pwa_open_ping_at", PWA_OPEN_PING_MS)) trackInstall();
 
       // PWA user — check if they've accepted push notifications.
       // We do NOT auto-call Notification.requestPermission() silently any
@@ -197,6 +215,7 @@ export default function PwaManager() {
 
             // Already accepted & key matches — sync server record.
             setSubscribed(true);
+            if (!dueAtMostEvery("push_resync_at", PUSH_RESYNC_MS)) return;
             const json = existingSub.toJSON();
             fetch("/api/push", {
               method: "POST",
@@ -272,21 +291,23 @@ export default function PwaManager() {
             } else {
               // Already subscribed — refresh server-side record
               setSubscribed(true);
-              const json = existingSub.toJSON();
-              fetch("/api/push", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  subscription: { endpoint: json.endpoint, keys: json.keys },
-                  sessionId: getSessionId(),
-                }),
-              })
-                .then((r) => {
-                  if (r.ok) localStorage.setItem("nobu_push_subscribed", "1");
+              if (dueAtMostEvery("push_resync_at", PUSH_RESYNC_MS)) {
+                const json = existingSub.toJSON();
+                fetch("/api/push", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    subscription: { endpoint: json.endpoint, keys: json.keys },
+                    sessionId: getSessionId(),
+                  }),
                 })
-                .catch((err) => {
-                  console.warn("Failed to refresh push subscription:", err);
-                });
+                  .then((r) => {
+                    if (r.ok) localStorage.setItem("nobu_push_subscribed", "1");
+                  })
+                  .catch((err) => {
+                    console.warn("Failed to refresh push subscription:", err);
+                  });
+              }
             }
           } else if ("Notification" in window && Notification.permission === "granted") {
             // Permission already granted but no subscription — re-subscribe

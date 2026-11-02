@@ -12,7 +12,7 @@ import { getHiddenCategories } from "@/lib/categoryVisibility";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
-export const revalidate = 60;
+export const revalidate = 300; // product edits revalidatePath() on save; this is only the backstop
 
 async function getProducts() {
   // Select only the fields the homepage CLIENT component actually renders.

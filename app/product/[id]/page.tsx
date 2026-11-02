@@ -14,7 +14,7 @@ import { getCategorySlug } from "@/lib/categoryContent";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://realduckdistro.com";
 
-export const revalidate = 60;
+export const revalidate = 300; // product edits revalidatePath() on save; this is only the backstop
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;

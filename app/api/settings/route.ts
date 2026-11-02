@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-// Always fetch fresh — admin edits must be reflected immediately without
-// waiting for Vercel's default edge cache / ISR to expire.
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Every page load fetches this, so it must not hit the database per visitor.
+// Served from the ISR cache for up to 5 minutes; an admin save calls
+// revalidatePath("/api/settings") (see /api/admin/settings) so edits still show
+// at once.
+export const revalidate = 300;
 
 const DEFAULT_SETTINGS: Record<string, string> = {
   telegramOrder: "https://t.me/realduckdistrola",
@@ -38,12 +39,8 @@ export async function GET() {
         settings[row.key] = row.value;
       }
     }
-    return NextResponse.json(settings, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    });
+    return NextResponse.json(settings);
   } catch {
-    return NextResponse.json(DEFAULT_SETTINGS, {
-      headers: { "Cache-Control": "no-store, max-age=0" },
-    });
+    return NextResponse.json(DEFAULT_SETTINGS);
   }
 }

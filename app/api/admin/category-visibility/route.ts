@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { isAuthenticated } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ALL_CATEGORIES, invalidateHiddenCategoriesCache } from "@/lib/categoryVisibility";
@@ -45,6 +46,9 @@ export async function PUT(req: NextRequest) {
       await prisma.siteSetting.deleteMany({ where: { key: "hiddenCategories" } });
     }
     invalidateHiddenCategoriesCache();
+    // ISR pages and /api/products/available-slugs cache for 5 min; purge them
+    // so a hidden/unhidden category shows at once.
+    revalidatePath("/", "layout");
     return NextResponse.json({ hidden: valid });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

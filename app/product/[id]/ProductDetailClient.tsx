@@ -104,6 +104,14 @@ export default function ProductDetailClient({
     const sessionId = typeof window !== "undefined"
       ? sessionStorage.getItem("analytics_session_id") || ""
       : "";
+    // One ProductView per product per session per 30 min: reloads and
+    // back/forward no longer each write a row and wake the database.
+    try {
+      const key = `analytics_pv:${product.id}`;
+      const last = Number(sessionStorage.getItem(key) || 0);
+      if (last && Date.now() - last < 30 * 60_000) return;
+      sessionStorage.setItem(key, String(Date.now()));
+    } catch {}
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

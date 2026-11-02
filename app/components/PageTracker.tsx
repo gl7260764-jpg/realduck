@@ -43,6 +43,26 @@ function getDisplayMode(): string {
   return "browser";
 }
 
+/**
+ * True when this exact URL was already recorded in this browser session within
+ * the last 30 minutes. Reloads, back/forward and React re-mounts otherwise each
+ * wrote a fresh PageView row (and woke the database). A genuinely new visit —
+ * another tab session, or the same page after 30 minutes — is still recorded,
+ * with its geo, so no analytics information is lost, only duplicate writes.
+ */
+const DEDUPE_MS = 30 * 60_000;
+function recentlyTracked(url: string): boolean {
+  try {
+    const key = `analytics_seen:${url}`;
+    const last = Number(sessionStorage.getItem(key) || 0);
+    if (last && Date.now() - last < DEDUPE_MS) return true;
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    // Storage blocked (private mode etc.) — fall through and track.
+  }
+  return false;
+}
+
 export default function PageTracker() {
   const pathname = usePathname();
   const lastTracked = useRef("");
@@ -58,6 +78,7 @@ export default function PageTracker() {
     // The old behavior of pathname-only meant UTM tags from external links
     // (e.g. ?utm_source=motion) got dropped entirely.
     const fullUrl = window.location.pathname + window.location.search;
+    if (recentlyTracked(fullUrl)) return;
     const firstTouchReferer = getFirstTouchReferer();
     const displayMode = getDisplayMode();
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { isAuthenticated } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
@@ -74,6 +75,9 @@ export async function PUT(req: NextRequest) {
 
     if (operations.length > 0) {
       await prisma.$transaction(operations);
+      // Public settings are cached (see /api/settings and the root layout).
+      revalidatePath("/api/settings");
+      revalidateTag("site-settings");
     }
 
     return NextResponse.json({ success: true });
