@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
                 (existing ? "\n(re-subscribed)" : ""),
               clickUrl: SITE_URL + "/admin/newsletter",
               tags: ["mailbox_with_mail"],
-              priority: 3,
+              priority: 5,
             },
             config,
           ).then((res) => {

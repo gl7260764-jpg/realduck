@@ -14,7 +14,7 @@ export interface NtfyArgs {
   clickUrl?: string;
   // Emoji shortcodes shown before the title, e.g. ["shopping_cart"].
   tags?: string[];
-  // 1=min … 3=default … 5=max. Orders use 4 (high) so they buzz.
+  // 1=min … 3=default … 5=max. Defaults to 5 so every owner alert alarms.
   priority?: 1 | 2 | 3 | 4 | 5;
 }
 
@@ -52,7 +52,7 @@ export async function sendNtfy(
   const headers: Record<string, string> = {
     "Content-Type": "text/plain; charset=utf-8",
     Title: asciiHeader(args.title),
-    Priority: String(args.priority ?? 3),
+    Priority: String(args.priority ?? 5),
   };
   if (args.tags && args.tags.length) headers.Tags = args.tags.join(",");
   if (args.clickUrl) headers.Click = args.clickUrl;

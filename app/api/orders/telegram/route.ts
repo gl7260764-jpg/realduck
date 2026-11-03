@@ -317,7 +317,7 @@ export async function POST(request: NextRequest) {
           message: msg,
           clickUrl: SITE_URL + "/admin/orders",
           tags: ["zap"],
-          priority: 4,
+          priority: 5,
         },
         config,
       );
