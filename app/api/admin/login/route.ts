@@ -34,7 +34,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!verifyCredentials(username, password)) {
+    if (
+      typeof username !== "string" ||
+      typeof password !== "string" ||
+      !(await verifyCredentials(username, password))
+    ) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }

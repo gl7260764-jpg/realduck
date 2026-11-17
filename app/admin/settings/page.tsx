@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Send, MessageSquare, CheckCircle, AlertCircle, Loader2, ExternalLink, Bot, Mail, Server, Shield, Eye, EyeOff, Music, Phone, MessageCircle, Settings as SettingsIcon, Link2 } from "lucide-react";
+import { Save, Send, MessageSquare, CheckCircle, AlertCircle, Loader2, ExternalLink, Bot, Mail, Server, Shield, Eye, EyeOff, Music, Phone, MessageCircle, Settings as SettingsIcon, Link2, KeyRound, User } from "lucide-react";
 
 // Telegram Icon
 const TelegramIcon = ({ className }: { className?: string }) => (
@@ -39,13 +39,14 @@ interface Settings {
   brevoSenderName: string;
 }
 
-type SectionKey = "social" | "telegram" | "email" | "brevo";
+type SectionKey = "social" | "telegram" | "email" | "brevo" | "account";
 
 const SECTIONS: Array<{ key: SectionKey; label: string; description: string; icon: typeof Link2 }> = [
   { key: "social", label: "Social & contact links", description: "Public-facing channels — shown in navbar, footer, and order success pages.", icon: Link2 },
   { key: "telegram", label: "Telegram bot", description: "Bot credentials for receiving live order notifications.", icon: Bot },
   { key: "email", label: "Email & SMTP", description: "Outbound email server config + admin notification address.", icon: Mail },
   { key: "brevo", label: "Brevo (email delivery)", description: "Route outbound mail + newsletter campaigns through Brevo for better deliverability.", icon: Send },
+  { key: "account", label: "Admin account", description: "Change the username and password used to sign in to this panel.", icon: KeyRound },
 ];
 
 export default function SettingsPage() {
@@ -333,6 +334,7 @@ export default function SettingsPage() {
               type="button"
               onClick={handleSave}
               disabled={saving}
+              hidden={activeSection === "account"}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -554,6 +556,9 @@ export default function SettingsPage() {
           </section>
           )}
 
+          {/* ADMIN ACCOUNT — saved by its own button, not the sticky "Save changes" */}
+          {activeSection === "account" && <AccountSection />}
+
           {/* Mobile-only inline status (desktop has it in the sticky bar) */}
           {(status === "success" || status === "error") && (
             <div className="sm:hidden">
@@ -572,6 +577,194 @@ export default function SettingsPage() {
         </main>
       </div>
     </div>
+  );
+}
+
+// ─── Admin account ──────────────────────────────────────────────────────
+
+function AccountSection() {
+  const router = useRouter();
+  const [currentUsername, setCurrentUsername] = useState("");
+  const [source, setSource] = useState<"database" | "env">("env");
+  const [loading, setLoading] = useState(true);
+  const [newUsername, setNewUsername] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [show, setShow] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/account")
+      .then((r) => {
+        if (r.status === 401) { router.push("/admin/login"); return null; }
+        return r.json();
+      })
+      .then((data) => {
+        if (!data || typeof data.username !== "string") return;
+        setCurrentUsername(data.username);
+        setNewUsername(data.username);
+        setSource(data.source === "database" ? "database" : "env");
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  const toggle = (k: string) => setShow((p) => ({ ...p, [k]: !p[k] }));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(null);
+    const trimmedUser = newUsername.trim();
+    if (newPassword && newPassword !== confirmPassword) {
+      setMessage({ type: "error", text: "New passwords don't match." });
+      return;
+    }
+    if (newPassword && newPassword.length < 8) {
+      setMessage({ type: "error", text: "New password must be at least 8 characters." });
+      return;
+    }
+    if (trimmedUser === currentUsername && !newPassword) {
+      setMessage({ type: "error", text: "Change the username or enter a new password." });
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/account", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newUsername: trimmedUser, newPassword }),
+      });
+      if (res.status === 401) { router.push("/admin/login"); return; }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setMessage({ type: "error", text: data.error || "Failed to update account." });
+        return;
+      }
+      setCurrentUsername(data.username || trimmedUser);
+      setSource("database");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setMessage({ type: "success", text: "Account updated. Other signed-in devices have been signed out." });
+    } catch {
+      setMessage({ type: "error", text: "Failed to update account. Try again." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputCls = "w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition-all";
+
+  const passwordInput = (key: string, value: string, set: (v: string) => void, autoComplete: string, placeholder: string) => (
+    <div className="relative">
+      <input
+        type={show[key] ? "text" : "password"}
+        value={value}
+        onChange={(e) => set(e.target.value)}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        className={`${inputCls} pr-9`}
+      />
+      <button
+        type="button"
+        onClick={() => toggle(key)}
+        aria-label={show[key] ? "Hide password" : "Show password"}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1"
+      >
+        {show[key] ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+      </button>
+    </div>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 text-slate-300 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <section className="admin-fade-in">
+      <SectionHeader
+        title="Admin account"
+        description="Change the username and password used to sign in to this panel. Your current password is required for any change. Saving signs out every other device."
+        badge="Sensitive"
+      />
+
+      {source === "env" && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-50/60 border border-blue-100 flex items-start gap-2">
+          <SettingsIcon className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+          <p className="text-[12px] text-blue-800/90 leading-relaxed">
+            You&apos;re signing in with the credentials from the server&apos;s environment variables. Once you save here,
+            the new username and password take over and the environment ones stop working.
+          </p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+        <FieldCard
+          icon={<User className="w-4 h-4 text-slate-600" />}
+          label="Username"
+          description={`Currently signed in as “${currentUsername}”.`}
+        >
+          <input
+            type="text"
+            value={newUsername}
+            onChange={(e) => setNewUsername(e.target.value)}
+            autoComplete="username"
+            placeholder="admin"
+            className={inputCls}
+          />
+        </FieldCard>
+
+        <FieldCard
+          icon={<Shield className="w-4 h-4 text-rose-500" />}
+          label="Current password"
+          description="Required to confirm it's you."
+        >
+          {passwordInput("current", currentPassword, setCurrentPassword, "current-password", "••••••••")}
+        </FieldCard>
+
+        <FieldCard
+          icon={<KeyRound className="w-4 h-4 text-slate-600" />}
+          label="New password"
+          description="At least 8 characters. Leave blank to keep the current password."
+        >
+          {passwordInput("new", newPassword, setNewPassword, "new-password", "New password")}
+        </FieldCard>
+
+        <FieldCard
+          icon={<KeyRound className="w-4 h-4 text-slate-600" />}
+          label="Confirm new password"
+          description="Type the new password again."
+        >
+          {passwordInput("confirm", confirmPassword, setConfirmPassword, "new-password", "Repeat new password")}
+        </FieldCard>
+
+        <div className="md:col-span-2 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+          {message && (
+            <div
+              role="status"
+              className={`flex items-center gap-1.5 text-sm font-medium ${message.type === "success" ? "text-emerald-600" : "text-rose-600"}`}
+            >
+              {message.type === "success" ? <CheckCircle className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+              {message.text}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={saving || !currentPassword}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? "Updating…" : "Update account"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
 

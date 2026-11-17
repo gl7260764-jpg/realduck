@@ -99,27 +99,93 @@ export async function isAuthenticated(): Promise<boolean> {
   }
 }
 
-// ── Verify admin credentials ──
+// ── Password hashing (scrypt, built into Node — no extra deps) ──
+// Stored as "scrypt$<salt hex>$<hash hex>".
 
-export function verifyCredentials(username: string, password: string): boolean {
+const SCRYPT_KEYLEN = 64;
+
+export function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16);
+  const hash = crypto.scryptSync(password, salt, SCRYPT_KEYLEN);
+  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`;
+}
+
+function verifyPasswordHash(password: string, stored: string): boolean {
+  const [scheme, saltHex, hashHex] = stored.split("$");
+  if (scheme !== "scrypt" || !saltHex || !hashHex) return false;
+  const expected = Buffer.from(hashHex, "hex");
+  const actual = crypto.scryptSync(password, Buffer.from(saltHex, "hex"), expected.length);
+  return crypto.timingSafeEqual(expected, actual);
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ab.length === bb.length && crypto.timingSafeEqual(ab, bb);
+}
+
+// ── Admin account ──
+// Credentials saved from Admin → Settings → Admin account (the Admin table) take
+// over from the ADMIN_USERNAME / ADMIN_PASSWORD env vars. The env vars are only
+// used until the first change is saved. If the DB can't be read, login is refused
+// rather than falling back to the env vars, so an old password never comes back.
+
+export type AdminAccountSource = "database" | "env";
+
+export async function getAdminAccount(): Promise<{ username: string; source: AdminAccountSource } | null> {
+  const row = await prisma.admin.findFirst({ orderBy: { createdAt: "desc" } });
+  if (row) return { username: row.username, source: "database" };
+  const envUser = process.env.ADMIN_USERNAME;
+  return envUser ? { username: envUser, source: "env" } : null;
+}
+
+export async function verifyCredentials(username: string, password: string): Promise<boolean> {
+  let row;
+  try {
+    row = await prisma.admin.findFirst({ orderBy: { createdAt: "desc" } });
+  } catch (e) {
+    console.error("Admin credential lookup failed:", e);
+    return false;
+  }
+
+  if (row) {
+    const usernameMatch = safeEqual(row.username, username);
+    const passwordMatch = verifyPasswordHash(password, row.password);
+    return usernameMatch && passwordMatch;
+  }
+
   const adminUsername = process.env.ADMIN_USERNAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminUsername || !adminPassword) {
-    console.error("ADMIN_USERNAME or ADMIN_PASSWORD env vars are not set");
+    console.error("No admin account in the database and ADMIN_USERNAME / ADMIN_PASSWORD env vars are not set");
     return false;
   }
 
-  // Use timing-safe comparison to prevent timing attacks
-  const usernameMatch =
-    adminUsername.length === username.length &&
-    crypto.timingSafeEqual(Buffer.from(adminUsername), Buffer.from(username));
-
-  const passwordMatch =
-    adminPassword.length === password.length &&
-    crypto.timingSafeEqual(Buffer.from(adminPassword), Buffer.from(password));
-
+  // Timing-safe comparison to prevent timing attacks
+  const usernameMatch = safeEqual(adminUsername, username);
+  const passwordMatch = safeEqual(adminPassword, password);
   return usernameMatch && passwordMatch;
+}
+
+// Replaces the stored account, renames the current session, and signs out every
+// other device so the old password stops working everywhere at once.
+export async function updateAdminAccount(
+  username: string,
+  password: string,
+  currentToken: string | null
+): Promise<void> {
+  const hashed = hashPassword(password);
+  await prisma.$transaction([
+    prisma.admin.deleteMany({}),
+    prisma.admin.create({ data: { username, password: hashed } }),
+    prisma.adminSession.deleteMany({
+      where: currentToken ? { token: { not: currentToken } } : {},
+    }),
+    ...(currentToken
+      ? [prisma.adminSession.updateMany({ where: { token: currentToken }, data: { username } })]
+      : []),
+  ]);
 }
 
 // ── Cleanup expired sessions (call periodically) ──
